@@ -1,6 +1,6 @@
 .section {
-    padding: 80px 20px;
-    background: var(--color-background);
+    padding: 100px 20px;
+    background: var(--color-secondary);
 }
 
 .titleWrapper {
@@ -10,46 +10,48 @@
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
 }
 
 .card {
-    background: var(--color-secondary);
+    background: #fff;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    position: relative;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid var(--color-border);
     display: flex;
     flex-direction: column;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
 }
 
 .card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-    border-color: var(--color-primary);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(99, 102, 241, 0.12);
 }
 
 .imageWrapper {
-    height: 220px;
+    height: 200px;
     position: relative;
     overflow: hidden;
+    background: var(--color-secondary);
 }
 
 .image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.6s ease;
+    transition: transform 0.4s ease;
 }
 
 .card:hover .image {
-    transform: scale(1.1);
+    transform: scale(1.03);
 }
 
 .content {
-    padding: 25px;
+    padding: 24px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -59,37 +61,39 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .name {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #fff;
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--color-foreground);
 }
 
 .price {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     color: var(--color-primary);
     font-weight: 600;
-    background: rgba(212, 175, 55, 0.1);
-    padding: 5px 12px;
-    border-radius: 20px;
+    background: var(--color-primary-light);
+    padding: 6px 14px;
+    border-radius: 50px;
+    white-space: nowrap;
 }
 
 .description {
     color: var(--color-text-muted);
     font-size: 0.95rem;
-    line-height: 1.5;
-    margin-bottom: 20px;
+    line-height: 1.6;
+    margin-bottom: 18px;
     flex-grow: 1;
 }
 
 .features {
     list-style: none;
-    margin-bottom: 25px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 15px;
+    margin-bottom: 20px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 14px;
 }
 
 .feature {
@@ -97,7 +101,7 @@
     align-items: center;
     gap: 10px;
     font-size: 0.9rem;
-    color: #ccc;
+    color: var(--color-text-muted);
     margin-bottom: 8px;
 }
 
@@ -105,23 +109,24 @@
     content: '✓';
     color: var(--color-primary);
     font-weight: bold;
+    font-size: 0.85rem;
 }
 
 .bookButton {
     width: 100%;
-    padding: 14px;
+    padding: 13px;
     background: transparent;
-    border: 1px solid var(--color-primary);
+    border: 1.5px solid rgba(99, 102, 241, 0.25);
     color: var(--color-primary);
-    font-weight: 700;
-    border-radius: var(--radius-md);
-    transition: all 0.3s;
-    text-transform: uppercase;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.25s ease;
     font-size: 0.9rem;
-    letter-spacing: 1px;
 }
 
 .bookButton:hover {
-    background: var(--color-primary);
-    color: #000;
+    background: linear-gradient(135deg, var(--color-primary), #818CF8);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Calendar, Clock, User, Phone, Users, ChevronRight, ChevronLeft } from 'lucide-react';
 import styles from './BookingForm.module.css';
+import { useCity } from '@/context/CityContext';
 
 const CITIES = ["Москва", "Казань", "Уфа", "Самара", "Набережные Челны", "Нижний Новгород", "Санкт-Петербург", "Сочи", "Адлер", "Екатеринбург", "Челябинск", "Пермь"];
 
@@ -15,10 +16,19 @@ const TARIFFS = [
 ];
 
 export default function BookingForm() {
+    const { currentCity } = useCity();
     const [step, setStep] = useState(1);
 
     // Form State
-    const [fromCity, setFromCity] = useState('');
+    const [fromCity, setFromCity] = useState(currentCity?.name || '');
+
+    // Update form when city changes globally
+    useEffect(() => {
+        if (currentCity) {
+            setFromCity(currentCity.name);
+        }
+    }, [currentCity]);
+
     const [toCity, setToCity] = useState('');
     const [tariff, setTariff] = useState('standart');
 

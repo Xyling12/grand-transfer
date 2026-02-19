@@ -2,7 +2,8 @@
 
 import styles from './Footer.module.css';
 import Link from 'next/link';
-import { Phone, Mail, MapPin, Car, MessageCircle } from 'lucide-react';
+import { Phone, Mail, MapPin, Car } from 'lucide-react';
+import { VKIcon, TelegramIcon, WhatsAppIcon } from './SocialIcons';
 
 export default function Footer() {
     return (
@@ -19,9 +20,9 @@ export default function Footer() {
                             Работаем в Поволжье и по всей России.
                         </p>
                         <div className={styles.socials}>
-                            <a href="#" className={styles.socialLink} aria-label="VK"><MessageCircle size={20} /></a>
-                            <a href="#" className={styles.socialLink} aria-label="Telegram"><div style={{ fontSize: 14, fontWeight: 'bold' }}>TG</div></a>
-                            <a href="#" className={styles.socialLink} aria-label="WhatsApp"><div style={{ fontSize: 14, fontWeight: 'bold' }}>WA</div></a>
+                            <a href="#" className={styles.socialLink} aria-label="VK"><VKIcon size={20} /></a>
+                            <a href="#" className={styles.socialLink} aria-label="Telegram"><TelegramIcon size={20} /></a>
+                            <a href="#" className={styles.socialLink} aria-label="WhatsApp"><WhatsAppIcon size={20} /></a>
                         </div>
                     </div>
 

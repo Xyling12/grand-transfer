@@ -4,12 +4,17 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import styles from './Hero.module.css';
 
+import { useCity } from '@/context/CityContext';
+
 export default function Hero() {
+    const { currentCity } = useCity();
+
     return (
         <section className={styles.hero}>
             <div className={styles.content}>
                 <h1 className={styles.title}>
-                    GrandTransfer – <span className={styles.highlight}>Ваш личный стандарт путешествий</span>
+                    Такси из {currentCity.namePrepositional}<br />
+                    <span className={styles.highlight}>Ваш личный стандарт путешествий</span>
                 </h1>
                 <p className={styles.subtitle}>
                     Междугороднее такси, где комфорт и безопасность – не опции, а стандарт.

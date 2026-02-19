@@ -5,8 +5,8 @@ import {
     ShieldCheck,
     Armchair,
     Clock,
-    Headphones,
-    Map
+    PhoneCall,
+    Globe
 } from 'lucide-react';
 import styles from './WhyChooseUs.module.css';
 
@@ -32,12 +32,12 @@ const features = [
         description: "Подача автомобиля точно ко времени. Бесплатное ожидание в аэропорту при задержке рейса."
     },
     {
-        icon: Headphones,
+        icon: PhoneCall,
         title: "24/7 Поддержка",
         description: "Наш диспетчер всегда на связи, чтобы помочь с любым вопросом в любое время суток."
     },
     {
-        icon: Map,
+        icon: Globe,
         title: "Любые расстояния",
         description: "Комфортные поездки в другие города, аэропорты и регионы. Мы прокладываем оптимальный маршрут."
     }

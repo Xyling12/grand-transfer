@@ -1,73 +1,92 @@
 .hero {
     position: relative;
-    height: 100vh;
-    min-height: 600px;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1920&auto=format&fit=crop') no-repeat center center/cover;
-    color: #fff;
+    background: linear-gradient(170deg, #EEF2FF 0%, #FAFBFF 40%, #FDF2F8 100%);
+    color: var(--color-foreground);
     text-align: center;
-    padding: 0 20px;
+    padding: 120px 20px 80px;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 60%);
+    pointer-events: none;
 }
 
 .content {
-    max-width: 900px;
-    z-index: 1;
+    max-width: 800px;
+    z-index: 2;
+    position: relative;
 }
 
 .title {
-    font-size: 3.5rem;
-    font-weight: 800;
-    margin-bottom: 2rem;
-    line-height: 1.2;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    font-family: var(--font-heading);
+    font-size: 4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.15;
+    color: var(--color-foreground);
     animation: fadeInUp 0.8s ease-out;
 }
 
 .highlight {
-    color: var(--color-primary);
+    background: linear-gradient(135deg, #6366F1, #818CF8, #A78BFA);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     display: block;
-    /* Make it block to break line or inline-block */
 }
 
 .subtitle {
-    font-size: 1.25rem;
-    line-height: 1.6;
+    font-family: var(--font-body);
+    font-size: 1.15rem;
+    line-height: 1.7;
     margin-bottom: 2.5rem;
-    color: rgba(255, 255, 255, 0.9);
-    max-width: 700px;
+    color: var(--color-text-muted);
+    max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    font-weight: 400;
     animation: fadeInUp 0.8s ease-out 0.2s backwards;
 }
 
 .ctaButton {
-    background: var(--color-primary);
-    color: #000;
-    padding: 16px 40px;
+    background: linear-gradient(135deg, var(--color-primary), #818CF8);
+    color: #fff;
+    padding: 18px 44px;
     border-radius: 50px;
-    /* Pillow shape */
-    font-size: 1.1rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s;
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
     animation: fadeInUp 0.8s ease-out 0.4s backwards;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .ctaButton:hover {
-    background: var(--color-primary-hover);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.35);
+    color: #fff;
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(25px);
     }
 
     to {
@@ -83,5 +102,10 @@
 
     .subtitle {
         font-size: 1rem;
+    }
+
+    .ctaButton {
+        padding: 16px 36px;
+        font-size: 0.9rem;
     }
 }

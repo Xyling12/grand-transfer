@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Cormorant, Montserrat } from "next/font/google";
 import "./globals.css";
+import { CityProvider } from "@/context/CityContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const cormorant = Cormorant({
+  variable: "--font-cormorant",
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin", "cyrillic"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "GrandTransfer – Ваш личный стандарт путешествий",
-  description: "Междугороднее такси бизнес-класса. Комфорт, безопасность и фиксированные цены.",
+  title: "GrandTransfer – Межгородское такси",
+  description: "Межгородское такси, где комфорт и безопасность — не опция, а стандарт.",
 };
 
 export default function RootLayout({
@@ -24,8 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+      <body className={`${cormorant.variable} ${montserrat.variable}`}>
+        <CityProvider>
+          {children}
+        </CityProvider>
       </body>
     </html>
   );

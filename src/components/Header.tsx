@@ -2,11 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Phone, Car, MessageCircle } from 'lucide-react'; // Assuming lucide-react is installed
+import { Phone, Car, MapPin, ChevronDown } from 'lucide-react';
+import { VKIcon, TelegramIcon, WhatsAppIcon } from './SocialIcons';
 import styles from './Header.module.css';
+import { useCity } from '@/context/CityContext';
 
 export default function Header() {
     const [scrolled, setScrolled] = useState(false);
+    const { currentCity, setCity, cityList } = useCity();
+    const [isCityOpen, setIsCityOpen] = useState(false);
+
 
     useEffect(() => {
         const handleScroll = () => {
@@ -19,10 +24,79 @@ export default function Header() {
     return (
         <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ''}`}>
             <div className={styles.container}>
-                <Link href="/" className={styles.logo}>
-                    <Car size={28} />
-                    GrandTransfer
-                </Link>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <Link href="/" className={styles.logo}>
+                        <Car size={28} />
+                        GrandTransfer
+                    </Link>
+
+                    {/* City Selector */}
+                    <div style={{ position: 'relative' }}>
+                        <button
+                            onClick={() => setIsCityOpen(!isCityOpen)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                background: 'rgba(99, 102, 241, 0.1)',
+                                border: 'none',
+                                padding: '8px 12px',
+                                borderRadius: '20px',
+                                fontSize: '0.9rem',
+                                color: 'var(--color-primary)',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <MapPin size={16} />
+                            {currentCity.name}
+                            <ChevronDown size={14} />
+                        </button>
+
+                        {isCityOpen && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                marginTop: '10px',
+                                background: '#fff',
+                                borderRadius: '12px',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                                padding: '10px',
+                                minWidth: '200px',
+                                maxHeight: '300px',
+                                overflowY: 'auto',
+                                zIndex: 100,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '4px'
+                            }}>
+                                {cityList.map(city => (
+                                    <button
+                                        key={city.id}
+                                        onClick={() => {
+                                            setCity(city);
+                                            setIsCityOpen(false);
+                                        }}
+                                        style={{
+                                            textAlign: 'left',
+                                            background: currentCity.id === city.id ? 'var(--color-primary-light)' : 'transparent',
+                                            color: currentCity.id === city.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                            border: 'none',
+                                            padding: '8px 12px',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            fontSize: '0.9rem',
+                                            fontWeight: currentCity.id === city.id ? 600 : 400
+                                        }}
+                                    >
+                                        {city.name}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
 
                 <nav className={styles.nav}>
                     <div className={styles.navLinks}>
@@ -34,10 +108,9 @@ export default function Header() {
 
                     <div className={styles.actions}>
                         <div className={styles.socials}>
-                            {/* VK icon placeholder (using generic if Lucide doesn't have it, or custom SVG later) */}
-                            <a href="#" className={styles.socialIcon} aria-label="VK"><MessageCircle size={20} /></a>
-                            <a href="#" className={styles.socialIcon} aria-label="Telegram"><div style={{ fontSize: 14, fontWeight: 'bold' }}>TG</div></a>
-                            <a href="#" className={styles.socialIcon} aria-label="WhatsApp"><div style={{ fontSize: 14, fontWeight: 'bold' }}>WA</div></a>
+                            <a href="#" className={styles.socialIcon} aria-label="VK"><VKIcon size={20} /></a>
+                            <a href="#" className={styles.socialIcon} aria-label="Telegram"><TelegramIcon size={20} /></a>
+                            <a href="#" className={styles.socialIcon} aria-label="WhatsApp"><WhatsAppIcon size={20} /></a>
                         </div>
                         <button className={styles.callBtn}>
                             <Phone size={16} style={{ display: 'inline', marginRight: 8 }} />
