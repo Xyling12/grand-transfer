@@ -12,6 +12,7 @@ export interface CityData {
     namePrepositional: string;
     lat: number;
     lon: number;
+    heroImage?: string;
 }
 
 export interface City extends CityData {
@@ -41,12 +42,12 @@ function formatDuration(minutes: number): string {
 }
 
 const rawCities: CityData[] = [
-    { id: "izhevsk", name: "Ижевск", namePrepositional: "Ижевска", lat: 56.85, lon: 53.20 },
-    { id: "moscow", name: "Москва", namePrepositional: "Москвы", lat: 55.75, lon: 37.61 },
-    { id: "spb", name: "Санкт-Петербург", namePrepositional: "Санкт-Петербурга", lat: 59.93, lon: 30.33 },
+    { id: "izhevsk", name: "Ижевск", namePrepositional: "Ижевска", lat: 56.85, lon: 53.20, heroImage: "/images/cities/izhevsk.jpg" },
+    { id: "moscow", name: "Москва", namePrepositional: "Москвы", lat: 55.75, lon: 37.61, heroImage: "/images/cities/moscow.jpg" },
+    { id: "spb", name: "Санкт-Петербург", namePrepositional: "Санкт-Петербурга", lat: 59.93, lon: 30.33, heroImage: "/images/cities/spb.jpg" },
     { id: "novosibirsk", name: "Новосибирск", namePrepositional: "Новосибирска", lat: 55.00, lon: 82.93 },
     { id: "ekaterinburg", name: "Екатеринбург", namePrepositional: "Екатеринбурга", lat: 56.83, lon: 60.60 },
-    { id: "kazan", name: "Казань", namePrepositional: "Казани", lat: 55.79, lon: 49.10 },
+    { id: "kazan", name: "Казань", namePrepositional: "Казани", lat: 55.79, lon: 49.10, heroImage: "/images/cities/kazan.jpg" },
     { id: "nizhny", name: "Нижний Новгород", namePrepositional: "Нижнего Новгорода", lat: 56.32, lon: 44.00 },
     { id: "chelyabinsk", name: "Челябинск", namePrepositional: "Челябинска", lat: 55.16, lon: 61.43 },
     { id: "samara", name: "Самара", namePrepositional: "Самары", lat: 53.24, lon: 50.22 },
@@ -81,7 +82,7 @@ const rawCities: CityData[] = [
     { id: "tula", name: "Тула", namePrepositional: "Тулы", lat: 54.19, lon: 37.61 },
     { id: "kursk", name: "Курск", namePrepositional: "Курска", lat: 51.73, lon: 36.19 },
     { id: "stavropol", name: "Ставрополь", namePrepositional: "Ставрополя", lat: 45.04, lon: 41.96 },
-    { id: "sochi", name: "Сочи", namePrepositional: "Сочи", lat: 43.58, lon: 39.72 },
+    { id: "sochi", name: "Сочи", namePrepositional: "Сочи", lat: 43.58, lon: 39.72, heroImage: "/images/cities/sochi.jpg" },
     { id: "tver", name: "Тверь", namePrepositional: "Твери", lat: 56.85, lon: 35.91 },
     { id: "magnitogorsk", name: "Магнитогорск", namePrepositional: "Магнитогорска", lat: 53.41, lon: 58.97 },
     { id: "ivanovo", name: "Иваново", namePrepositional: "Иваново", lat: 57.00, lon: 40.97 },
