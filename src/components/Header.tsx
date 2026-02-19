@@ -105,19 +105,19 @@ export default function Header() {
                         <Link href="#reviews" className={styles.link}>Отзывы</Link>
                         <Link href="#contacts" className={styles.link}>Контакты</Link>
                     </div>
-
-                    <div className={styles.actions}>
-                        <div className={styles.socials}>
-                            <a href="#" className={styles.socialIcon} aria-label="VK"><VKIcon size={20} /></a>
-                            <a href="#" className={styles.socialIcon} aria-label="Telegram"><TelegramIcon size={20} /></a>
-                            <a href="#" className={styles.socialIcon} aria-label="WhatsApp"><WhatsAppIcon size={20} /></a>
-                        </div>
-                        <button className={styles.callBtn}>
-                            <Phone size={16} style={{ display: 'inline', marginRight: 8 }} />
-                            Позвонить
-                        </button>
-                    </div>
                 </nav>
+
+                <div className={styles.actions}>
+                    <div className={styles.socials}>
+                        <a href="#" className={styles.socialIcon} aria-label="VK"><VKIcon size={20} /></a>
+                        <a href="#" className={styles.socialIcon} aria-label="Telegram"><TelegramIcon size={20} /></a>
+                        <a href="#" className={styles.socialIcon} aria-label="WhatsApp"><WhatsAppIcon size={20} /></a>
+                    </div>
+                    <a href={`tel:${currentCity.phone.replace(/[^\d+]/g, '')}`} className={styles.callBtn}>
+                        <Phone size={18} className={styles.phoneIcon} />
+                        <span className={styles.phoneText}>{currentCity.phone}</span>
+                    </a>
+                </div>
             </div>
         </header>
     );
