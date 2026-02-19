@@ -4,8 +4,11 @@ import styles from './Footer.module.css';
 import Link from 'next/link';
 import { Phone, Mail, MapPin, Car } from 'lucide-react';
 import { VKIcon, TelegramIcon, WhatsAppIcon } from './SocialIcons';
+import { useCity } from '@/context/CityContext';
 
 export default function Footer() {
+    const { currentCity } = useCity();
+
     return (
         <footer className={styles.footer} id="contacts">
             <div className={styles.container}>
@@ -17,7 +20,7 @@ export default function Footer() {
                         </Link>
                         <p className={styles.description}>
                             Ваш надежный партнер в междугородних поездках. Комфорт бизнес-класса по доступным ценам.
-                            Работаем в Поволжье и по всей России.
+                            Работаем в {currentCity.namePrepositional} и по всей России.
                         </p>
                         <div className={styles.socials}>
                             <a href="#" className={styles.socialLink} aria-label="VK"><VKIcon size={20} /></a>
@@ -39,10 +42,11 @@ export default function Footer() {
                     <div className={styles.column}>
                         <h3 className={styles.heading}>Направления</h3>
                         <div className={styles.links}>
-                            <Link href="#" className={styles.link}>Казань - Москва</Link>
-                            <Link href="#" className={styles.link}>Казань - Уфа</Link>
-                            <Link href="#" className={styles.link}>Казань - Самара</Link>
-                            <Link href="#" className={styles.link}>Аэропорт - Отель</Link>
+                            {currentCity.popularRoutes.slice(0, 5).map((route, i) => (
+                                <Link key={i} href="#routes" className={styles.link}>
+                                    {currentCity.name} - {route.to}
+                                </Link>
+                            ))}
                         </div>
                     </div>
 
