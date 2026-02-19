@@ -1,12 +1,12 @@
-.hero {
+.heroSection {
     position: relative;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(170deg, #EEF2FF 0%, #FAFBFF 40%, #FDF2F8 100%);
-    /* Fallback */
-    color: var(--color-foreground);
+    /* Rich Dark Gradient Background */
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%);
+    color: #fff;
     text-align: center;
     padding: 120px 20px 80px;
     overflow: hidden;
@@ -19,57 +19,72 @@
     width: 100%;
     height: 100%;
     z-index: 0;
+    /* Abstract shapes or pattern could go here */
+}
+
+/* Optional: Add some abstract glow effects */
+.bgImage::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -10%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(60px);
+}
+
+.bgImage::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    right: -10%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(60px);
 }
 
 .image {
-    object-fit: cover;
+    display: none;
+    /* Hide image just in case */
 }
 
 .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.95) 100%);
-    z-index: 1;
-}
-
-.hero::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 800px;
-    height: 800px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 60%);
-    pointer-events: none;
+    /* No overlay needed if background is already dark, 
+       but we can keep a subtle texture or noise if wanted */
+    display: none;
 }
 
 .content {
     max-width: 800px;
     z-index: 2;
     position: relative;
+    color: #fff;
+    /* Ensure text is white on dark bg */
 }
 
 .title {
     font-family: var(--font-heading);
-    font-size: 4rem;
+    font-size: 3.5rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    line-height: 1.15;
-    color: var(--color-foreground);
+    line-height: 1.2;
+    color: #fff;
     animation: fadeInUp 0.8s ease-out;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .highlight {
-    background: linear-gradient(135deg, #6366F1, #818CF8, #A78BFA);
+    background: linear-gradient(135deg, #818CF8, #A78BFA);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     display: block;
+    margin-top: 10px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .subtitle {
@@ -77,34 +92,65 @@
     font-size: 1.15rem;
     line-height: 1.7;
     margin-bottom: 2.5rem;
-    color: var(--color-text-muted);
+    color: rgba(255, 255, 255, 0.9);
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
     font-weight: 400;
     animation: fadeInUp 0.8s ease-out 0.2s backwards;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-.ctaButton {
-    background: linear-gradient(135deg, var(--color-primary), #818CF8);
+.actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.8s ease-out 0.4s backwards;
+}
+
+.primaryBtn {
+    background: var(--color-primary);
     color: #fff;
-    padding: 18px 44px;
+    padding: 16px 32px;
     border-radius: 50px;
     font-size: 1rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
-    animation: fadeInUp 0.8s ease-out 0.4s backwards;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    border: none;
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    cursor: pointer;
 }
 
-.ctaButton:hover {
+.primaryBtn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.35);
+    background: var(--color-primary-hover);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+}
+
+.secondaryBtn {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
     color: #fff;
+    padding: 16px 32px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.secondaryBtn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-3px);
 }
 
 @keyframes fadeInUp {
@@ -121,15 +167,24 @@
 
 @media (max-width: 768px) {
     .title {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
     }
 
     .subtitle {
         font-size: 1rem;
     }
 
-    .ctaButton {
-        padding: 16px 36px;
-        font-size: 0.9rem;
+    .actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        width: 100%;
+        padding: 0 20px;
+    }
+
+    .primaryBtn,
+    .secondaryBtn {
+        justify-content: center;
+        width: 100%;
     }
 }

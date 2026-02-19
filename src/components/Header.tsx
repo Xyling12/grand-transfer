@@ -12,7 +12,6 @@ export default function Header() {
     const { currentCity, setCity, cityList } = useCity();
     const [isCityOpen, setIsCityOpen] = useState(false);
 
-
     useEffect(() => {
         const handleScroll = () => {
             setScrolled(window.scrollY > 50);

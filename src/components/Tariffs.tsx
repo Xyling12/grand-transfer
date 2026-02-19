@@ -47,6 +47,11 @@ const tariffs = [
     }
 ];
 
+// Tariffs.tsx partial update
+import { Check } from 'lucide-react';
+
+// ... imports
+
 export default function Tariffs() {
     return (
         <section className={`${styles.section} animate-on-scroll`} id="tariffs">
@@ -59,25 +64,38 @@ export default function Tariffs() {
                 <div className={styles.grid}>
                     {tariffs.map((tariff, index) => (
                         <div key={index} className={styles.card}>
-                            <div className={styles.imageWrapper}>
-                                <img
-                                    src={tariff.image}
-                                    alt={tariff.name}
-                                    className={styles.image}
-                                    loading="lazy"
-                                />
-                            </div>
-                            <div className={styles.content}>
-                                <div className={styles.header}>
-                                    <h3 className={styles.name}>{tariff.name}</h3>
-                                    <span className={styles.price}>{tariff.price}</span>
+                            {/* Dark Header */}
+                            <div className={styles.cardHeader}>
+                                <div className={styles.imageWrapper}>
+                                    <img
+                                        src={tariff.image}
+                                        alt={tariff.name}
+                                        className={styles.image}
+                                        loading="lazy"
+                                    />
                                 </div>
+                                <h3 className={styles.name}>{tariff.name}</h3>
+                                <div className={styles.cars}>{tariff.features[0]}</div>
+                            </div>
+
+                            {/* Light Body */}
+                            <div className={styles.cardBody}>
+                                <div className={styles.headerRow}>
+                                    <h4 className={styles.nameAlt}>{tariff.name}</h4>
+                                    <div className={styles.priceBadge}>{tariff.price}</div>
+                                </div>
+
                                 <p className={styles.description}>{tariff.description}</p>
+
                                 <ul className={styles.features}>
                                     {tariff.features.map((feature, i) => (
-                                        <li key={i} className={styles.feature}>{feature}</li>
+                                        <li key={i} className={styles.feature}>
+                                            <Check size={16} className={styles.featureIcon} />
+                                            {feature}
+                                        </li>
                                     ))}
                                 </ul>
+
                                 <button className={styles.bookButton}>Заказать</button>
                             </div>
                         </div>
