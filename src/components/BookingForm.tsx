@@ -84,7 +84,7 @@ export default function BookingForm() {
     };
 
     return (
-        <section className={styles.section} id="booking-form">
+        <section className={`${styles.section} animate-on-scroll`} id="booking-form">
             <div className={styles.container}>
                 <div className={styles.formCard}>
                     <div className={styles.stepIndicator}>

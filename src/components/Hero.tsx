@@ -6,11 +6,28 @@ import styles from './Hero.module.css';
 
 import { useCity } from '@/context/CityContext';
 
+import Image from 'next/image';
+
 export default function Hero() {
     const { currentCity } = useCity();
 
     return (
         <section className={styles.hero}>
+            {/* Optimized Background Image */}
+            {currentCity.heroImage && (
+                <div className={styles.bgImage}>
+                    <Image
+                        src={currentCity.heroImage}
+                        alt={`${currentCity.name} - background`}
+                        fill
+                        priority
+                        className={styles.image}
+                        sizes="100vw"
+                    />
+                    <div className={styles.overlay} />
+                </div>
+            )}
+
             <div className={styles.content}>
                 <h1 className={styles.title}>
                     Такси из {currentCity.namePrepositional}<br />

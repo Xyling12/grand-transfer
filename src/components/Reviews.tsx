@@ -33,7 +33,7 @@ const REVIEWS_LINK = "https://yandex.ru/maps";
 
 export default function Reviews() {
     return (
-        <section className={styles.section} id="reviews">
+        <section className={`${styles.section} animate-on-scroll`} id="reviews">
             <div className={styles.container}>
                 <div className={styles.header}>
                     <h2 className="section-title">Отзывы клиентов</h2>

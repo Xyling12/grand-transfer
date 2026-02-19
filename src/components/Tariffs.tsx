@@ -49,7 +49,7 @@ const tariffs = [
 
 export default function Tariffs() {
     return (
-        <section className={styles.section} id="tariffs">
+        <section className={`${styles.section} animate-on-scroll`} id="tariffs">
             <div className="container">
                 <div className={styles.titleWrapper}>
                     <h2 className="section-title">Наши Тарифы</h2>

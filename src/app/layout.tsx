@@ -2,17 +2,20 @@ import type { Metadata } from "next";
 import { Cormorant, Montserrat } from "next/font/google";
 import "./globals.css";
 import { CityProvider } from "@/context/CityContext";
+import ScrollAnimation from "@/components/ScrollAnimation";
 
 const cormorant = Cormorant({
   variable: "--font-cormorant",
   subsets: ["latin", "cyrillic"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin", "cyrillic"],
   weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -29,6 +32,7 @@ export default function RootLayout({
     <html lang="ru">
       <body className={`${cormorant.variable} ${montserrat.variable}`}>
         <CityProvider>
+          <ScrollAnimation />
           {children}
         </CityProvider>
       </body>
