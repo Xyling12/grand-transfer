@@ -104,8 +104,8 @@
 
 .button {
     width: 100%;
-    background: #FFD600;
-    color: #000;
+    background: var(--color-primary);
+    color: #fff;
     font-weight: 600;
     padding: 14px;
     border-radius: 14px;
@@ -114,12 +114,14 @@
     transition: all 0.2s ease;
     font-size: 1rem;
     text-align: center;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
 .button:hover {
-    background: #FFC107;
+    background: #4F46E5;
+    /* Darker Indigo */
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
 }
 
 @media (max-width: 768px) {
