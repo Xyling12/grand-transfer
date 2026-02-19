@@ -39,7 +39,8 @@ const downloadImage = (id) => {
             // Handle Redirects
             if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
                 // console.log(`Redirecting ${id}...`);
-                https.get(response.headers.location, handleResponse).on('error', (err) => {
+                const redirectUrl = new URL(response.headers.location, url).toString();
+                https.get(redirectUrl, handleResponse).on('error', (err) => {
                     console.error(`Error redirecting ${id}: ${err.message}`);
                     reject(err);
                 });
