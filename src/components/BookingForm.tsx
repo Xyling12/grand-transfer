@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { MapPin, Calendar, Clock, User, Phone, Users, ChevronRight, ChevronLeft } from 'lucide-react';
 import styles from './BookingForm.module.css';
 import { useCity } from '@/context/CityContext';
+import { cities } from '@/data/cities';
 
 const CITIES = ["Москва", "Казань", "Уфа", "Самара", "Набережные Челны", "Нижний Новгород", "Санкт-Петербург", "Сочи", "Адлер", "Екатеринбург", "Челябинск", "Пермь"];
 
@@ -147,6 +148,40 @@ export default function BookingForm() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Yandex Map Preview */}
+                                {(() => {
+                                    const city1 = cities.find(c => c.name === fromCity);
+                                    const city2 = cities.find(c => c.name === toCity);
+
+                                    if (city1 && city2 && city1.id !== city2.id) {
+                                        // Construct Yandex Maps URL
+                                        // rtext=lat1,lon1~lat2,lon2
+                                        const rtext = `${city1.lat},${city1.lon}~${city2.lat},${city2.lon}`;
+                                        const mapUrl = `https://yandex.ru/map-widget/v1/?rtext=${rtext}&rtt=auto&z=6`;
+
+                                        return (
+                                            <div style={{
+                                                marginTop: '20px',
+                                                borderRadius: '16px',
+                                                overflow: 'hidden',
+                                                height: '320px',
+                                                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                                                border: '1px solid var(--color-border)'
+                                            }}>
+                                                <iframe
+                                                    src={mapUrl}
+                                                    width="100%"
+                                                    height="100%"
+                                                    frameBorder="0"
+                                                    allowFullScreen={true}
+                                                    style={{ display: 'block' }}
+                                                />
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
 
                                 <div className={styles.formGroup}>
                                     <label className={styles.label}>Выберите тариф</label>
