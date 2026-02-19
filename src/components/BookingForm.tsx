@@ -151,8 +151,9 @@ export default function BookingForm() {
 
                                 {/* Yandex Map Preview */}
                                 {(() => {
-                                    const city1 = cities.find(c => c.name === fromCity);
-                                    const city2 = cities.find(c => c.name === toCity);
+                                    const normalize = (s: string) => s.trim().toLowerCase();
+                                    const city1 = cities.find(c => normalize(c.name) === normalize(fromCity));
+                                    const city2 = cities.find(c => normalize(c.name) === normalize(toCity));
 
                                     if (city1 && city2 && city1.id !== city2.id) {
                                         // Construct Yandex Maps URL
