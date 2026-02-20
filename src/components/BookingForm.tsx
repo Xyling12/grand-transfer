@@ -12,14 +12,15 @@ const LeafletMapPreview = dynamic(() => import('./LeafletMapPreview'), {
 });
 import styles from './BookingForm.module.css';
 import { useCity } from '@/context/CityContext';
+import { cityTariffs, CityTariffs } from '@/data/tariffs';
 
 const TARIFFS = [
-    { id: 'econom', name: 'Эконом', price: 'от 25 ₽', pricePerKm: 25, image: '/images/tariffs/economy-3d.png' },
-    { id: 'standart', name: 'Стандарт', price: 'от 30 ₽', pricePerKm: 30, image: '/images/tariffs/standard-3d.png' },
-    { id: 'comfort', name: 'Комфорт', price: 'от 35 ₽', pricePerKm: 35, image: '/images/tariffs/comfort-3d.png' },
-    { id: 'comfort-plus', name: 'Комфорт+', price: 'от 40 ₽', pricePerKm: 40, image: '/images/tariffs/business-3d.png' },
-    { id: 'minivan', name: 'Минивэн', price: 'от 45 ₽', pricePerKm: 45, image: '/images/tariffs/minivan-3d.png' },
-    { id: 'business', name: 'Бизнес', price: 'от 50 ₽', pricePerKm: 50, image: '/images/tariffs/business-3d.png' },
+    { id: 'econom', name: 'Эконом', image: '/images/tariffs/economy-3d.png' },
+    { id: 'standart', name: 'Стандарт', image: '/images/tariffs/standard-3d.png' },
+    { id: 'comfortPlus', name: 'Комфорт+', image: '/images/tariffs/comfort-3d.png' },
+    { id: 'business', name: 'Бизнес', image: '/images/tariffs/business-3d.png' },
+    { id: 'minivan', name: 'Минивэн', image: '/images/tariffs/minivan-3d.png' },
+    { id: 'soberDriver', name: 'Трезвый водитель', image: '/images/tariffs/sober-3d.png' },
 ];
 
 function haversineDistance(coords1: [number, number], coords2: [number, number]) {
@@ -66,22 +67,24 @@ export default function BookingForm() {
         const duration = hours === 0 ? `${mins} мин` : mins === 0 ? `${hours} ч` : `${hours} ч ${mins} мин`;
 
         const selectedTariff = TARIFFS.find(t => t.id === tariff);
-        const rate = selectedTariff?.pricePerKm ?? 25;
+        const activeCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
+        const rate = activeCityTariffs[tariff as keyof CityTariffs] || 25;
         const minPrice = Math.round((500 + roadKm * rate) / 100) * 100;
 
         setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '' });
         setIsCalculatingRoute(false);
-    }, [tariff]);
+    }, [tariff, currentCity]);
 
     // Update price if tariff changes while coords exist
     useEffect(() => {
         if (fromCoords && toCoords && priceCalc) {
             const selectedTariff = TARIFFS.find(t => t.id === tariff);
-            const rate = selectedTariff?.pricePerKm ?? 25;
+            const activeCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
+            const rate = activeCityTariffs[tariff as keyof CityTariffs] || 25;
             const minPrice = Math.round((500 + priceCalc.roadKm * rate) / 100) * 100;
             setPriceCalc(prev => prev ? { ...prev, minPrice, tariffName: selectedTariff?.name || '' } : null);
         }
-    }, [tariff]);
+    }, [tariff, currentCity]);
 
     // Clear price if coords missing
     useEffect(() => {
@@ -182,22 +185,27 @@ export default function BookingForm() {
                                 <div className={styles.formGroup}>
                                     <label className={styles.label}>Выберите тариф</label>
                                     <div className={styles.tariffGrid}>
-                                        {TARIFFS.map((t) => (
-                                            <div
-                                                key={t.id}
-                                                className={`${styles.tariffCard} ${tariff === t.id ? styles.tariffActive : ''}`}
-                                                onClick={() => setTariff(t.id)}
-                                            >
-                                                {tariff === t.id && <CheckCircle2 size={16} className={styles.checkIcon} />}
-                                                <div className={styles.carImageWrapper}>
-                                                    <img src={t.image} alt={t.name} className={styles.carImage} />
+                                        {TARIFFS.map((t) => {
+                                            const activeCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
+                                            const itemPrice = activeCityTariffs[t.id as keyof CityTariffs] || 25;
+
+                                            return (
+                                                <div
+                                                    key={t.id}
+                                                    className={`${styles.tariffCard} ${tariff === t.id ? styles.tariffActive : ''}`}
+                                                    onClick={() => setTariff(t.id)}
+                                                >
+                                                    {tariff === t.id && <CheckCircle2 size={16} className={styles.checkIcon} />}
+                                                    <div className={styles.carImageWrapper}>
+                                                        <img src={t.image} alt={t.name} className={styles.carImage} />
+                                                    </div>
+                                                    <div className={styles.tariffCardBody}>
+                                                        <span className={styles.tariffName}>{t.name}</span>
+                                                        <span className={styles.tariffPrice}>от {itemPrice} ₽/км</span>
+                                                    </div>
                                                 </div>
-                                                <div className={styles.tariffCardBody}>
-                                                    <span className={styles.tariffName}>{t.name}</span>
-                                                    <span className={styles.tariffPrice}>{t.price}/км</span>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
