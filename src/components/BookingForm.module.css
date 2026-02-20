@@ -1,16 +1,32 @@
 .section {
     padding: 100px 20px;
-    background: var(--color-secondary);
+    background: var(--color-background);
+    position: relative;
+}
+
+.section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(202, 138, 4, 0.03) 0%, transparent 70%);
+    pointer-events: none;
 }
 
 .container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
+    position: relative;
+    z-index: 2;
 }
 
 .formCard {
-    background: #fff;
-    border: 1px solid var(--color-border);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
     padding: 48px;
     box-shadow: var(--shadow-card);
@@ -18,65 +34,68 @@
     overflow: hidden;
 }
 
-.formCard::before {
+.formCard::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 3px;
-    background: linear-gradient(90deg, var(--color-primary), #818CF8, var(--color-accent));
-    border-radius: 3px 3px 0 0;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    pointer-events: none;
 }
 
 .stepIndicator {
     display: flex;
     justify-content: center;
-    gap: 12px;
-    margin-bottom: 32px;
+    gap: 16px;
+    margin-bottom: 40px;
 }
 
 .step {
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    background: var(--color-secondary);
+    background: rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
     color: var(--color-text-muted);
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
+    border: 1px solid var(--glass-border);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-size: 1rem;
 }
 
 .stepActive {
-    background: linear-gradient(135deg, var(--color-primary), #818CF8);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
     color: #fff;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 20px var(--color-primary-glow);
+    border-color: var(--color-primary);
+    transform: scale(1.1);
 }
 
 .stepCompleted {
-    background: var(--color-primary-light);
+    background: rgba(202, 138, 4, 0.15);
     color: var(--color-primary);
-    border-color: rgba(99, 102, 241, 0.2);
+    border-color: var(--color-primary);
 }
 
 .title {
     text-align: center;
     font-family: var(--font-heading);
-    font-size: 2.2rem;
-    font-weight: 600;
-    margin-bottom: 32px;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 40px;
     color: var(--color-foreground);
+    letter-spacing: -0.01em;
 }
 
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 18px;
-    margin-bottom: 18px;
+    gap: 24px;
+    margin-bottom: 24px;
 }
 
 .fullWidth {
@@ -86,14 +105,17 @@
 .formGroup {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     position: relative;
 }
 
 .label {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--color-primary);
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: var(--font-body);
 }
 
 .inputWrapper {
@@ -104,70 +126,71 @@
 
 .icon {
     position: absolute;
-    left: 16px;
-    color: var(--color-text-muted);
+    left: 20px;
+    color: var(--color-primary);
+    opacity: 0.8;
     pointer-events: none;
 }
 
 .input {
     width: 100%;
-    padding: 14px 14px 14px 48px;
-    background: var(--color-secondary);
-    border: 1.5px solid var(--color-border);
-    border-radius: var(--radius-md);
+    padding: 18px 18px 18px 56px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
     color: var(--color-foreground);
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    font-family: var(--font-body);
 }
 
 .input:focus {
     outline: none;
-    border-color: rgba(99, 102, 241, 0.4);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.06);
-    background: #fff;
+    background: rgba(255, 255, 255, 0.07);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 15px var(--color-primary-glow);
 }
 
-.select {
-    appearance: none;
-    cursor: pointer;
+.input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
 }
 
 .tariffGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
     margin-top: 10px;
 }
 
 .tariffCard {
-    border-radius: 14px;
+    background: #000000;
+    /* Match pure black background */
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 2px solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
 }
 
 .tariffCard:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
+    background: #1a1a1a;
+    /* Dark gray for hover */
+    border-color: var(--color-primary);
+    transform: translateY(-5px);
 }
 
-/* Dark image header */
 .carImageWrapper {
-    background-color: #161B2E;
-    border-radius: 12px 12px 0 0;
-    height: 90px;
-    position: relative;
-    overflow: hidden;
+    background: transparent;
+    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 10px 0;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    /* Subtle separator */
 }
 
 .carImage {
@@ -175,190 +198,67 @@
     height: auto;
     max-height: 100%;
     object-fit: contain;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    will-change: transform;
+    transition: transform 0.5s ease;
 }
 
 .tariffCard:hover .carImage {
-    transform: scale(1.07) translateY(-3px);
+    transform: scale(1.1) translateY(-2px);
 }
 
-/* Light bottom with name and price */
 .tariffCardBody {
-    background: #fff;
-    border: 1px solid var(--color-border);
-    border-top: none;
-    border-radius: 0 0 12px 12px;
-    padding: 8px 10px 10px;
-    flex: 1;
+    padding: 12px 15px;
+    text-align: center;
 }
 
 .tariffName {
     display: block;
-    font-weight: 700;
-    font-size: 0.8rem;
-    color: #1E293B;
-    margin-bottom: 2px;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 4px;
+    color: var(--color-foreground);
 }
 
 .tariffPrice {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.85rem;
     color: var(--color-primary);
-    font-weight: 600;
+    font-weight: 500;
 }
 
-/* Active state */
 .tariffActive {
+    background: rgba(202, 138, 4, 0.1);
     border-color: var(--color-primary);
-    box-shadow: 0 4px 18px rgba(99, 102, 241, 0.2);
-}
-
-.tariffActive .carImageWrapper {
-    background-color: #1a2040;
-}
-
-.tariffActive .carImage {
-    transform: scale(1.1) translateY(-4px);
+    box-shadow: 0 0 25px var(--color-primary-glow);
 }
 
 .tariffActive .tariffName {
     color: var(--color-primary);
 }
 
-.tariffActive .tariffCardBody {
-    border-color: var(--color-primary);
-    background: rgba(99, 102, 241, 0.03);
-}
-
 .checkIcon {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #fff;
+    top: 10px;
+    right: 10px;
+    color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px;
     border-radius: 50%;
-    color: var(--color-primary);
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
-    animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    z-index: 10;
+    z-index: 5;
 }
 
-@keyframes scaleIn {
-    0% {
-        transform: scale(0);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
-.tariffName {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 4px;
-    transition: color 0.2s ease;
-    color: var(--color-foreground);
-    font-size: 0.95rem;
-}
-
-.tariffPrice {
-    font-size: 0.85rem;
-    transition: color 0.2s ease;
-    color: var(--color-text-muted);
-}
-
-.actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 28px;
-    gap: 14px;
-}
-
-.backBtn {
-    padding: 13px 26px;
-    background: transparent;
-    border: 1.5px solid var(--color-border);
-    color: var(--color-text-muted);
-    border-radius: 50px;
-    font-weight: 500;
-    transition: all 0.25s ease;
-    font-size: 0.9rem;
-}
-
-.backBtn:hover {
-    border-color: rgba(99, 102, 241, 0.2);
-    color: var(--color-foreground);
-}
-
-.nextBtn {
-    flex-grow: 1;
-    padding: 13px 28px;
-    background: linear-gradient(135deg, var(--color-primary), #818CF8);
-    color: #fff;
-    border: none;
-    border-radius: 50px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    transition: all 0.25s ease;
-    font-size: 0.9rem;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-}
-
-.nextBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 22px rgba(99, 102, 241, 0.3);
-}
-
-.suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background: #fff;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    z-index: 10;
-    max-height: 200px;
-    overflow-y: auto;
-    margin-top: 5px;
-    box-shadow: var(--shadow-card);
-}
-
-.suggestionItem {
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-}
-
-.suggestionItem:hover {
-    background: var(--color-primary-light);
-    color: var(--color-primary);
-}
-
-@media (max-width: 600px) {
-    .grid {
-        grid-template-columns: 1fr;
-    }
-
-    .formCard {
-        padding: 28px 20px;
-    }
-}
-
-/* ====== Price Calculator Block ====== */
 .priceResult {
-    margin-top: 16px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #f0f0ff 0%, #e8e8ff 100%);
-    border: 1.5px solid rgba(99, 102, 241, 0.25);
-    padding: 16px 18px;
-    animation: fadeSlideUp 0.4s ease forwards;
+    margin-top: 32px;
+    padding: 24px;
+    background: rgba(202, 138, 4, 0.05);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-xl);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: fadeIn 0.5s ease;
 }
 
-@keyframes fadeSlideUp {
+@keyframes fadeIn {
     from {
         opacity: 0;
         transform: translateY(10px);
@@ -372,71 +272,139 @@
 
 .priceResultHeader {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    align-items: center;
 }
 
 .priceResultLabel {
-    font-size: 0.78rem;
-    color: #64748B;
-    font-weight: 500;
+    font-size: 0.8rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
 }
 
 .priceResultTariff {
-    font-size: 0.78rem;
+    font-size: 0.85rem;
     font-weight: 700;
     color: var(--color-primary);
-    background: rgba(99, 102, 241, 0.08);
-    padding: 3px 10px;
+    border: 1px solid var(--color-primary);
+    padding: 4px 12px;
     border-radius: 20px;
 }
 
 .priceResultStats {
     display: flex;
-    gap: 16px;
-    margin-bottom: 12px;
+    gap: 20px;
 }
 
 .priceStat {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 0.85rem;
-    color: #475569;
-    font-weight: 500;
-}
-
-.priceStatIcon {
-    color: var(--color-primary);
-    flex-shrink: 0;
+    gap: 8px;
+    font-size: 0.95rem;
+    color: var(--color-foreground);
 }
 
 .priceResultTotal {
-    font-size: 1.4rem;
-    color: #1E293B;
-    line-height: 1.1;
+    font-size: 1.5rem;
+    font-family: var(--font-heading);
 }
 
 .priceResultTotal strong {
-    font-size: 1.8rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--color-primary), #818CF8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 2.2rem;
+    color: var(--color-primary);
+    margin-left: 8px;
 }
 
-.priceHint {
-    margin-top: 12px;
+.actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 40px;
+}
+
+.nextBtn {
+    flex: 1;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+    color: #fff;
+    padding: 18px;
+    border-radius: var(--radius-lg);
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
-    color: #94A3B8;
-    padding: 10px 14px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.03);
+    justify-content: center;
+    gap: 10px;
+}
+
+.nextBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px var(--color-primary-glow);
+}
+
+.backBtn {
+    padding: 18px 30px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+    color: var(--color-text-muted);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.backBtn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-color: #fff;
+}
+
+.suggestions {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 100%;
+    background: #1c1917;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.suggestionItem {
+    padding: 14px 20px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.suggestionItem:hover {
+    background: rgba(202, 138, 4, 0.1);
+    color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+    .formCard {
+        padding: 32px 20px;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .title {
+        font-size: 1.8rem;
+    }
+
+    .actions {
+        flex-direction: column-reverse;
+    }
+
+    .backBtn,
+    .nextBtn {
+        width: 100%;
+        padding: 16px;
+    }
 }

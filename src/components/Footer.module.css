@@ -1,132 +1,158 @@
 .footer {
-    background: #F8FAFC;
-    border-top: 1px solid var(--color-border);
-    padding: 60px 20px 28px;
+    background: #000000;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 100px 20px 40px;
     margin-top: auto;
+    position: relative;
+    overflow: hidden;
+}
+
+.footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 10% 90%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+    pointer-events: none;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    position: relative;
+    z-index: 2;
 }
 
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 36px;
-    margin-bottom: 40px;
+    gap: 50px;
+    margin-bottom: 60px;
 }
 
 .column {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
 }
 
 .logo {
     font-family: var(--font-heading);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--color-primary);
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--color-gold);
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
+    gap: 12px;
+    margin-bottom: 10px;
+    letter-spacing: 0.02em;
 }
 
 .description {
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+    line-height: 1.8;
 }
 
 .heading {
     font-family: var(--font-heading);
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--color-foreground);
-    margin-bottom: 4px;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #ffffff;
+    margin-bottom: 15px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
 .links {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .link {
-    color: var(--color-text-muted);
-    transition: color 0.2s ease;
-    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
 }
 
 .link:hover {
-    color: var(--color-primary);
+    color: var(--color-gold);
+    padding-left: 5px;
 }
 
 .contactItem {
     display: flex;
     align-items: center;
-    gap: 12px;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
+    gap: 15px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
 }
 
 .contactIcon {
-    color: var(--color-primary);
+    color: var(--color-gold);
 }
 
 .socials {
     display: flex;
-    gap: 10px;
+    gap: 15px;
+    margin-top: 10px;
 }
 
 .socialLink {
-    width: 38px;
-    height: 38px;
-    background: var(--color-primary-light);
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.03);
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    transition: all 0.25s ease;
-    color: var(--color-primary);
-    border: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    color: var(--color-gold);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .socialLink:hover {
-    background: linear-gradient(135deg, var(--color-primary), #818CF8);
-    color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    background: var(--color-gold);
+    color: #000;
+    transform: translateY(-5px) rotate(8deg);
+    box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
+    border-color: var(--color-gold);
 }
 
 .bottom {
-    border-top: 1px solid var(--color-border);
-    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 16px;
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
+    gap: 20px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.disclaimer {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-lg);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    line-height: 1.8;
+    text-align: center;
 }
 
 @media (max-width: 768px) {
+    .grid {
+        gap: 40px;
+    }
+
     .bottom {
         flex-direction: column;
         text-align: center;
     }
-}
-
-.disclaimer {
-    margin-top: 16px;
-    padding: 12px 16px;
-    background: rgba(0, 0, 0, 0.03);
-    border-radius: 8px;
-    font-size: 0.75rem;
-    color: #94A3B8;
-    line-height: 1.6;
-    text-align: center;
 }

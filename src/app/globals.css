@@ -1,28 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
-  --color-background: #FAFBFF;
-  --color-foreground: #1E293B;
-  --color-primary: #6366F1;
-  --color-primary-hover: #4F46E5;
-  --color-primary-light: rgba(99, 102, 241, 0.08);
-  --color-secondary: #F1F5F9;
-  --color-accent: #EC4899;
-  --color-text-muted: #64748B;
-  --color-border: rgba(0, 0, 0, 0.06);
+  /* Premium Liquid Glass Palette */
+  --color-background: #0C0A09;
+  /* Deep Rich Black */
+  --color-foreground: #FAFAF9;
+  /* Soft Stone White */
 
-  --font-heading: var(--font-cormorant), 'Georgia', serif;
-  --font-body: var(--font-montserrat), 'Helvetica Neue', sans-serif;
+  --color-primary: #CA8A04;
+  /* Premium Gold */
+  --color-primary-hover: #EAB308;
+  /* Brighter Gold */
+  --color-primary-glow: rgba(202, 138, 4, 0.4);
+
+  --color-secondary: #1C1917;
+  /* Slate Stone Dark */
+  --color-accent: #EAB308;
+
+  --color-text-muted: #A8A29E;
+  --color-border: rgba(255, 255, 255, 0.08);
+
+  /* Glassmorphism Tokens */
+  --glass-bg: rgba(28, 25, 23, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(12px);
+
+  --font-heading: 'Bodoni Moda', 'Georgia', serif;
+  --font-body: 'Jost', 'Helvetica Neue', sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
-  --radius-xl: 28px;
+  --radius-xl: 32px;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
-  --shadow-hover: 0 12px 40px rgba(99, 102, 241, 0.1);
-  --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.08);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 20px 60px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 30px var(--color-primary-glow);
 }
 
 * {

@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Cormorant, Montserrat } from "next/font/google";
+import { Bodoni_Moda, Jost } from "next/font/google";
 import "./globals.css";
 import { CityProvider } from "@/context/CityContext";
 import ScrollAnimation from "@/components/ScrollAnimation";
 
-const cormorant = Cormorant({
-  variable: "--font-cormorant",
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
+const bodoni = Bodoni_Moda({
+  variable: "--font-bodoni",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+const jost = Jost({
+  variable: "--font-jost",
   subsets: ["latin", "cyrillic"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body className={`${cormorant.variable} ${montserrat.variable}`}>
+      <body className={`${bodoni.variable} ${jost.variable} `}>
         <CityProvider>
           <ScrollAnimation />
           {children}

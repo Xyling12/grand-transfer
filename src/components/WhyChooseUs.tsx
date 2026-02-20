@@ -46,6 +46,7 @@ const features = [
 export default function WhyChooseUs() {
     return (
         <section className={`${styles.section} animate-on-scroll`} id="why-choose-us">
+            <div id="about" style={{ position: 'absolute', top: '-100px' }}></div>
             <div className="container">
                 <h2 className="section-title">Почему выбирают нас</h2>
                 <p className="section-subtitle">

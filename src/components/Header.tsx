@@ -65,9 +65,10 @@ export default function Header() {
                                 top: '100%',
                                 left: 0,
                                 marginTop: '10px',
-                                background: '#fff',
+                                background: 'var(--color-secondary)',
                                 borderRadius: '12px',
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                                border: '1px solid var(--glass-border)',
+                                boxShadow: 'var(--shadow-card)',
                                 padding: '10px',
                                 minWidth: '200px',
                                 maxHeight: '300px',
@@ -86,14 +87,15 @@ export default function Header() {
                                         }}
                                         style={{
                                             textAlign: 'left',
-                                            background: currentCity.id === city.id ? 'var(--color-primary-light)' : 'transparent',
-                                            color: currentCity.id === city.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                            background: currentCity.id === city.id ? 'rgba(202, 138, 4, 0.15)' : 'transparent',
+                                            color: currentCity.id === city.id ? 'var(--color-primary)' : 'var(--color-foreground)',
                                             border: 'none',
-                                            padding: '8px 12px',
+                                            padding: '10px 14px',
                                             borderRadius: '8px',
                                             cursor: 'pointer',
                                             fontSize: '0.9rem',
-                                            fontWeight: currentCity.id === city.id ? 600 : 400
+                                            fontWeight: currentCity.id === city.id ? 600 : 400,
+                                            transition: 'all 0.2s ease'
                                         }}
                                     >
                                         {city.name}

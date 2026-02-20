@@ -33,10 +33,10 @@ export default function Footer() {
                     <div className={styles.column}>
                         <h3 className={styles.heading}>Компания</h3>
                         <div className={styles.links}>
-                            <Link href="#about" className={styles.link}>О нас</Link>
+                            <Link href="#why-choose-us" className={styles.link}>О нас</Link>
                             <Link href="#tariffs" className={styles.link}>Тарифы</Link>
                             <Link href="#reviews" className={styles.link}>Отзывы</Link>
-                            <Link href="#faq" className={styles.link}>Частые вопросы</Link>
+                            <Link href="#popular-routes" className={styles.link}>Популярные маршруты</Link>
                         </div>
                     </div>
 
@@ -44,7 +44,7 @@ export default function Footer() {
                         <h3 className={styles.heading}>Направления</h3>
                         <div className={styles.links}>
                             {currentCity.popularRoutes.slice(0, 5).map((route, i) => (
-                                <Link key={i} href="#routes" className={styles.link}>
+                                <Link key={i} href="#popular-routes" className={styles.link}>
                                     {currentCity.name} - {route.to}
                                 </Link>
                             ))}

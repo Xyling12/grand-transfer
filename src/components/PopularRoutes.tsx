@@ -12,7 +12,7 @@ export default function PopularRoutes() {
     const { currentCity } = useCity();
 
     return (
-        <section className={`${styles.section} animate-on-scroll`}>
+        <section className={`${styles.section} animate-on-scroll`} id="popular-routes">
             <div className="container">
                 <div className={styles.header}>
                     <h2 className={styles.title}>

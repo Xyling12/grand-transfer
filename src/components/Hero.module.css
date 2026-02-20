@@ -1,15 +1,44 @@
 .heroSection {
     position: relative;
     min-height: 100vh;
+    /* Make it full screen for more impact */
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Rich Dark Gradient Background */
-    background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%);
-    color: #fff;
-    text-align: center;
-    padding: 120px 20px 80px;
+    background: #000000;
+    /* Deep black base */
     overflow: hidden;
+    color: var(--color-foreground);
+}
+
+/* Background animated glow */
+.heroSection::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 60%);
+    animation: pulse 15s ease-in-out infinite;
+    z-index: 0;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
 }
 
 .bgImage {
@@ -18,181 +47,163 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
-    /* Abstract shapes or pattern could go here */
-}
-
-/* Optional: Add some abstract glow effects */
-.bgImage::before {
-    content: '';
-    position: absolute;
-    top: -20%;
-    left: -10%;
-    width: 60%;
-    height: 60%;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-    border-radius: 50%;
-    filter: blur(60px);
-}
-
-.bgImage::after {
-    content: '';
-    position: absolute;
-    bottom: -20%;
-    right: -10%;
-    width: 60%;
-    height: 60%;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
-    border-radius: 50%;
-    filter: blur(60px);
-}
-
-.image {
-    display: none;
-    /* Hide image just in case */
+    z-index: 1;
+    background: radial-gradient(circle at 30% 70%, rgba(20, 25, 35, 0.5) 0%, #000000 100%);
 }
 
 .overlay {
-    /* No overlay needed if background is already dark, 
-       but we can keep a subtle texture or noise if wanted */
-    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 100%);
+    /* Adding a subtle noise texture would go here if we had one */
 }
 
 .content {
-    max-width: 800px;
-    z-index: 2;
     position: relative;
-    color: #fff;
-    /* Ensure text is white on dark bg */
+    z-index: 2;
+    max-width: 900px;
+    padding: 70px;
+    border-radius: var(--radius-xl);
+
+    /* Ultimate Liquid Glass Effect */
+    background: rgba(15, 20, 25, 0.4);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .title {
     font-family: var(--font-heading);
-    font-size: 3.5rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    line-height: 1.2;
-    color: #fff;
-    animation: fadeInUp 0.8s ease-out;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    font-size: 5rem;
+    font-weight: 500;
+    line-height: 1.1;
+    margin-bottom: 2rem;
+    letter-spacing: 0.02em;
+    color: #ffffff;
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .highlight {
-    background: linear-gradient(135deg, #818CF8, #A78BFA);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: block;
-    margin-top: 10px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    display: inline-block;
+    color: var(--color-gold);
+    font-weight: 600;
+    font-style: italic;
+    text-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
 }
 
 .subtitle {
     font-family: var(--font-body);
-    font-size: 1.15rem;
-    line-height: 1.7;
-    margin-bottom: 2.5rem;
-    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.3rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 3.5rem;
     max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    font-weight: 400;
-    animation: fadeInUp 0.8s ease-out 0.2s backwards;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    font-weight: 300;
+    letter-spacing: 0.01em;
 }
 
 .actions {
     display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-    animation: fadeInUp 0.8s ease-out 0.4s backwards;
+    gap: 24px;
+    align-items: center;
 }
 
 .primaryBtn {
-    background: linear-gradient(135deg, var(--color-primary), #818CF8);
+    background: linear-gradient(135deg, var(--color-gold), #8B6508);
     color: #fff;
-    padding: 16px 36px;
-    /* Чуть шире */
-    border-radius: 50px;
-    font-size: 1.05rem;
-    /* Чуть крупнее */
+    padding: 18px 40px;
+    border-radius: var(--radius-lg);
     font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-    border: none;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    gap: 12px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+    font-size: 1.1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .primaryBtn:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 15px 35px rgba(99, 102, 241, 0.5);
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(212, 175, 55, 0.5);
+    background: linear-gradient(135deg, #E8C14A, var(--color-gold));
 }
 
 .secondaryBtn {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    padding: 18px 40px;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
-    padding: 16px 36px;
-    border-radius: 50px;
-    font-size: 1.05rem;
-    font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    display: inline-flex;
+    font-weight: 500;
+    display: flex;
     align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    text-decoration: none;
+    gap: 12px;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.secondaryBtn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right,
+            transparent,
+            rgba(255, 255, 255, 0.05),
+            transparent);
+    transform: skewX(-20deg);
+    transition: all 0.7s ease;
+}
+
+.secondaryBtn:hover::before {
+    left: 200%;
 }
 
 .secondaryBtn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-3px) scale(1.02);
-    border-color: rgba(255, 255, 255, 0.6);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(25px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(212, 175, 55, 0.3);
+    color: var(--color-gold-light);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 768px) {
+    .content {
+        padding: 40px 25px;
+        margin: 0 15px;
+        text-align: center;
+        backdrop-filter: blur(16px);
+    }
+
     .title {
-        font-size: 2.2rem;
+        font-size: 3rem;
     }
 
     .subtitle {
-        font-size: 1rem;
+        font-size: 1.1rem;
+        margin: 0 auto 2.5rem;
     }
 
     .actions {
         flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
         width: 100%;
-        padding: 0 20px;
     }
 
     .primaryBtn,
     .secondaryBtn {
-        justify-content: center;
         width: 100%;
-        padding: 14px 20px;
-        font-size: 0.95rem;
-        white-space: nowrap;
+        justify-content: center;
+        padding: 16px;
     }
 }

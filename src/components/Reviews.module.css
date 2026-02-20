@@ -1,103 +1,124 @@
 .section {
     padding: 100px 20px;
+    background: var(--color-background);
+    position: relative;
+    overflow: hidden;
+}
+
+.section::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    right: -10%;
+    width: 40%;
+    height: 40%;
+    background: radial-gradient(circle, rgba(202, 138, 4, 0.05) 0%, transparent 70%);
+    filter: blur(80px);
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    position: relative;
+    z-index: 2;
 }
 
 .header {
     text-align: center;
-    margin-bottom: 50px;
+    margin-bottom: 60px;
 }
 
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
-    margin-bottom: 48px;
+    gap: 30px;
+    margin-bottom: 60px;
 }
 
 .card {
-    background: #fff;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: 28px;
-    transition: all 0.3s ease;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: 35px;
+    transition: all 0.4s ease;
     display: flex;
     flex-direction: column;
     position: relative;
-    cursor: pointer;
-    box-shadow: var(--shadow-sm);
+    cursor: default;
+    box-shadow: var(--shadow-card);
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(99, 102, 241, 0.12);
-    box-shadow: var(--shadow-hover);
+    transform: translateY(-8px);
+    border-color: var(--color-primary);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
 .quoteIcon {
     position: absolute;
-    top: 16px;
-    right: 20px;
-    font-size: 3.5rem;
+    top: 25px;
+    right: 30px;
+    font-size: 5rem;
     line-height: 1;
-    color: rgba(99, 102, 241, 0.08);
-    font-family: 'Georgia', serif;
+    color: var(--color-primary);
+    opacity: 0.1;
+    font-family: 'Bodoni Moda', serif;
 }
 
 .userInfo {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 16px;
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
 .avatar {
-    width: 46px;
-    height: 46px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-primary-light), rgba(236, 72, 153, 0.08));
+    background: linear-gradient(135deg, rgba(202, 138, 4, 0.2), rgba(234, 179, 8, 0.1));
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     color: var(--color-primary);
     font-family: var(--font-heading);
-    font-size: 1.2rem;
+    font-size: 1.4rem;
+    border: 1px solid var(--color-primary);
 }
 
 .meta {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 .name {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--color-foreground);
-    font-size: 0.95rem;
+    font-size: 1.1rem;
+    font-family: var(--font-heading);
 }
 
 .date {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--color-text-muted);
 }
 
 .stars {
     display: flex;
-    gap: 3px;
-    margin-bottom: 12px;
-    color: #F59E0B;
+    gap: 4px;
+    margin-bottom: 15px;
+    color: var(--color-accent);
 }
 
 .text {
-    color: var(--color-text-muted);
-    line-height: 1.7;
+    color: var(--color-foreground);
+    line-height: 1.8;
     font-style: italic;
-    font-size: 0.95rem;
+    font-size: 1rem;
+    opacity: 0.85;
 }
 
 .actions {
@@ -107,21 +128,23 @@
 .button {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 13px 32px;
+    gap: 12px;
+    padding: 16px 40px;
     background: transparent;
-    border: 1.5px solid rgba(99, 102, 241, 0.25);
+    border: 1px solid var(--color-primary);
     color: var(--color-primary);
-    font-weight: 600;
-    border-radius: 50px;
-    transition: all 0.25s ease;
+    font-weight: 700;
+    border-radius: var(--radius-lg);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .button:hover {
-    background: linear-gradient(135deg, var(--color-primary), #818CF8);
-    border-color: transparent;
+    background: var(--color-primary);
     color: #fff;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 20px var(--color-primary-glow);
+    transform: translateY(-2px);
 }
