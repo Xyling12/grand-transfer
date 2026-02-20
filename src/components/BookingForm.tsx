@@ -109,16 +109,20 @@ export default function BookingForm() {
             setRouteRenderData(route);
             setIsCalculatingRoute(false);
         }).catch(async (err: any) => {
-            // Use Object.getOwnPropertyNames to stringify "hidden" properties of the error object
             const errorMsg = JSON.stringify(err, Object.getOwnPropertyNames(err));
             console.error('Yandex route error details (Deep):', errorMsg);
+
+            if (errorMsg.includes('scriptError') || errorMsg.includes('forbidden') || errorMsg.includes('denied')) {
+                console.warn('API Key might be restricted or invalid for Routing.');
+            }
 
             // FALLBACK: If Yandex Route fails, use Haversine as a backup
             console.warn('Using Haversine fallback calculation...');
 
             try {
-                const fromGeo = await ymapsInstance.geocode(debouncedFrom);
-                const toGeo = await ymapsInstance.geocode(debouncedTo);
+                // Try to geocode 'from'
+                const fromGeo = await ymapsInstance.geocode(debouncedFrom, { results: 1 });
+                const toGeo = await ymapsInstance.geocode(debouncedTo, { results: 1 });
 
                 const fromCoords = fromGeo.geoObjects.get(0)?.geometry?.getCoordinates();
                 const toCoords = toGeo.geoObjects.get(0)?.geometry?.getCoordinates();
@@ -128,18 +132,16 @@ export default function BookingForm() {
                     const selectedTariff = TARIFFS.find(t => t.id === tariff);
                     const rate = selectedTariff?.pricePerKm ?? 25;
                     const minPrice = Math.round((500 + roadKm * rate) / 100) * 100;
-                    const duration = '~' + Math.round(roadKm / 60 * 60) + ' мин'; // Estimate duration based on 60km/h average
+                    const duration = '~' + Math.round(roadKm / 60 * 60) + ' мин';
 
                     setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '' });
-                    setRouteRenderData(null); // No route to render from Haversine
-                    console.log('Haversine fallback successful:', { roadKm, minPrice, duration });
+                    setRouteRenderData(null);
                 } else {
-                    console.error('Haversine fallback failed: Could not geocode one or both addresses.');
                     setPriceCalc(null);
                     setRouteRenderData(null);
                 }
-            } catch (geocodeErr) {
-                console.error('Haversine fallback failed during geocoding:', geocodeErr);
+            } catch (fallbackErr: any) {
+                console.error('Haversine fallback geocode failed:', fallbackErr);
                 setPriceCalc(null);
                 setRouteRenderData(null);
             } finally {
@@ -199,14 +201,15 @@ export default function BookingForm() {
 
     // Attach SuggestView to inputs when YMaps loads
     const onLoadYmaps = useCallback((ymaps: any) => {
-        console.log('YMaps library loaded successfully');
+        console.log('YMaps library loaded');
         setYmapsInstance(ymaps);
 
-        // Quick test to see if API works at all
-        ymaps.geocode('Москва').then((res: any) => {
-            console.log('YMaps Geocode Test Success:', res.geoObjects.get(0).getAddressLine());
+        // Geocode test
+        ymaps.geocode('Москва', { results: 1 }).then((res: any) => {
+            console.log('API Test: Geocoding works. Result:', res.geoObjects.get(0)?.getAddressLine());
         }).catch((err: any) => {
-            console.error('YMaps Geocode Test Failed:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+            const errorMsg = JSON.stringify(err, Object.getOwnPropertyNames(err));
+            console.error('API Test Failed (scriptError usually means API Key lacks Geocoding permissions):', errorMsg);
         });
     }, []);
 
@@ -271,7 +274,7 @@ export default function BookingForm() {
                                 <YMaps
                                     query={{
                                         apikey: 'd6af2cbb-9bf6-419b-a010-0937a76e48ab',
-                                        load: 'package.full,suggest,route'
+                                        load: 'package.full'
                                     }}
                                 >
                                     <div style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none', overflow: 'hidden' }}>
