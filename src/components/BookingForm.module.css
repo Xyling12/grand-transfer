@@ -159,7 +159,7 @@
 }
 
 .carImageWrapper {
-    height: 60px;
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -168,10 +168,10 @@
 }
 
 .carImage {
-    max-width: 90px;
+    max-width: 120px;
     height: auto;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s ease;
-    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.05));
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
     will-change: transform;
 }
 
