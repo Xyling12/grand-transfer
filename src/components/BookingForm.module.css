@@ -360,6 +360,7 @@
     border-color: #fff;
 }
 
+
 .suggestions {
     position: absolute;
     top: calc(100% + 8px);
@@ -369,7 +370,7 @@
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    z-index: 100;
+    z-index: 1000;
     max-height: 250px;
     overflow-y: auto;
 }
@@ -379,6 +380,8 @@
     cursor: pointer;
     transition: background 0.2s ease;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--color-foreground);
+    font-size: 0.9rem;
 }
 
 .suggestionItem:hover {

@@ -3,7 +3,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, User, Phone, ChevronRight, ChevronLeft, CheckCircle2, Navigation, Ruler, Clock3, Loader2, Calendar, Clock } from 'lucide-react';
-import { YMaps, Map } from '@pbe/react-yandex-maps';
+import { load } from '@2gis/mapgl';
+import { Directions } from '@2gis/mapgl-directions';
 import styles from './BookingForm.module.css';
 import { useCity } from '@/context/CityContext';
 
@@ -48,12 +49,16 @@ export default function BookingForm() {
     // Route Calculation State
     const [priceCalc, setPriceCalc] = useState<{ roadKm: number; minPrice: number; duration: string; tariffName: string; } | null>(null);
     const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
-    const [ymapsInstance, setYmapsInstance] = useState<any>(null);
-    const [routeRenderData, setRouteRenderData] = useState<any>(null);
+    // 2GIS State
+    const [mapInstance, setMapInstance] = useState<any>(null);
+    const [directions, setDirections] = useState<any>(null);
+    const mapContainerRef = useRef<HTMLDivElement>(null);
 
-    // Form Refs for SuggestView
-    const fromInputRef = useRef<HTMLInputElement>(null);
-    const toInputRef = useRef<HTMLInputElement>(null);
+    // Suggestion State
+    const [fromSuggestions, setFromSuggestions] = useState<any[]>([]);
+    const [toSuggestions, setToSuggestions] = useState<any[]>([]);
+    const [showFromSuggestions, setShowFromSuggestions] = useState(false);
+    const [showToSuggestions, setShowToSuggestions] = useState(false);
 
     const [debouncedFrom, setDebouncedFrom] = useState(fromCity);
     const [debouncedTo, setDebouncedTo] = useState(toCity);
@@ -62,169 +67,111 @@ export default function BookingForm() {
         const timer = setTimeout(() => {
             setDebouncedFrom(fromCity);
             setDebouncedTo(toCity);
-        }, 1500);
+        }, 800);
         return () => clearTimeout(timer);
     }, [fromCity, toCity]);
 
-    // Calculate real route using Yandex Maps API when cities change
+    // Coordinate state for routing
+    const [fromCoords, setFromCoords] = useState<[number, number] | null>(null);
+    const [toCoords, setToCoords] = useState<[number, number] | null>(null);
+
+    const suggestKey = process.env.NEXT_PUBLIC_2GIS_SUGGEST_KEY;
+
+    // Fetch 2GIS Suggestions
+    const fetchSuggestions = async (query: string, setResults: (res: any[]) => void) => {
+        if (!query || query.length < 3 || !suggestKey) {
+            setResults([]);
+            return;
+        }
+        try {
+            const res = await fetch(`https://catalog.api.2gis.com/3.0/suggest?q=${encodeURIComponent(query)}&key=${suggestKey}&fields=items.point&limit=5`);
+            const data = await res.json();
+            if (data.result && data.result.items) {
+                setResults(data.result.items);
+            }
+        } catch (err) {
+            console.error('2GIS Suggest error:', err);
+        }
+    };
+
     useEffect(() => {
-        if (!ymapsInstance || !debouncedFrom || !debouncedTo) {
-            if (!debouncedFrom || !debouncedTo) {
+        if (debouncedFrom) fetchSuggestions(debouncedFrom, setFromSuggestions);
+    }, [debouncedFrom]);
+
+    useEffect(() => {
+        if (debouncedTo) fetchSuggestions(debouncedTo, setToSuggestions);
+    }, [debouncedTo]);
+
+    // Initialize 2GIS Map
+    useEffect(() => {
+        let map: any;
+        const mapKey = process.env.NEXT_PUBLIC_2GIS_MAP_KEY;
+
+        if (!mapContainerRef.current || !mapKey) return;
+
+        load().then((mapglAPI) => {
+            map = new mapglAPI.Map(mapContainerRef.current, {
+                center: [55.751574, 37.573856],
+                zoom: 13,
+                key: mapKey,
+            });
+            setMapInstance(map);
+
+            const directionsInstance = new Directions(map, {
+                directionsApiKey: process.env.NEXT_PUBLIC_2GIS_ROUTING_KEY as string,
+            });
+            setDirections(directionsInstance);
+        });
+
+        return () => {
+            if (map) map.destroy();
+        };
+    }, []);
+
+    // Calculate real route using 2GIS Directions
+    useEffect(() => {
+        if (!directions || !fromCoords || !toCoords) {
+            if (!fromCoords || !toCoords) {
                 setPriceCalc(null);
-                setRouteRenderData(null);
             }
             return;
         }
 
         setIsCalculatingRoute(true);
 
-        ymapsInstance.route([debouncedFrom, debouncedTo], {
-            multiRoute: true,
-            routingMode: 'auto'
-        }).then((route: unknown) => {
-            if (!route) {
-                console.error('Yandex route returned null/undefined');
-                setPriceCalc(null);
-                setIsCalculatingRoute(false);
-                return;
-            }
-            const ymapsRoute = route as Record<string, any>;
-            if (typeof ymapsRoute.getActiveRoute !== 'function') {
-                console.error('getActiveRoute is not a function on route object');
-                setPriceCalc(null);
-                setIsCalculatingRoute(false);
-                return;
-            }
-            const activeRoute = ymapsRoute.getActiveRoute();
-            if (!activeRoute) {
-                console.warn('No active route found');
-                setPriceCalc(null);
-                setIsCalculatingRoute(false);
-                return;
-            }
+        try {
+            directions.carRoute({
+                points: [fromCoords, toCoords],
+            }).then((res: any) => {
+                if (res && res.routes && res.routes[0]) {
+                    const route = res.routes[0];
+                    const roadKm = Math.round(route.distance / 1000);
+                    const durationSeconds = route.duration;
 
-            const distanceInMeters = activeRoute.properties.get("distance").value;
-            const durationInSeconds = activeRoute.properties.get("duration").value;
+                    const hours = Math.floor(durationSeconds / 3600);
+                    const mins = Math.round((durationSeconds % 3600) / 60);
+                    const duration = hours === 0 ? `${mins} мин` : mins === 0 ? `${hours} ч` : `${hours} ч ${mins} мин`;
 
-            const roadKm = Math.round(distanceInMeters / 1000);
-
-            const hours = Math.floor(durationInSeconds / 3600);
-            const mins = Math.round((durationInSeconds % 3600) / 60);
-            const duration = hours === 0 ? `${mins} мин` : mins === 0 ? `${hours} ч` : `${hours} ч ${mins} мин`;
-
-            const selectedTariff = TARIFFS.find(t => t.id === tariff);
-            const rate = selectedTariff?.pricePerKm ?? 25;
-            const minPrice = Math.round((500 + roadKm * rate) / 100) * 100;
-
-            setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '' });
-            setRouteRenderData(route);
-            setIsCalculatingRoute(false);
-        }).catch(async (err: any) => {
-            const errorMsg = JSON.stringify(err, Object.getOwnPropertyNames(err));
-            console.error('Yandex route error details (Deep):', errorMsg);
-
-            if (errorMsg.includes('scriptError') || errorMsg.includes('forbidden') || errorMsg.includes('denied')) {
-                console.warn('API Key might be restricted or invalid for Routing.');
-            }
-
-            // FALLBACK: If Yandex Route fails, use Haversine as a backup
-            console.warn('Using Haversine fallback calculation...');
-
-            try {
-                // Try to geocode 'from'
-                const fromGeo = await ymapsInstance.geocode(debouncedFrom, { results: 1 });
-                const toGeo = await ymapsInstance.geocode(debouncedTo, { results: 1 });
-
-                const fromCoords = fromGeo.geoObjects.get(0)?.geometry?.getCoordinates();
-                const toCoords = toGeo.geoObjects.get(0)?.geometry?.getCoordinates();
-
-                if (fromCoords && toCoords) {
-                    const roadKm = Math.round(haversineDistance(fromCoords, toCoords));
                     const selectedTariff = TARIFFS.find(t => t.id === tariff);
                     const rate = selectedTariff?.pricePerKm ?? 25;
                     const minPrice = Math.round((500 + roadKm * rate) / 100) * 100;
-                    const duration = '~' + Math.round(roadKm / 60 * 60) + ' мин';
 
                     setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '' });
-                    setRouteRenderData(null);
-                } else {
-                    setPriceCalc(null);
-                    setRouteRenderData(null);
                 }
-            } catch (fallbackErr: any) {
-                console.error('Haversine fallback geocode failed:', fallbackErr);
-                setPriceCalc(null);
-                setRouteRenderData(null);
-            } finally {
+            }).finally(() => {
                 setIsCalculatingRoute(false);
-            }
-        });
-    }, [debouncedFrom, debouncedTo, tariff, ymapsInstance]);
-
-    // Effect to attach SuggestView when ymaps is ready and inputs are available
-    useEffect(() => {
-        if (!ymapsInstance || step !== 1) return;
-
-        let suggestFrom: any = null;
-        let suggestTo: any = null;
-
-        const initSuggest = () => {
-            console.log('SuggestView: Attempting initialization');
-            try {
-                if (fromInputRef.current && !suggestFrom) {
-                    console.log('SuggestView: Initializing From');
-                    suggestFrom = new ymapsInstance.SuggestView(fromInputRef.current, { results: 5 });
-                    suggestFrom.events.add('select', (e: any) => {
-                        const val = e.get('item').value;
-                        console.log('SuggestView: Selected From', val);
-                        setFromCity(val);
-                    });
-                }
-
-                if (toInputRef.current && !suggestTo) {
-                    console.log('SuggestView: Initializing To');
-                    suggestTo = new ymapsInstance.SuggestView(toInputRef.current, { results: 5 });
-                    suggestTo.events.add('select', (e: any) => {
-                        const val = e.get('item').value;
-                        console.log('SuggestView: Selected To', val);
-                        setToCity(val);
-                    });
-                }
-            } catch (error) {
-                console.error('SuggestView Initialization Error:', error);
-            }
-        };
-
-        // Small delay to ensure refs are correctly bound to DOM
-        const timer = setTimeout(initSuggest, 100);
-
-        return () => {
-            clearTimeout(timer);
-            if (suggestFrom && typeof suggestFrom.destroy === 'function') suggestFrom.destroy();
-            if (suggestTo && typeof suggestTo.destroy === 'function') suggestTo.destroy();
-        };
-    }, [ymapsInstance, step]);
-
+            });
+        } catch (err) {
+            console.error('2GIS Routing error:', err);
+            setIsCalculatingRoute(false);
+        }
+    }, [fromCoords, toCoords, tariff, directions]);
 
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
     const [passengers, setPassengers] = useState(1);
-
-    // Attach SuggestView to inputs when YMaps loads
-    const onLoadYmaps = useCallback((ymaps: any) => {
-        console.log('YMaps library loaded');
-        setYmapsInstance(ymaps);
-
-        // Geocode test
-        ymaps.geocode('Москва', { results: 1 }).then((res: any) => {
-            console.log('API Test: Geocoding works. Result:', res.geoObjects.get(0)?.getAddressLine());
-        }).catch((err: any) => {
-            const errorMsg = JSON.stringify(err, Object.getOwnPropertyNames(err));
-            console.error('API Test Failed (scriptError usually means API Key lacks Geocoding permissions):', errorMsg);
-        });
-    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -254,14 +201,36 @@ export default function BookingForm() {
                                         <div className={styles.inputWrapper}>
                                             <MapPin size={18} className={styles.icon} />
                                             <input
-                                                ref={fromInputRef}
                                                 type="text"
                                                 className={styles.input}
                                                 placeholder="г. Москва, ул. Ленина, д. 1"
                                                 value={fromCity}
-                                                onChange={(e) => setFromCity(e.target.value)}
+                                                onChange={(e) => {
+                                                    setFromCity(e.target.value);
+                                                    setShowFromSuggestions(true);
+                                                }}
+                                                onBlur={() => setTimeout(() => setShowFromSuggestions(false), 200)}
                                                 autoComplete="off"
                                             />
+                                            {showFromSuggestions && fromSuggestions.length > 0 && (
+                                                <div className={styles.suggestions}>
+                                                    {fromSuggestions.map((item, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className={styles.suggestionItem}
+                                                            onClick={() => {
+                                                                setFromCity(item.text);
+                                                                if (item.point) {
+                                                                    setFromCoords([item.point.lon, item.point.lat]);
+                                                                }
+                                                                setShowFromSuggestions(false);
+                                                            }}
+                                                        >
+                                                            {item.text}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -270,63 +239,56 @@ export default function BookingForm() {
                                         <div className={styles.inputWrapper}>
                                             <MapPin size={18} className={styles.icon} />
                                             <input
-                                                ref={toInputRef}
                                                 type="text"
                                                 className={styles.input}
                                                 placeholder="г. Казань, ул. Баумана, д. 2"
                                                 value={toCity}
-                                                onChange={(e) => setToCity(e.target.value)}
+                                                onChange={(e) => {
+                                                    setToCity(e.target.value);
+                                                    setShowToSuggestions(true);
+                                                }}
+                                                onBlur={() => setTimeout(() => setShowToSuggestions(false), 200)}
                                                 autoComplete="off"
                                             />
+                                            {showToSuggestions && toSuggestions.length > 0 && (
+                                                <div className={styles.suggestions}>
+                                                    {toSuggestions.map((item, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className={styles.suggestionItem}
+                                                            onClick={() => {
+                                                                setToCity(item.text);
+                                                                if (item.point) {
+                                                                    setToCoords([item.point.lon, item.point.lat]);
+                                                                }
+                                                                setShowToSuggestions(false);
+                                                            }}
+                                                        >
+                                                            {item.text}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <p className={styles.priceHint} style={{ gridColumn: '1 / -1', marginTop: '-10px', opacity: 0.8 }}>
-                                        <small>* Начните вводить точный адрес, и нажмите на подходящую подсказку из Яндекс.Карт.</small>
+                                        <small>* Начните вводить точный адрес, и нажмите на подходящую подсказку из 2GIS.</small>
                                     </p>
                                 </div>
 
-                                {/* Yandex Map Preview */}
-                                <YMaps
-                                    query={{
-                                        apikey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY as string,
-                                        load: 'package.full,suggest'
+                                {/* 2GIS Map Preview */}
+                                <div
+                                    ref={mapContainerRef}
+                                    style={{
+                                        marginTop: '20px',
+                                        borderRadius: '16px',
+                                        overflow: 'hidden',
+                                        height: '320px',
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                                        border: '1px solid var(--glass-border)',
+                                        width: '100%'
                                     }}
-                                >
-                                    <div style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-                                        {/* Hidden Map just to load ymaps library globally for SuggestView */}
-                                        <Map defaultState={{ center: [55.751574, 37.573856], zoom: 9 }} onLoad={onLoadYmaps} />
-                                    </div>
-                                    {
-                                        routeRenderData && (
-                                            <div style={{
-                                                marginTop: '20px',
-                                                borderRadius: '16px',
-                                                overflow: 'hidden',
-                                                height: '320px',
-                                                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                                                border: '1px solid var(--glass-border)'
-                                            }}>
-                                                <Map
-                                                    state={{ center: [55.751574, 37.573856], zoom: 9, controls: [] }}
-                                                    options={{ suppressMapOpenBlock: true }}
-                                                    width="100%"
-                                                    height="100%"
-                                                    instanceRef={ref => {
-                                                        if (ref && routeRenderData) {
-                                                            ref.geoObjects.removeAll();
-                                                            ref.geoObjects.add(routeRenderData);
-                                                            // Force focus on route bounds
-                                                            ref.setBounds(routeRenderData.getBounds(), {
-                                                                checkZoomRange: true,
-                                                                zoomMargin: [40]
-                                                            });
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                        )
-                                    }
-                                </YMaps >
+                                />
 
                                 <div className={styles.formGroup}>
                                     <label className={styles.label}>Выберите тариф</label>
