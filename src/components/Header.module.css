@@ -22,9 +22,7 @@
     padding: 10px 32px;
     box-shadow: var(--shadow-card);
     width: 95%;
-    /* Use percentage to be more flexible */
     max-width: 1400px;
-    /* Increased to fit everything comfortably */
 }
 
 .container {
@@ -37,12 +35,18 @@
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     border: 1px solid transparent;
     padding: 12px 0px;
+
+    /* ✅ защита от “вылета” вправо */
+    overflow: hidden;
 }
 
 .leftGroup {
     display: flex;
     align-items: center;
     gap: 24px;
+
+    /* ✅ чтобы flex мог сжиматься */
+    min-width: 0;
 }
 
 .logo {
@@ -112,7 +116,6 @@
         opacity: 0;
         transform: translateY(-10px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -143,10 +146,17 @@
     font-weight: 600;
 }
 
+/* ✅ ЭТОГО НЕ БЫЛО: nav-контейнер, чтобы меню нормально центрировалось и сжималось */
+.nav {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+}
+
 .navLinks {
     display: flex;
     gap: 16px;
-    /* Reduced gap to save horizontal space */
 }
 
 .link {
@@ -180,18 +190,27 @@
     width: 100%;
 }
 
+/* ✅ Active link styles (scrollspy) */
+.linkActive {
+    color: var(--color-foreground);
+}
+.linkActive::after {
+    width: 100%;
+}
+
 .actions {
     display: flex;
     align-items: center;
     gap: 16px;
     flex-shrink: 0;
-    /* Don't squeeze the items */
+
+    /* ✅ чтобы flex мог сжиматься */
+    min-width: 0;
 }
 
 .socials {
     display: flex;
     gap: 8px;
-    /* Tighter grouping to prevent overflow */
 }
 
 .socialIcon {
@@ -286,6 +305,12 @@
     padding-left: 10px;
 }
 
+/* ✅ Active mobile link */
+.mobileLinkActive {
+    color: var(--color-primary);
+    padding-left: 10px;
+}
+
 .mobileSocials {
     margin-top: auto;
     display: flex;
@@ -297,6 +322,22 @@
 .mobileMenuOpen .mobileSocials {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* ✅ новые брейкпоинты под “пол-экрана” на 2560×1440 */
+@media (max-width: 1500px) {
+    .navLinks { gap: 12px; }
+    .link { font-size: 0.78rem; letter-spacing: 0.08em; }
+    .callBtn { padding: 10px 18px; }
+}
+
+@media (max-width: 1320px) {
+    .socials { display: none; }
+}
+
+@media (max-width: 1220px) {
+    .phoneText { display: none; }
+    .callBtn { padding: 10px 12px; }
 }
 
 @media (max-width: 1250px) {
