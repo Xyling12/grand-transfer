@@ -10,9 +10,10 @@ import { useCity } from '@/context/CityContext';
 const TARIFFS = [
     { id: 'econom', name: 'Эконом', price: 'от 25 ₽', pricePerKm: 25, image: '/images/tariffs/economy-3d.png' },
     { id: 'standart', name: 'Стандарт', price: 'от 30 ₽', pricePerKm: 30, image: '/images/tariffs/standard-3d.png' },
-    { id: 'comfort', name: 'Комфорт+', price: 'от 35 ₽', pricePerKm: 35, image: '/images/tariffs/comfort-3d.png' },
-    { id: 'business', name: 'Бизнес', price: 'от 40 ₽', pricePerKm: 40, image: '/images/tariffs/business-3d.png' },
+    { id: 'comfort', name: 'Комфорт', price: 'от 35 ₽', pricePerKm: 35, image: '/images/tariffs/comfort-3d.png' },
+    { id: 'comfort-plus', name: 'Комфорт+', price: 'от 40 ₽', pricePerKm: 40, image: '/images/tariffs/business-3d.png' },
     { id: 'minivan', name: 'Минивэн', price: 'от 45 ₽', pricePerKm: 45, image: '/images/tariffs/minivan-3d.png' },
+    { id: 'business', name: 'Бизнес', price: 'от 50 ₽', pricePerKm: 50, image: '/images/tariffs/business-3d.png' },
 ];
 
 export default function BookingForm() {
@@ -149,14 +150,14 @@ export default function BookingForm() {
                             <>
                                 <div className={styles.grid}>
                                     <div className={styles.formGroup}>
-                                        <label className={styles.label}>Откуда</label>
+                                        <label className={styles.label}>Откуда (Город, улица, номер дома)</label>
                                         <div className={styles.inputWrapper}>
                                             <MapPin size={18} className={styles.icon} />
                                             <input
                                                 ref={fromInputRef}
                                                 type="text"
                                                 className={styles.input}
-                                                placeholder="Улица, дом или город"
+                                                placeholder="г. Москва, ул. Ленина, д. 1"
                                                 value={fromCity}
                                                 onChange={(e) => setFromCity(e.target.value)}
                                             />
@@ -164,19 +165,22 @@ export default function BookingForm() {
                                     </div>
 
                                     <div className={styles.formGroup}>
-                                        <label className={styles.label}>Куда</label>
+                                        <label className={styles.label}>Куда (Город, улица, номер дома)</label>
                                         <div className={styles.inputWrapper}>
                                             <MapPin size={18} className={styles.icon} />
                                             <input
                                                 ref={toInputRef}
                                                 type="text"
                                                 className={styles.input}
-                                                placeholder="Куда едем? (Город, адрес)"
+                                                placeholder="г. Казань, ул. Баумана, д. 2"
                                                 value={toCity}
                                                 onChange={(e) => setToCity(e.target.value)}
                                             />
                                         </div>
                                     </div>
+                                    <p className={styles.priceHint} style={{ gridColumn: '1 / -1', marginTop: '-10px', opacity: 0.8 }}>
+                                        <small>* Начните вводить точный адрес, и нажмите на подходящую подсказку из Яндекс.Карт.</small>
+                                    </p>
                                 </div>
 
                                 {/* Yandex Map Preview */}
