@@ -19,13 +19,16 @@
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: 12px 32px;
-    /* Sufficient padding for the curve */
+    padding: 10px 32px;
     box-shadow: var(--shadow-card);
+    width: 95%;
+    /* Use percentage to be more flexible */
+    max-width: 1400px;
+    /* Increased to fit everything comfortably */
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
@@ -142,8 +145,8 @@
 
 .navLinks {
     display: flex;
-    gap: 24px;
-    /* Slightly reduced gap to save space */
+    gap: 16px;
+    /* Reduced gap to save horizontal space */
 }
 
 .link {
@@ -180,7 +183,7 @@
 .actions {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
     flex-shrink: 0;
     /* Don't squeeze the items */
 }
@@ -188,7 +191,7 @@
 .socials {
     display: flex;
     gap: 8px;
-    /* Reduced gap to keep icons cluster tighter */
+    /* Tighter grouping to prevent overflow */
 }
 
 .socialIcon {
