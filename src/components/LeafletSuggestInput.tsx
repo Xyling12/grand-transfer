@@ -4,10 +4,10 @@ import { useEffect, useRef, useState, InputHTMLAttributes } from 'react';
 
 interface LeafletSuggestInputProps extends InputHTMLAttributes<HTMLInputElement> {
     onSuggestSelect: (text: string, coords: [number, number]) => void;
-    cityBounds?: number[][] | null;
+    cityContext?: string;
 }
 
-export default function LeafletSuggestInput({ onSuggestSelect, cityBounds, className, ...props }: LeafletSuggestInputProps) {
+export default function LeafletSuggestInput({ onSuggestSelect, cityContext, className, ...props }: LeafletSuggestInputProps) {
     const wrapperRef = useRef<HTMLDivElement>(null);
     const [query, setQuery] = useState(props.value as string || '');
     const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -25,9 +25,12 @@ export default function LeafletSuggestInput({ onSuggestSelect, cityBounds, class
 
         const timer = setTimeout(async () => {
             try {
-                // To respect Nominatim usage policy, append something identifying.
-                // But simple basic requests work fine for testing.
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`);
+                let searchQuery = query;
+                if (cityContext && !query.toLowerCase().includes(cityContext.toLowerCase())) {
+                    searchQuery = `${cityContext}, ${query}`;
+                }
+
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&addressdetails=1&limit=5&accept-language=ru`);
                 const data = await res.json();
 
                 if (data && Array.isArray(data)) {

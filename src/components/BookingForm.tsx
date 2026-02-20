@@ -134,6 +134,7 @@ export default function BookingForm() {
                                                     setFromCity(text);
                                                     setFromCoords(coords);
                                                 }}
+                                                cityContext={currentCity?.name}
                                             />
                                         </div>
                                     </div>
@@ -151,6 +152,7 @@ export default function BookingForm() {
                                                     setToCity(text);
                                                     setToCoords(coords);
                                                 }}
+                                                cityContext={currentCity?.name}
                                             />
                                         </div>
                                     </div>
