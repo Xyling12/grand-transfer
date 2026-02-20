@@ -109,8 +109,9 @@ export default function BookingForm() {
             setRouteRenderData(route);
             setIsCalculatingRoute(false);
         }).catch(async (err: any) => {
-            const errorMsg = err.message || err.description || (typeof err === 'string' ? err : JSON.stringify(err));
-            console.error('Yandex route error details:', errorMsg);
+            // Use Object.getOwnPropertyNames to stringify "hidden" properties of the error object
+            const errorMsg = JSON.stringify(err, Object.getOwnPropertyNames(err));
+            console.error('Yandex route error details (Deep):', errorMsg);
 
             // FALLBACK: If Yandex Route fails, use Haversine as a backup
             console.warn('Using Haversine fallback calculation...');
@@ -197,8 +198,16 @@ export default function BookingForm() {
     const [passengers, setPassengers] = useState(1);
 
     // Attach SuggestView to inputs when YMaps loads
-    const onLoadYmaps = useCallback((ymaps: unknown) => {
+    const onLoadYmaps = useCallback((ymaps: any) => {
+        console.log('YMaps library loaded successfully');
         setYmapsInstance(ymaps);
+
+        // Quick test to see if API works at all
+        ymaps.geocode('Москва').then((res: any) => {
+            console.log('YMaps Geocode Test Success:', res.geoObjects.get(0).getAddressLine());
+        }).catch((err: any) => {
+            console.error('YMaps Geocode Test Failed:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+        });
     }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -262,7 +271,7 @@ export default function BookingForm() {
                                 <YMaps
                                     query={{
                                         apikey: 'd6af2cbb-9bf6-419b-a010-0937a76e48ab',
-                                        load: 'package.full,SuggestView,route,geometry.pixel.circle'
+                                        load: 'package.full,suggest,route'
                                     }}
                                 >
                                     <div style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none', overflow: 'hidden' }}>
