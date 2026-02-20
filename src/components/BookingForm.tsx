@@ -16,6 +16,18 @@ const TARIFFS = [
     { id: 'business', name: 'Бизнес', price: 'от 50 ₽', pricePerKm: 50, image: '/images/tariffs/business-3d.png' },
 ];
 
+function haversineDistance(coords1: [number, number], coords2: [number, number]) {
+    const R = 6371; // Earth radius in km
+    const dLat = (coords2[0] - coords1[0]) * Math.PI / 180;
+    const dLon = (coords2[1] - coords1[1]) * Math.PI / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(coords1[0] * Math.PI / 180) * Math.cos(coords2[0] * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c * 1.3; // +30% to approximate road distance
+}
+
 export default function BookingForm() {
     const { currentCity } = useCity();
     const [step, setStep] = useState(1);
@@ -96,47 +108,86 @@ export default function BookingForm() {
             setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '' });
             setRouteRenderData(route);
             setIsCalculatingRoute(false);
-        }).catch((err: any) => {
+        }).catch(async (err: any) => {
             const errorMsg = err.message || err.description || (typeof err === 'string' ? err : JSON.stringify(err));
             console.error('Yandex route error details:', errorMsg);
 
-            // Fallback for user feedback
-            if (errorMsg.includes('permission') || errorMsg.includes('allowed') || errorMsg.includes('denied')) {
-                console.warn('Possible API Key permission issue detected.');
-            }
+            // FALLBACK: If Yandex Route fails, use Haversine as a backup
+            console.warn('Using Haversine fallback calculation...');
 
-            setPriceCalc(null);
-            setRouteRenderData(null);
-            setIsCalculatingRoute(false);
+            try {
+                const fromGeo = await ymapsInstance.geocode(debouncedFrom);
+                const toGeo = await ymapsInstance.geocode(debouncedTo);
+
+                const fromCoords = fromGeo.geoObjects.get(0)?.geometry?.getCoordinates();
+                const toCoords = toGeo.geoObjects.get(0)?.geometry?.getCoordinates();
+
+                if (fromCoords && toCoords) {
+                    const roadKm = Math.round(haversineDistance(fromCoords, toCoords));
+                    const selectedTariff = TARIFFS.find(t => t.id === tariff);
+                    const rate = selectedTariff?.pricePerKm ?? 25;
+                    const minPrice = Math.round((500 + roadKm * rate) / 100) * 100;
+                    const duration = '~' + Math.round(roadKm / 60 * 60) + ' мин'; // Estimate duration based on 60km/h average
+
+                    setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '' });
+                    setRouteRenderData(null); // No route to render from Haversine
+                    console.log('Haversine fallback successful:', { roadKm, minPrice, duration });
+                } else {
+                    console.error('Haversine fallback failed: Could not geocode one or both addresses.');
+                    setPriceCalc(null);
+                    setRouteRenderData(null);
+                }
+            } catch (geocodeErr) {
+                console.error('Haversine fallback failed during geocoding:', geocodeErr);
+                setPriceCalc(null);
+                setRouteRenderData(null);
+            } finally {
+                setIsCalculatingRoute(false);
+            }
         });
     }, [debouncedFrom, debouncedTo, tariff, ymapsInstance]);
 
     // Effect to attach SuggestView when ymaps is ready and inputs are available
     useEffect(() => {
-        if (!ymapsInstance) return;
+        if (!ymapsInstance) {
+            console.log('SuggestView: Waiting for ymapsInstance...');
+            return;
+        }
+
+        console.log('SuggestView: Initializing with YMaps instance', ymapsInstance);
 
         let suggestFrom: any = null;
         let suggestTo: any = null;
 
-        if (fromInputRef.current) {
-            suggestFrom = new ymapsInstance.SuggestView(fromInputRef.current, { results: 5 });
-            suggestFrom.events.add('select', (e: any) => {
-                setFromCity(e.get('item').value);
-            });
-        }
+        try {
+            if (fromInputRef.current) {
+                console.log('SuggestView: Attaching to From input');
+                suggestFrom = new ymapsInstance.SuggestView(fromInputRef.current, { results: 5 });
+                suggestFrom.events.add('select', (e: any) => {
+                    const val = e.get('item').value;
+                    console.log('SuggestView Select (From):', val);
+                    setFromCity(val);
+                });
+            }
 
-        if (toInputRef.current) {
-            suggestTo = new ymapsInstance.SuggestView(toInputRef.current, { results: 5 });
-            suggestTo.events.add('select', (e: any) => {
-                setToCity(e.get('item').value);
-            });
+            if (toInputRef.current) {
+                console.log('SuggestView: Attaching to To input');
+                suggestTo = new ymapsInstance.SuggestView(toInputRef.current, { results: 5 });
+                suggestTo.events.add('select', (e: any) => {
+                    const val = e.get('item').value;
+                    console.log('SuggestView Select (To):', val);
+                    setToCity(val);
+                });
+            }
+        } catch (error) {
+            console.error('SuggestView Initialization Error:', error);
         }
 
         return () => {
             if (suggestFrom && typeof suggestFrom.destroy === 'function') suggestFrom.destroy();
             if (suggestTo && typeof suggestTo.destroy === 'function') suggestTo.destroy();
         };
-    }, [ymapsInstance, fromInputRef, toInputRef]);
+    }, [ymapsInstance]);
 
 
     const [name, setName] = useState('');
