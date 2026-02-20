@@ -82,11 +82,22 @@ export default function BookingForm() {
             multiRoute: true,
             routingMode: 'auto'
         }).then((route: unknown) => {
-            const ymapsRoute = route as Record<string, unknown>;
-            if (typeof ymapsRoute.getActiveRoute !== 'function') return;
-            const getActiveRouteFn = ymapsRoute.getActiveRoute as (...args: any[]) => any;
-            const activeRoute = getActiveRouteFn();
+            if (!route) {
+                console.error('Yandex route returned null/undefined');
+                setPriceCalc(null);
+                setIsCalculatingRoute(false);
+                return;
+            }
+            const ymapsRoute = route as Record<string, any>;
+            if (typeof ymapsRoute.getActiveRoute !== 'function') {
+                console.error('getActiveRoute is not a function on route object');
+                setPriceCalc(null);
+                setIsCalculatingRoute(false);
+                return;
+            }
+            const activeRoute = ymapsRoute.getActiveRoute();
             if (!activeRoute) {
+                console.warn('No active route found');
                 setPriceCalc(null);
                 setIsCalculatingRoute(false);
                 return;
