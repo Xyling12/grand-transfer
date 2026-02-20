@@ -29,11 +29,25 @@ export function WhatsAppIcon({ size = 20, color = 'currentColor' }: IconProps) {
     );
 }
 
-/* Max — российская социальная сеть (ex OK/Одноклассники Next) */
-export function MaxIcon({ size = 20, color = 'currentColor' }: IconProps) {
+/* Max messenger — синий-фиолетовый градиент + P-образный пузырь */
+export function MaxIcon({ size = 20 }: IconProps) {
     return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-4.5 7.5c.828-1.118 2.138-1.5 2.138-1.5l1.112 1.113a1.8 1.8 0 0 0 2.5 0L14.362 14s1.31.382 2.138 1.5a.75.75 0 1 1-1.2.9c-.42-.56-.9-.85-.9-.85l-1.1 1.1a3.3 3.3 0 0 1-2.6 0L9.6 15.55s-.48.29-.9.85a.75.75 0 1 1-1.2-.9z" />
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="maxGradient" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#8B42F0" />
+                    <stop offset="50%" stopColor="#5B6AF5" />
+                    <stop offset="100%" stopColor="#4A8CF7" />
+                </linearGradient>
+            </defs>
+            {/* Rounded square background with gradient */}
+            <rect width="24" height="24" rx="5.5" fill="url(#maxGradient)" />
+            {/* P-shaped speech bubble (white, evenodd to cut hole) */}
+            <path
+                fill="white"
+                fillRule="evenodd"
+                d="M12 4C8.13 4 5 7.13 5 11c0 1.92.75 3.67 1.97 4.97L6 20l4.14-1.55C10.73 18.79 11.36 19 12 19c3.87 0 7-3.13 7-7s-3.13-8-7-8zm0 2c2.76 0 5 2.24 5 5s-2.24 5-5 5c-.55 0-1.07-.09-1.56-.25L8 16.8l.52-1.97A5 5 0 0 1 7 11c0-2.76 2.24-5 5-5zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm0 1.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"
+            />
         </svg>
     );
 }
