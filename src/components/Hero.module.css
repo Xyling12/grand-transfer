@@ -191,5 +191,8 @@
     .secondaryBtn {
         justify-content: center;
         width: 100%;
+        padding: 14px 20px;
+        font-size: 0.95rem;
+        white-space: nowrap;
     }
 }
