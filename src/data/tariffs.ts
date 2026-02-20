@@ -577,7 +577,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Мелитополь ДНр": {
+    "Мелитополь ДНР": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -673,7 +673,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Докучаевск ДНр": {
+    "Докучаевск ДНР": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
