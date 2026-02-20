@@ -136,27 +136,26 @@ export default function Header() {
                 </div>
             </div>
 
-            {/* Mobile Menu Dropdown */}
-            {isMobileMenuOpen && (
-                <div className={styles.mobileMenu} ref={menuRef}>
-                    {NAV_LINKS.map(link => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            className={styles.mobileLink}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            {link.label}
-                        </Link>
-                    ))}
-                    <div className={styles.mobileSocials}>
-                        <a href="#" className={styles.socialIcon} aria-label="VK"><VKIcon size={22} /></a>
-                        <a href="#" className={styles.socialIcon} aria-label="Telegram"><TelegramIcon size={22} /></a>
-                        <a href="#" className={styles.socialIcon} aria-label="WhatsApp"><WhatsAppIcon size={22} /></a>
-                        <a href="#" className={styles.socialIcon} aria-label="Max"><MaxIcon size={22} /></a>
-                    </div>
+            {/* Mobile Menu — always rendered, toggled via CSS */}
+            <div className={`${styles.mobileMenu} ${isMobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
+                {NAV_LINKS.map((link, i) => (
+                    <Link
+                        key={link.href}
+                        href={link.href}
+                        className={styles.mobileLink}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        style={{ transitionDelay: isMobileMenuOpen ? `${i * 40}ms` : '0ms' }}
+                    >
+                        {link.label}
+                    </Link>
+                ))}
+                <div className={styles.mobileSocials} style={{ transitionDelay: isMobileMenuOpen ? '200ms' : '0ms' }}>
+                    <a href="#" className={styles.socialIcon} aria-label="VK"><VKIcon size={22} /></a>
+                    <a href="#" className={styles.socialIcon} aria-label="Telegram"><TelegramIcon size={22} /></a>
+                    <a href="#" className={styles.socialIcon} aria-label="WhatsApp"><WhatsAppIcon size={22} /></a>
+                    <a href="#" className={styles.socialIcon} aria-label="Max"><MaxIcon size={22} /></a>
                 </div>
-            )}
+            </div>
         </header>
     );
 }
