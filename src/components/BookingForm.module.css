@@ -158,6 +158,28 @@
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
 }
 
+.carImageWrapper {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    perspective: 1000px;
+}
+
+.carImage {
+    max-width: 90px;
+    height: auto;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s ease;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.05));
+    will-change: transform;
+}
+
+.tariffCard:hover .carImage {
+    transform: translateX(4px) translateY(-2px) scale(1.05);
+    filter: drop-shadow(-4px 6px 8px rgba(0, 0, 0, 0.08));
+}
+
 .tariffActive {
     background: #fff;
     border-color: var(--color-primary);
@@ -166,6 +188,11 @@
 
 .tariffActive .tariffName {
     color: var(--color-primary);
+}
+
+.tariffActive .carImage {
+    transform: scale(1.15);
+    filter: drop-shadow(0 8px 12px rgba(99, 102, 241, 0.3));
 }
 
 .tariffActive .tariffPrice {

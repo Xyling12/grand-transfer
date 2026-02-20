@@ -9,11 +9,11 @@ import { cities } from '@/data/cities';
 const CITIES = ["Москва", "Казань", "Уфа", "Самара", "Набережные Челны", "Нижний Новгород", "Санкт-Петербург", "Сочи", "Адлер", "Екатеринбург", "Челябинск", "Пермь"];
 
 const TARIFFS = [
-    { id: 'econom', name: 'Эконом', price: 'от 25 ₽' },
-    { id: 'standart', name: 'Стандарт', price: 'от 30 ₽' },
-    { id: 'comfort', name: 'Комфорт+', price: 'от 35 ₽' },
-    { id: 'business', name: 'Бизнес', price: 'от 40 ₽' },
-    { id: 'minivan', name: 'Минивэн', price: 'от 45 ₽' },
+    { id: 'econom', name: 'Эконом', price: 'от 25 ₽', image: '/images/tariffs/economy.svg' },
+    { id: 'standart', name: 'Стандарт', price: 'от 30 ₽', image: '/images/tariffs/standard.svg' },
+    { id: 'comfort', name: 'Комфорт+', price: 'от 35 ₽', image: '/images/tariffs/comfort.svg' },
+    { id: 'business', name: 'Бизнес', price: 'от 40 ₽', image: '/images/tariffs/business.svg' },
+    { id: 'minivan', name: 'Минивэн', price: 'от 45 ₽', image: '/images/tariffs/minivan.svg' },
 ];
 
 export default function BookingForm() {
@@ -194,6 +194,9 @@ export default function BookingForm() {
                                                 onClick={() => setTariff(t.id)}
                                             >
                                                 {tariff === t.id && <CheckCircle2 size={18} className={styles.checkIcon} />}
+                                                <div className={styles.carImageWrapper}>
+                                                    <img src={t.image} alt={t.name} className={styles.carImage} />
+                                                </div>
                                                 <span className={styles.tariffName}>{t.name}</span>
                                                 <span className={styles.tariffPrice}>{t.price}/км</span>
                                             </div>
