@@ -12,22 +12,26 @@ interface CityContextType {
 const CityContext = createContext<CityContextType | undefined>(undefined);
 
 export function CityProvider({ children }: { children: React.ReactNode }) {
-    // Initialize state synchronously from localStorage if in browser, otherwise use Izhevsk
+    // Initialize state synchronously to the default city to prevent Next.js hydration mismatch
     const [currentCity, setCurrentCity] = useState<City>(() => {
-        if (typeof window !== 'undefined') {
-            const savedCityId = localStorage.getItem('grand_transfer_city_id');
-            if (savedCityId) {
-                const found = cities.find(c => c.id === savedCityId);
-                if (found) return found;
-            }
-        }
+        // ALWAYS return the default on the first render (matching SSR)
         return cities.find(c => c.id === 'izhevsk') || cities[0];
     });
 
     useEffect(() => {
-        // Try to detect city via Geolocation if not set in localStorage
+        // Only run on client after hydration
         const savedCityId = localStorage.getItem('grand_transfer_city_id');
-        if (!savedCityId && typeof navigator !== 'undefined' && "geolocation" in navigator) {
+
+        if (savedCityId) {
+            const found = cities.find(c => c.id === savedCityId);
+            if (found) {
+                setCurrentCity(found);
+                return; // Prioritize localStorage over geolocation
+            }
+        }
+
+        // Try to detect city via Geolocation if not set in localStorage
+        if (typeof navigator !== 'undefined' && "geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     try {
