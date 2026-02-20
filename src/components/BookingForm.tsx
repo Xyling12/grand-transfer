@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { MapPin, Calendar, Clock, User, Phone, Users, ChevronRight, ChevronLeft } from 'lucide-react';
+import { MapPin, Calendar, Clock, User, Phone, Users, ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import styles from './BookingForm.module.css';
 import { useCity } from '@/context/CityContext';
 import { cities } from '@/data/cities';
@@ -193,6 +193,7 @@ export default function BookingForm() {
                                                 className={`${styles.tariffCard} ${tariff === t.id ? styles.tariffActive : ''}`}
                                                 onClick={() => setTariff(t.id)}
                                             >
+                                                {tariff === t.id && <CheckCircle2 size={18} className={styles.checkIcon} />}
                                                 <span className={styles.tariffName}>{t.name}</span>
                                                 <span className={styles.tariffPrice}>{t.price}/км</span>
                                             </div>

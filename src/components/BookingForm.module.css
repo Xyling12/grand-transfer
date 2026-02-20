@@ -142,34 +142,70 @@
 
 .tariffCard {
     background: var(--color-secondary);
-    border: 1.5px solid var(--color-border);
+    border: 2px solid var(--color-border);
     padding: 16px;
     border-radius: var(--radius-md);
     cursor: pointer;
     text-align: center;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    position: relative;
 }
 
 .tariffCard:hover {
     background: #fff;
-    border-color: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
 }
 
 .tariffActive {
-    background: var(--color-primary-light);
-    border-color: rgba(99, 102, 241, 0.3);
+    background: #fff;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+}
+
+.tariffActive .tariffName {
+    color: var(--color-primary);
+}
+
+.tariffActive .tariffPrice {
+    color: var(--color-foreground);
+    font-weight: 600;
+}
+
+.checkIcon {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #fff;
+    border-radius: 50%;
+    color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+    animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes scaleIn {
+    0% {
+        transform: scale(0);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .tariffName {
     display: block;
     font-weight: 600;
     margin-bottom: 4px;
+    transition: color 0.2s ease;
     color: var(--color-foreground);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .tariffPrice {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    transition: color 0.2s ease;
     color: var(--color-text-muted);
 }
 
