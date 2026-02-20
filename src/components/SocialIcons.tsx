@@ -29,25 +29,11 @@ export function WhatsAppIcon({ size = 20, color = 'currentColor' }: IconProps) {
     );
 }
 
-/* Max messenger — синий-фиолетовый градиент + P-образный пузырь */
-export function MaxIcon({ size = 20 }: IconProps) {
+/* Max messenger — монохромная иконка (speech bubble) */
+export function MaxIcon({ size = 20, color = 'currentColor' }: IconProps) {
     return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="maxGradient" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#8B42F0" />
-                    <stop offset="50%" stopColor="#5B6AF5" />
-                    <stop offset="100%" stopColor="#4A8CF7" />
-                </linearGradient>
-            </defs>
-            {/* Rounded square background with gradient */}
-            <rect width="24" height="24" rx="5.5" fill="url(#maxGradient)" />
-            {/* P-shaped speech bubble (white, evenodd to cut hole) */}
-            <path
-                fill="white"
-                fillRule="evenodd"
-                d="M12 4C8.13 4 5 7.13 5 11c0 1.92.75 3.67 1.97 4.97L6 20l4.14-1.55C10.73 18.79 11.36 19 12 19c3.87 0 7-3.13 7-7s-3.13-8-7-8zm0 2c2.76 0 5 2.24 5 5s-2.24 5-5 5c-.55 0-1.07-.09-1.56-.25L8 16.8l.52-1.97A5 5 0 0 1 7 11c0-2.76 2.24-5 5-5zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm0 1.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"
-            />
+        <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.477 2 2 6.5 2 11.5c0 2.18.8 4.18 2.12 5.74L3 22l4.82-1.54C9.06 21.15 10.5 21.5 12 21.5c5.523 0 10-4.03 10-9S17.523 2 12 2zm0 2c4.418 0 8 3.13 8 7s-3.582 7-8 7c-1.35 0-2.62-.33-3.73-.9L5 18.5l.9-2.97A6.97 6.97 0 0 1 4 11c0-3.87 3.582-7 8-7zm-3 6v2h2v-2H9zm2 0v2h2v-2h-2zm2 0v2h2v-2h-2z" />
         </svg>
     );
 }
