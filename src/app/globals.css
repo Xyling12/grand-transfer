@@ -163,10 +163,9 @@ button {
   transition-delay: 0.1s;
 }
 
-.delay-200 {
-  transition-delay: 0.2s;
-}
 
-.delay-300 {
-  transition-delay: 0.3s;
+/* Yandex Maps SuggestView UI Fix */
+[class*="suggest-ring"],
+.ymaps-2-1-79-suggest-ring {
+  z-index: 999999 !important;
 }

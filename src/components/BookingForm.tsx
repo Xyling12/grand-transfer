@@ -163,45 +163,47 @@ export default function BookingForm() {
 
     // Effect to attach SuggestView when ymaps is ready and inputs are available
     useEffect(() => {
-        if (!ymapsInstance) {
-            console.log('SuggestView: Waiting for ymapsInstance...');
-            return;
-        }
-
-        console.log('SuggestView: Initializing with YMaps instance', ymapsInstance);
+        if (!ymapsInstance || step !== 1) return;
 
         let suggestFrom: any = null;
         let suggestTo: any = null;
 
-        try {
-            if (fromInputRef.current) {
-                console.log('SuggestView: Attaching to From input');
-                suggestFrom = new ymapsInstance.SuggestView(fromInputRef.current, { results: 5 });
-                suggestFrom.events.add('select', (e: any) => {
-                    const val = e.get('item').value;
-                    console.log('SuggestView Select (From):', val);
-                    setFromCity(val);
-                });
-            }
+        const initSuggest = () => {
+            console.log('SuggestView: Attempting initialization');
+            try {
+                if (fromInputRef.current && !suggestFrom) {
+                    console.log('SuggestView: Initializing From');
+                    suggestFrom = new ymapsInstance.SuggestView(fromInputRef.current, { results: 5 });
+                    suggestFrom.events.add('select', (e: any) => {
+                        const val = e.get('item').value;
+                        console.log('SuggestView: Selected From', val);
+                        setFromCity(val);
+                    });
+                }
 
-            if (toInputRef.current) {
-                console.log('SuggestView: Attaching to To input');
-                suggestTo = new ymapsInstance.SuggestView(toInputRef.current, { results: 5 });
-                suggestTo.events.add('select', (e: any) => {
-                    const val = e.get('item').value;
-                    console.log('SuggestView Select (To):', val);
-                    setToCity(val);
-                });
+                if (toInputRef.current && !suggestTo) {
+                    console.log('SuggestView: Initializing To');
+                    suggestTo = new ymapsInstance.SuggestView(toInputRef.current, { results: 5 });
+                    suggestTo.events.add('select', (e: any) => {
+                        const val = e.get('item').value;
+                        console.log('SuggestView: Selected To', val);
+                        setToCity(val);
+                    });
+                }
+            } catch (error) {
+                console.error('SuggestView Initialization Error:', error);
             }
-        } catch (error) {
-            console.error('SuggestView Initialization Error:', error);
-        }
+        };
+
+        // Small delay to ensure refs are correctly bound to DOM
+        const timer = setTimeout(initSuggest, 100);
 
         return () => {
+            clearTimeout(timer);
             if (suggestFrom && typeof suggestFrom.destroy === 'function') suggestFrom.destroy();
             if (suggestTo && typeof suggestTo.destroy === 'function') suggestTo.destroy();
         };
-    }, [ymapsInstance]);
+    }, [ymapsInstance, step]);
 
 
     const [name, setName] = useState('');
@@ -258,6 +260,7 @@ export default function BookingForm() {
                                                 placeholder="г. Москва, ул. Ленина, д. 1"
                                                 value={fromCity}
                                                 onChange={(e) => setFromCity(e.target.value)}
+                                                autoComplete="off"
                                             />
                                         </div>
                                     </div>
@@ -273,6 +276,7 @@ export default function BookingForm() {
                                                 placeholder="г. Казань, ул. Баумана, д. 2"
                                                 value={toCity}
                                                 onChange={(e) => setToCity(e.target.value)}
+                                                autoComplete="off"
                                             />
                                         </div>
                                     </div>
@@ -284,7 +288,7 @@ export default function BookingForm() {
                                 {/* Yandex Map Preview */}
                                 <YMaps
                                     query={{
-                                        apikey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || 'fc74dc00-3338-43b2-b494-859241a4ac3c',
+                                        apikey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY as string,
                                         load: 'package.full,suggest'
                                     }}
                                 >
@@ -303,7 +307,7 @@ export default function BookingForm() {
                                                 border: '1px solid var(--glass-border)'
                                             }}>
                                                 <Map
-                                                    state={{ bounds: routeRenderData.getBounds() }}
+                                                    state={{ center: [55.751574, 37.573856], zoom: 9, controls: [] }}
                                                     options={{ suppressMapOpenBlock: true }}
                                                     width="100%"
                                                     height="100%"
@@ -311,6 +315,11 @@ export default function BookingForm() {
                                                         if (ref && routeRenderData) {
                                                             ref.geoObjects.removeAll();
                                                             ref.geoObjects.add(routeRenderData);
+                                                            // Force focus on route bounds
+                                                            ref.setBounds(routeRenderData.getBounds(), {
+                                                                checkZoomRange: true,
+                                                                zoomMargin: [40]
+                                                            });
                                                         }
                                                     }}
                                                 />
