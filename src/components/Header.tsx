@@ -1,24 +1,43 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Phone, Car, MapPin, ChevronDown } from 'lucide-react';
+import { Phone, Car, MapPin, ChevronDown, Menu, X } from 'lucide-react';
 import { VKIcon, TelegramIcon, WhatsAppIcon, MaxIcon } from './SocialIcons';
 import styles from './Header.module.css';
 import { useCity } from '@/context/CityContext';
+
+const NAV_LINKS = [
+    { href: '/', label: 'Главная' },
+    { href: '#tariffs', label: 'Тарифы' },
+    { href: '#why-choose-us', label: 'О нас' },
+    { href: '#reviews', label: 'Отзывы' },
+    { href: '#contacts', label: 'Контакты' },
+];
 
 export default function Header() {
     const [scrolled, setScrolled] = useState(false);
     const { currentCity, setCity, cityList } = useCity();
     const [isCityOpen, setIsCityOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
-        };
+        const handleScroll = () => setScrolled(window.scrollY > 50);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    // Close mobile menu on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setIsMobileMenuOpen(false);
+            }
+        };
+        if (isMobileMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isMobileMenuOpen]);
 
     return (
         <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ''}`}>
@@ -85,13 +104,12 @@ export default function Header() {
                     </div>
                 </div>
 
+                {/* Desktop Nav */}
                 <nav className={styles.nav}>
                     <div className={styles.navLinks}>
-                        <Link href="/" className={styles.link}>Главная</Link>
-                        <Link href="#tariffs" className={styles.link}>Тарифы</Link>
-                        <Link href="#about" className={styles.link}>О нас</Link>
-                        <Link href="#reviews" className={styles.link}>Отзывы</Link>
-                        <Link href="#contacts" className={styles.link}>Контакты</Link>
+                        {NAV_LINKS.map(link => (
+                            <Link key={link.href} href={link.href} className={styles.link}>{link.label}</Link>
+                        ))}
                     </div>
                 </nav>
 
@@ -106,8 +124,39 @@ export default function Header() {
                         <Phone size={18} className={styles.phoneIcon} />
                         <span className={styles.phoneText}>{currentCity.phone}</span>
                     </a>
+
+                    {/* Hamburger — shows ≤1150px */}
+                    <button
+                        className={styles.hamburger}
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        aria-label="Меню"
+                    >
+                        {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+                    </button>
                 </div>
             </div>
+
+            {/* Mobile Menu Dropdown */}
+            {isMobileMenuOpen && (
+                <div className={styles.mobileMenu} ref={menuRef}>
+                    {NAV_LINKS.map(link => (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            className={styles.mobileLink}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            {link.label}
+                        </Link>
+                    ))}
+                    <div className={styles.mobileSocials}>
+                        <a href="#" className={styles.socialIcon} aria-label="VK"><VKIcon size={22} /></a>
+                        <a href="#" className={styles.socialIcon} aria-label="Telegram"><TelegramIcon size={22} /></a>
+                        <a href="#" className={styles.socialIcon} aria-label="WhatsApp"><WhatsAppIcon size={22} /></a>
+                        <a href="#" className={styles.socialIcon} aria-label="Max"><MaxIcon size={22} /></a>
+                    </div>
+                </div>
+            )}
         </header>
     );
 }
