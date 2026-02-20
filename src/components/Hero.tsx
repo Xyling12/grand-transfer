@@ -28,8 +28,8 @@ export default function Hero() {
             <div className="container">
                 <div className={styles.content}>
                     <h1 className={`${styles.title} animate-on-scroll`}>
-                        <span className={styles.titleTop}>Междугороднее такси</span>
-                        <span className={styles.titleBottom}>Такси Межгород</span>
+                        <span className={styles.titleTop}>Междугороднее</span>
+                        <span className={styles.titleBottom}>Такси</span>
                         <span className={styles.highlight}>из г. {currentCity.name}</span>
                     </h1>
 

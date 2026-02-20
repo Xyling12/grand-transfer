@@ -71,10 +71,10 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--glass-border);
-    padding: 8px 16px;
-    border-radius: var(--radius-lg);
+    background: rgba(43, 40, 38, 0.4); /* Darker background like in screenshot */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 18px;
+    border-radius: 50px; /* Pill-shaped like in screenshot */
     font-size: 0.85rem;
     color: var(--color-foreground);
     font-weight: 500;
@@ -382,8 +382,10 @@
     }
 
     .cityBtn {
-        padding: 6px 12px;
+        padding: 6px 14px;
         font-size: 0.8rem;
+        background: rgba(43, 40, 38, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.15);
     }
 }
 

@@ -176,7 +176,8 @@ button {
    =============================== */
 
 :root {
-  --header-offset: 112px; /* Desktop header height */
+  --header-offset: 112px;
+  /* Desktop header height */
 }
 
 /* Сдвигаем весь контент вниз */
@@ -185,12 +186,13 @@ main {
 }
 
 /* Если где-то main не применяется */
-body > div {
+body>div {
   padding-top: var(--header-offset);
 }
 
 @media (max-width: 768px) {
   :root {
-    --header-offset: 84px; /* Mobile header height */
+    --header-offset: 84px;
+    /* Mobile header height */
   }
 }

@@ -369,7 +369,7 @@
     background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
     color: #fff;
     padding: 18px;
-    border-radius: var(--radius-lg);
+    border-radius: 50px;
     font-weight: 700;
     font-size: 1.05rem;
     text-transform: uppercase;
@@ -388,7 +388,7 @@
 
 .backBtn {
     padding: 18px 30px;
-    border-radius: var(--radius-lg);
+    border-radius: 50px;
     border: 1px solid var(--glass-border);
     color: var(--color-text-muted);
     font-weight: 600;

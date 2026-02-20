@@ -138,7 +138,7 @@
     color: var(--color-foreground);
     font-weight: 500;
     padding: 14px;
-    border-radius: var(--radius-lg);
+    border-radius: 50px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
     transition: all 0.3s ease;
