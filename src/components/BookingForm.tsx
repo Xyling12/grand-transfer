@@ -96,13 +96,40 @@ export default function BookingForm() {
             setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '' });
             setRouteRenderData(route);
             setIsCalculatingRoute(false);
-        }).catch((err: unknown) => {
-            console.error('Yandex route error', err);
+        }).catch((err: any) => {
+            console.error('Yandex route error details:', err.message || err.description || JSON.stringify(err) || err);
             setPriceCalc(null);
             setRouteRenderData(null);
             setIsCalculatingRoute(false);
         });
     }, [debouncedFrom, debouncedTo, tariff, ymapsInstance]);
+
+    // Effect to attach SuggestView when ymaps is ready and inputs are available
+    useEffect(() => {
+        if (!ymapsInstance) return;
+
+        let suggestFrom: any = null;
+        let suggestTo: any = null;
+
+        if (fromInputRef.current) {
+            suggestFrom = new ymapsInstance.SuggestView(fromInputRef.current, { results: 5 });
+            suggestFrom.events.add('select', (e: any) => {
+                setFromCity(e.get('item').value);
+            });
+        }
+
+        if (toInputRef.current) {
+            suggestTo = new ymapsInstance.SuggestView(toInputRef.current, { results: 5 });
+            suggestTo.events.add('select', (e: any) => {
+                setToCity(e.get('item').value);
+            });
+        }
+
+        return () => {
+            if (suggestFrom && typeof suggestFrom.destroy === 'function') suggestFrom.destroy();
+            if (suggestTo && typeof suggestTo.destroy === 'function') suggestTo.destroy();
+        };
+    }, [ymapsInstance, fromInputRef, toInputRef]);
 
 
     const [name, setName] = useState('');
@@ -113,33 +140,8 @@ export default function BookingForm() {
 
     // Attach SuggestView to inputs when YMaps loads
     const onLoadYmaps = useCallback((ymaps: unknown) => {
-        const ymapsAny = ymaps as any;
-        if (!ymapsAny) return;
-        setYmapsInstance(ymapsAny);
-
-        if (fromInputRef.current) {
-            const ymapsAny = ymaps as Record<string, any>;
-            const suggestFrom = new ymapsAny.SuggestView(fromInputRef.current, { results: 5 });
-            suggestFrom.events.add('select', (e: unknown) => {
-                const eventAny = e as Record<string, unknown>;
-                if (typeof eventAny.get === 'function') {
-                    const getFn = eventAny.get as (...args: any[]) => any;
-                    setFromCity(getFn('item').value);
-                }
-            });
-        }
-        if (toInputRef.current) {
-            const ymapsAny = ymaps as Record<string, any>;
-            const suggestTo = new ymapsAny.SuggestView(toInputRef.current, { results: 5 });
-            suggestTo.events.add('select', (e: unknown) => {
-                const eventAny = e as Record<string, unknown>;
-                if (typeof eventAny.get === 'function') {
-                    const getFn = eventAny.get as (...args: any[]) => any;
-                    setToCity(getFn('item').value);
-                }
-            });
-        }
-    }, [fromInputRef, toInputRef]);
+        setYmapsInstance(ymaps);
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -199,7 +201,7 @@ export default function BookingForm() {
                                 </div>
 
                                 {/* Yandex Map Preview */}
-                                <YMaps query={{ apikey: 'd6af2cbb-9bf6-419b-a010-0937a76e48ab', load: 'package.full' }}>
+                                <YMaps query={{ apikey: 'd6af2cbb-9bf6-419b-a010-0937a76e48ab', load: 'package.full,SuggestView,route' }}>
                                     <div style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none', overflow: 'hidden' }}>
                                         {/* Hidden Map just to load ymaps library globally for SuggestView */}
                                         <Map defaultState={{ center: [55.751574, 37.573856], zoom: 9 }} onLoad={onLoadYmaps} />
