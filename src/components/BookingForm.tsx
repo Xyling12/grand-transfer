@@ -273,7 +273,7 @@ export default function BookingForm() {
                                 {/* Yandex Map Preview */}
                                 <YMaps
                                     query={{
-                                        apikey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || 'd6af2cbb-9bf6-419b-a010-0937a76e48ab',
+                                        apikey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || 'fc74dc00-3338-43b2-b494-859241a4ac3c',
                                         load: 'package.full'
                                     }}
                                 >
