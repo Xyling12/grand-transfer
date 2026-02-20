@@ -127,6 +127,7 @@
 @media (max-width: 768px) {
     .grid {
         grid-template-columns: 1fr;
+        padding: 0 15px;
     }
 
     .title {

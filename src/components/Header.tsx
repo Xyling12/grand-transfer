@@ -23,29 +23,17 @@ export default function Header() {
     return (
         <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ''}`}>
             <div className={styles.container}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div className={styles.leftGroup}>
                     <Link href="/" className={styles.logo}>
                         <Car size={28} />
-                        GrandTransfer
+                        <span className={styles.logoText}>GrandTransfer</span>
                     </Link>
 
                     {/* City Selector */}
                     <div style={{ position: 'relative' }}>
                         <button
                             onClick={() => setIsCityOpen(!isCityOpen)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                background: 'rgba(99, 102, 241, 0.1)',
-                                border: 'none',
-                                padding: '8px 12px',
-                                borderRadius: '20px',
-                                fontSize: '0.9rem',
-                                color: 'var(--color-primary)',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                            }}
+                            className={styles.cityBtn}
                         >
                             <MapPin size={16} />
                             {currentCity.name}

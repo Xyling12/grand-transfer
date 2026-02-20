@@ -157,3 +157,10 @@
     color: #fff;
     box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
 }
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+    }
+}
