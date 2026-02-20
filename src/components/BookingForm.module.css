@@ -31,7 +31,7 @@
     padding: 48px;
     box-shadow: var(--shadow-card);
     position: relative;
-    overflow: hidden;
+    /* Removed overflow: hidden so Yandex SuggestView dropdown is not clipped */
 }
 
 .formCard::after {
@@ -41,6 +41,7 @@
     left: 0;
     width: 100%;
     height: 100%;
+    border-radius: inherit;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
     pointer-events: none;
 }

@@ -43,16 +43,30 @@ export default function BookingForm() {
     const fromInputRef = useRef<HTMLInputElement>(null);
     const toInputRef = useRef<HTMLInputElement>(null);
 
+    const [debouncedFrom, setDebouncedFrom] = useState(fromCity);
+    const [debouncedTo, setDebouncedTo] = useState(toCity);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedFrom(fromCity);
+            setDebouncedTo(toCity);
+        }, 1500);
+        return () => clearTimeout(timer);
+    }, [fromCity, toCity]);
+
     // Calculate real route using Yandex Maps API when cities change
     useEffect(() => {
-        if (!ymapsInstance || !fromCity || !toCity) {
-            if (!fromCity || !toCity) setPriceCalc(null);
+        if (!ymapsInstance || !debouncedFrom || !debouncedTo) {
+            if (!debouncedFrom || !debouncedTo) {
+                setPriceCalc(null);
+                setRouteRenderData(null);
+            }
             return;
         }
 
         setIsCalculatingRoute(true);
 
-        ymapsInstance.route([fromCity, toCity], {
+        ymapsInstance.route([debouncedFrom, debouncedTo], {
             multiRoute: true,
             routingMode: 'auto'
         }).then((route: unknown) => {
@@ -85,9 +99,10 @@ export default function BookingForm() {
         }).catch((err: unknown) => {
             console.error('Yandex route error', err);
             setPriceCalc(null);
+            setRouteRenderData(null);
             setIsCalculatingRoute(false);
         });
-    }, [fromCity, toCity, tariff, ymapsInstance]);
+    }, [debouncedFrom, debouncedTo, tariff, ymapsInstance]);
 
 
     const [name, setName] = useState('');
@@ -185,7 +200,7 @@ export default function BookingForm() {
 
                                 {/* Yandex Map Preview */}
                                 <YMaps query={{ apikey: 'd6af2cbb-9bf6-419b-a010-0937a76e48ab', load: 'package.full' }}>
-                                    <div style={{ display: 'none' }}>
+                                    <div style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none', overflow: 'hidden' }}>
                                         {/* Hidden Map just to load ymaps library globally for SuggestView */}
                                         <Map defaultState={{ center: [55.751574, 37.573856], zoom: 9 }} onLoad={onLoadYmaps} />
                                     </div>
