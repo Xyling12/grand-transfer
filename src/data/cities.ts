@@ -131,7 +131,7 @@ export const cities: City[] = rawCities.map(city => {
         .filter(c => c.dist > 30 && c.dist < 1500)
         .sort((a, b) => a.dist - b.dist);
 
-    let routes: Route[] = others.slice(0, 6).map(dest => {
+    const routes: Route[] = others.slice(0, 6).map(dest => {
         const roadDist = Math.round(dest.dist * 1.3); // Apply winding factor
 
         let rate = 25; // Base rate

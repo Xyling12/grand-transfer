@@ -12,40 +12,41 @@ interface CityContextType {
 const CityContext = createContext<CityContextType | undefined>(undefined);
 
 export function CityProvider({ children }: { children: React.ReactNode }) {
-    // Default to Izhevsk (id: 'izhevsk') as requested by user
-    const defaultCity = cities.find(c => c.id === 'izhevsk') || cities[0];
-    const [currentCity, setCurrentCity] = useState<City>(defaultCity);
-
-    // Initial load from localStorage
-    // Initial load from localStorage or Geolocation
-    useEffect(() => {
-        const savedCityId = localStorage.getItem('grand_transfer_city_id');
-        if (savedCityId) {
-            const found = cities.find(c => c.id === savedCityId);
-            if (found) setCurrentCity(found);
-        } else {
-            // Try to detect city via Geolocation if not set
-            if (typeof navigator !== 'undefined' && "geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        try {
-                            const { latitude, longitude } = position.coords;
-                            const closest = getClosestCity(latitude, longitude);
-                            if (closest) {
-                                console.log(`📍 Geolocation detected: ${closest.name}`);
-                                setCurrentCity(closest);
-                                localStorage.setItem('grand_transfer_city_id', closest.id);
-                            }
-                        } catch (e) {
-                            console.error("Error finding closest city:", e);
-                        }
-                    },
-                    (error) => {
-                        console.log("Geolocation access denied or error:", error.message);
-                        // Stay with default city (Izhevsk)
-                    }
-                );
+    // Initialize state synchronously from localStorage if in browser, otherwise use Izhevsk
+    const [currentCity, setCurrentCity] = useState<City>(() => {
+        if (typeof window !== 'undefined') {
+            const savedCityId = localStorage.getItem('grand_transfer_city_id');
+            if (savedCityId) {
+                const found = cities.find(c => c.id === savedCityId);
+                if (found) return found;
             }
+        }
+        return cities.find(c => c.id === 'izhevsk') || cities[0];
+    });
+
+    useEffect(() => {
+        // Try to detect city via Geolocation if not set in localStorage
+        const savedCityId = localStorage.getItem('grand_transfer_city_id');
+        if (!savedCityId && typeof navigator !== 'undefined' && "geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    try {
+                        const { latitude, longitude } = position.coords;
+                        const closest = getClosestCity(latitude, longitude);
+                        if (closest) {
+                            console.log(`📍 Geolocation detected: ${closest.name}`);
+                            setCurrentCity(closest);
+                            localStorage.setItem('grand_transfer_city_id', closest.id);
+                        }
+                    } catch (e) {
+                        console.error("Error finding closest city:", e);
+                    }
+                },
+                (error) => {
+                    console.log("Geolocation access denied or error:", error.message);
+                    // Stay with default city (Izhevsk)
+                }
+            );
         }
     }, []);
 
