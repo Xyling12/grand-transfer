@@ -61,24 +61,7 @@ export default function Header() {
                         </button>
 
                         {isCityOpen && (
-                            <div style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                marginTop: '10px',
-                                background: 'var(--color-secondary)',
-                                borderRadius: '12px',
-                                border: '1px solid var(--glass-border)',
-                                boxShadow: 'var(--shadow-card)',
-                                padding: '10px',
-                                minWidth: '200px',
-                                maxHeight: '300px',
-                                overflowY: 'auto',
-                                zIndex: 100,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '4px'
-                            }}>
+                            <div className={styles.cityDropdown}>
                                 {cityList.map(city => (
                                     <button
                                         key={city.id}
@@ -86,18 +69,7 @@ export default function Header() {
                                             setCity(city);
                                             setIsCityOpen(false);
                                         }}
-                                        style={{
-                                            textAlign: 'left',
-                                            background: currentCity.id === city.id ? 'rgba(202, 138, 4, 0.15)' : 'transparent',
-                                            color: currentCity.id === city.id ? 'var(--color-primary)' : 'var(--color-foreground)',
-                                            border: 'none',
-                                            padding: '10px 14px',
-                                            borderRadius: '8px',
-                                            cursor: 'pointer',
-                                            fontSize: '0.9rem',
-                                            fontWeight: currentCity.id === city.id ? 600 : 400,
-                                            transition: 'all 0.2s ease'
-                                        }}
+                                        className={`${styles.cityOption} ${currentCity.id === city.id ? styles.cityOptionActive : ''}`}
                                     >
                                         {city.name}
                                     </button>

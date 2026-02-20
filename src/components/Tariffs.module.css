@@ -118,7 +118,7 @@
 .headerRow {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 20px;
     gap: 15px;
 }
@@ -128,18 +128,21 @@
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--color-foreground);
+    line-height: 1.2;
+    word-break: break-word;
 }
 
 .priceBadge {
     background: rgba(202, 138, 4, 0.1);
     color: var(--color-primary);
-    padding: 8px 16px;
+    padding: 8px 12px;
     border-radius: 20px;
     border: 1px solid var(--color-primary);
     font-weight: 700;
     font-size: 0.95rem;
     white-space: nowrap;
     flex-shrink: 0;
+    margin-top: 2px;
 }
 
 .description {

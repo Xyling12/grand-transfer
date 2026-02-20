@@ -4,18 +4,23 @@
     left: 0;
     right: 0;
     z-index: 1000;
-    padding: 24px 24px;
+    padding: 24px;
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     background: transparent;
 }
 
 .headerScrolled {
-    background: rgba(10, 10, 12, 0.75);
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     padding: 16px 24px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+.headerScrolled .container {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: 12px 24px;
+    box-shadow: var(--shadow-card);
 }
 
 .container {
@@ -25,78 +30,145 @@
     justify-content: space-between;
     align-items: center;
     gap: 20px;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid transparent;
+    padding: 12px 0px;
 }
 
 .leftGroup {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 24px;
 }
 
 .logo {
     font-family: var(--font-heading);
     font-size: 1.5rem;
     font-weight: 600;
-    color: var(--color-gold);
+    color: var(--color-primary);
     display: flex;
     align-items: center;
     gap: 8px;
     letter-spacing: 0.02em;
-    text-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+    text-shadow: 0 0 20px rgba(202, 138, 4, 0.2);
     white-space: nowrap;
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.02);
 }
 
 .cityBtn {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    padding: 8px 16px;
     border-radius: var(--radius-lg);
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--color-foreground);
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
+    backdrop-filter: blur(8px);
 }
 
 .cityBtn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(212, 175, 55, 0.4);
-    color: var(--color-gold);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(202, 138, 4, 0.4);
+    color: var(--color-primary);
+    box-shadow: 0 4px 15px rgba(202, 138, 4, 0.1);
+}
+
+.cityDropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 0;
+    background: rgba(12, 10, 9, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: 8px;
+    min-width: 200px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cityOption {
+    text-align: left;
+    background: transparent;
+    color: #A8A29E;
+    border: none;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 400;
+    transition: all 0.2s ease;
+}
+
+.cityOption:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-foreground);
+}
+
+.cityOptionActive {
+    background: rgba(202, 138, 4, 0.15) !important;
+    color: var(--color-primary) !important;
+    font-weight: 600;
 }
 
 .navLinks {
     display: flex;
-    gap: 24px;
+    gap: 32px;
 }
 
 .link {
     font-size: 0.85rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--color-text-muted);
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     position: relative;
     white-space: nowrap;
+    padding: 4px 0;
 }
 
 .link::after {
     content: '';
     position: absolute;
-    bottom: -4px;
+    bottom: 0;
     left: 0;
     width: 0%;
     height: 1px;
-    background: var(--color-gold);
+    background: var(--color-primary);
     transition: width 0.3s ease;
 }
 
 .link:hover {
-    color: var(--color-gold-light);
+    color: var(--color-foreground);
 }
 
 .link:hover::after {
@@ -106,35 +178,41 @@
 .actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 24px;
 }
 
 .socials {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 
 .socialIcon {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--color-text-muted);
     transition: all 0.3s ease;
     display: flex;
+    padding: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
 }
 
 .socialIcon:hover {
-    color: var(--color-gold);
+    color: var(--color-primary);
+    background: rgba(202, 138, 4, 0.1);
+    border-color: rgba(202, 138, 4, 0.2);
     transform: translateY(-2px);
-    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+    box-shadow: 0 4px 12px rgba(202, 138, 4, 0.15);
 }
 
 .callBtn {
-    background: linear-gradient(135deg, var(--color-gold), #8B6508);
+    background: linear-gradient(135deg, var(--color-primary), #A16207);
     color: #fff;
-    padding: 10px 20px;
-    border-radius: var(--radius-lg);
+    padding: 10px 24px;
+    border-radius: 50px;
     font-weight: 600;
     font-size: 0.9rem;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+    box-shadow: 0 4px 15px rgba(202, 138, 4, 0.2);
     display: flex;
     align-items: center;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -143,31 +221,30 @@
 }
 
 .callBtn:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
-    background: linear-gradient(135deg, #E8C14A, var(--color-gold));
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 25px rgba(202, 138, 4, 0.4);
+    background: linear-gradient(135deg, var(--color-primary-hover), var(--color-primary));
 }
 
 .hamburger {
     display: none;
-    color: var(--color-gold);
+    color: var(--color-primary);
     background: transparent;
     border: none;
     cursor: pointer;
     padding: 5px;
 }
 
-/* Half screen dark blur glass menu */
 .mobileMenu {
     position: fixed;
     top: 0;
     right: 0;
-    width: 300px;
+    width: 320px;
     height: 100vh;
-    background: rgba(10, 10, 12, 0.95);
+    background: rgba(12, 10, 9, 0.98);
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
-    border-left: 1px solid rgba(212, 175, 55, 0.15);
+    border-left: 1px solid var(--glass-border);
     padding: 100px 30px 40px;
     display: flex;
     flex-direction: column;
@@ -185,7 +262,7 @@
 .mobileLink {
     font-family: var(--font-heading);
     font-size: 1.5rem;
-    color: #fff;
+    color: var(--color-foreground);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     transition: all 0.3s ease;
@@ -199,14 +276,14 @@
 }
 
 .mobileLink:hover {
-    color: var(--color-gold);
+    color: var(--color-primary);
     padding-left: 10px;
 }
 
 .mobileSocials {
     margin-top: auto;
     display: flex;
-    gap: 20px;
+    gap: 16px;
     opacity: 0;
     transform: translateY(20px);
 }
@@ -231,20 +308,24 @@
 
 @media (max-width: 768px) {
     .header {
-        padding: 16px 16px;
+        padding: 16px;
     }
 
     .headerScrolled {
         padding: 12px 16px;
     }
 
+    .headerScrolled .container {
+        padding: 8px 16px;
+        border-radius: var(--radius-lg);
+    }
+
     .callBtn {
         display: none;
-        /* Hide top phone button to save space; user can call via Hero */
     }
 
     .cityBtn {
-        padding: 6px 10px;
+        padding: 6px 12px;
         font-size: 0.8rem;
     }
 }
@@ -252,7 +333,6 @@
 @media (max-width: 480px) {
     .logoText {
         display: none;
-        /* Keep only the car icon on very small displays to ensure room for city and menu */
     }
 
     .container {
