@@ -1,257 +1,118 @@
-.heroSection {
-    position: relative;
-    min-height: 100vh;
-    /* Make it full screen for more impact */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #000000;
-    /* Deep black base */
-    overflow: hidden;
-    color: var(--color-foreground);
-}
-
-/* Background animated glow */
-.heroSection::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 60%);
-    animation: pulse 15s ease-in-out infinite;
-    z-index: 0;
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-        opacity: 0.5;
-    }
-
-    50% {
-        transform: scale(1.1);
-        opacity: 0.8;
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 0.5;
-    }
-}
-
-.bgImage {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    background: radial-gradient(circle at 30% 70%, rgba(20, 25, 35, 0.5) 0%, #000000 100%);
-}
-
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 100%);
-    /* Adding a subtle noise texture would go here if we had one */
-}
-
-.content {
-    position: relative;
-    z-index: 2;
-    max-width: 900px;
-    padding: 80px;
-    border-radius: var(--radius-2xl);
-
-    /* Ultimate Liquid Glass Effect */
-    background: rgba(20, 25, 30, 0.3);
-    backdrop-filter: blur(30px) saturate(160%);
-    -webkit-backdrop-filter: blur(30px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    border-left: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow:
-        0 40px 100px rgba(0, 0, 0, 0.7),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        inset 0 0 20px rgba(212, 175, 55, 0.05);
-}
-
-.title {
-    font-family: var(--font-heading);
-    font-size: 5rem;
-    font-weight: 500;
-    line-height: 1.1;
-    margin-bottom: 2rem;
-    letter-spacing: 0.02em;
-    color: #ffffff;
-    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-.highlight {
-    display: block;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 0.8em;
-    margin: 10px 0;
-    text-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
-}
-
-.titleTop {
-    display: block;
-    font-size: 0.8em;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    color: var(--color-foreground);
-    margin-bottom: 0.5rem;
-}
-
-.titleBottom {
-    display: block;
-    font-size: 1.1em;
-    font-weight: 800;
-    line-height: 1;
-    background: linear-gradient(to right, var(--color-primary), #EAB308);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
-}
-
-.subtitle {
-    font-family: var(--font-body);
-    font-size: 1.3rem;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 3.5rem;
-    max-width: 600px;
-    font-weight: 300;
-    letter-spacing: 0.01em;
-}
-
-.actions {
-    display: flex;
-    gap: 24px;
-    align-items: center;
-}
-
-.primaryBtn {
-    background: linear-gradient(135deg, var(--color-gold), #8B6508);
-    color: #fff;
-    padding: 18px 40px;
-    border-radius: var(--radius-lg);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
-    font-size: 1.1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.primaryBtn:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 15px 35px rgba(212, 175, 55, 0.5);
-    background: linear-gradient(135deg, #E8C14A, var(--color-gold));
-}
-
+/* ===== Shared neon button base ===== */
+.primaryBtn,
 .secondaryBtn {
     padding: 18px 40px;
     border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
-    font-weight: 500;
+
     display: flex;
     align-items: center;
     gap: 12px;
-    transition: all 0.3s ease;
+
     font-size: 1.1rem;
+    font-weight: 600;
+
     position: relative;
     overflow: hidden;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    will-change: transform, box-shadow, filter;
 }
 
+/* Neon glow layer */
+.primaryBtn::after,
+.secondaryBtn::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: radial-gradient(circle at 30% 30%, rgba(212, 175, 55, 0.35), transparent 60%);
+    opacity: 0.0;
+    filter: blur(12px);
+    transition: opacity 0.35s ease;
+    z-index: 0;
+}
+
+/* Shine sweep */
+.primaryBtn::before,
 .secondaryBtn::before {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
-    width: 50%;
+    left: -120%;
+    width: 55%;
     height: 100%;
     background: linear-gradient(to right,
             transparent,
-            rgba(255, 255, 255, 0.05),
+            rgba(255, 255, 255, 0.08),
             transparent);
     transform: skewX(-20deg);
-    transition: all 0.7s ease;
+    transition: left 0.75s ease;
+    z-index: 0;
 }
 
+/* Make content above pseudo-elements */
+.primaryBtn > *,
+.secondaryBtn > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Hover animation like primary */
+.primaryBtn:hover,
+.secondaryBtn:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(212, 175, 55, 0.45);
+    filter: brightness(1.02);
+}
+
+.primaryBtn:hover::before,
 .secondaryBtn:hover::before {
-    left: 200%;
+    left: 220%;
+}
+
+.primaryBtn:hover::after,
+.secondaryBtn:hover::after {
+    opacity: 1;
+}
+
+/* Active press */
+.primaryBtn:active,
+.secondaryBtn:active {
+    transform: translateY(-2px) scale(1.01);
+}
+
+/* Focus ring */
+.primaryBtn:focus-visible,
+.secondaryBtn:focus-visible {
+    outline: 2px solid rgba(212, 175, 55, 0.55);
+    outline-offset: 3px;
+}
+
+/* ===== Differences ===== */
+
+/* Primary stays gold */
+.primaryBtn {
+    background: linear-gradient(135deg, var(--color-gold), #8B6508);
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.30);
+}
+
+.primaryBtn:hover {
+    background: linear-gradient(135deg, #E8C14A, var(--color-gold));
+}
+
+/* Secondary becomes neon-glass but with same glow/animation */
+.secondaryBtn {
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .secondaryBtn:hover {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(212, 175, 55, 0.3);
-    color: var(--color-gold-light);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-}
-
-@media (max-width: 768px) {
-    .content {
-        padding: 40px 20px;
-        margin: 0 15px;
-        text-align: center;
-        backdrop-filter: blur(16px);
-    }
-
-    .title {
-        font-size: 2.8rem;
-    }
-
-    .subtitle {
-        font-size: 1.1rem;
-        margin: 0 auto 2.5rem;
-    }
-
-    .actions {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .primaryBtn,
-    .secondaryBtn {
-        width: 100%;
-        justify-content: center;
-        padding: 16px;
-    }
-}
-
-@media (max-width: 480px) {
-    .content {
-        padding: 30px 15px;
-        margin: 0 10px;
-    }
-
-    .title {
-        font-size: 2.2rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .subtitle {
-        font-size: 1rem;
-        margin-bottom: 2rem;
-    }
-
-    .primaryBtn,
-    .secondaryBtn {
-        font-size: 1rem;
-        padding: 14px 20px;
-    }
+    border-color: rgba(212, 175, 55, 0.30);
+    color: #fff; /* можно оставить белым, чтобы было “как primary” */
 }
