@@ -7,6 +7,8 @@ interface CityContextType {
     currentCity: City;
     setCity: (city: City) => void;
     cityList: City[];
+    selectedTariff: string;
+    setSelectedTariff: (tariff: string) => void;
 }
 
 const CityContext = createContext<CityContextType | undefined>(undefined);
@@ -14,9 +16,10 @@ const CityContext = createContext<CityContextType | undefined>(undefined);
 export function CityProvider({ children }: { children: React.ReactNode }) {
     // Initialize state synchronously to the default city to prevent Next.js hydration mismatch
     const [currentCity, setCurrentCity] = useState<City>(() => {
-        // ALWAYS return the default on the first render (matching SSR)
         return cities.find(c => c.id === 'izhevsk') || cities[0];
     });
+
+    const [selectedTariff, setSelectedTariff] = useState<string>('standart');
 
     useEffect(() => {
         // Only run on client after hydration
@@ -30,28 +33,25 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
             }
         }
 
-        // Try to detect city via Geolocation if not set in localStorage
-        if (typeof navigator !== 'undefined' && "geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    try {
-                        const { latitude, longitude } = position.coords;
-                        const closest = getClosestCity(latitude, longitude);
-                        if (closest) {
-                            console.log(`📍 Geolocation detected: ${closest.name}`);
-                            setCurrentCity(closest);
-                            localStorage.setItem('grand_transfer_city_id', closest.id);
-                        }
-                    } catch (e) {
-                        console.error("Error finding closest city:", e);
+        // Try to detect city via IP Geolocation if not set in localStorage
+        const fetchCityByIP = async () => {
+            try {
+                const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+                const data = await res.json();
+                if (data && data.latitude && data.longitude) {
+                    const closest = getClosestCity(parseFloat(data.latitude), parseFloat(data.longitude));
+                    if (closest) {
+                        console.log(`📍 IP Geolocation detected: ${closest.name}`);
+                        setCurrentCity(closest);
+                        localStorage.setItem('grand_transfer_city_id', closest.id);
                     }
-                },
-                (error) => {
-                    console.log("Geolocation access denied or error:", error.message);
-                    // Stay with default city (Izhevsk)
                 }
-            );
-        }
+            } catch (e) {
+                console.error("Error finding closest city via IP:", e);
+            }
+        };
+
+        fetchCityByIP();
     }, []);
 
     const handleSetCity = (city: City) => {
@@ -60,7 +60,13 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <CityContext.Provider value={{ currentCity, setCity: handleSetCity, cityList: cities }}>
+        <CityContext.Provider value={{
+            currentCity,
+            setCity: handleSetCity,
+            cityList: cities,
+            selectedTariff,
+            setSelectedTariff
+        }}>
             {children}
         </CityContext.Provider>
     );

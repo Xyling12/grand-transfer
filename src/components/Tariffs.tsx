@@ -56,7 +56,7 @@ import { Check } from 'lucide-react';
 // ... imports
 
 export default function Tariffs() {
-    const { currentCity } = useCity();
+    const { currentCity, setSelectedTariff } = useCity();
 
     // Safe fallback to 'Москва' if city is somehow completely missing
     const activeTariffs = cityTariffs[currentCity?.name] || cityTariffs['Москва'];
@@ -109,7 +109,18 @@ export default function Tariffs() {
                                         ))}
                                     </ul>
 
-                                    <button className={styles.bookButton}>Заказать</button>
+                                    <button
+                                        className={styles.bookButton}
+                                        onClick={() => {
+                                            setSelectedTariff(tariff.id);
+                                            const element = document.getElementById('booking-form');
+                                            if (element) {
+                                                element.scrollIntoView({ behavior: 'smooth' });
+                                            }
+                                        }}
+                                    >
+                                        Заказать
+                                    </button>
                                 </div>
                             </div>
                         );

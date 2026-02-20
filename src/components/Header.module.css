@@ -19,7 +19,8 @@
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: 12px 24px;
+    padding: 12px 48px;
+    /* Increased to clear the rounded corners */
     box-shadow: var(--shadow-card);
 }
 
@@ -178,12 +179,14 @@
 .actions {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 20px;
+    /* Reduced from 24px to give more room for socials */
 }
 
 .socials {
     display: flex;
-    gap: 12px;
+    gap: 8px;
+    /* Reduced gap to keep icons cluster tighter */
 }
 
 .socialIcon {

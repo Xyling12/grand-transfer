@@ -51,7 +51,9 @@ export default function BookingForm() {
     }, [currentCity]);
 
     const [toCity, setToCity] = useState('');
-    const [tariff, setTariff] = useState('standart');
+    const { selectedTariff, setSelectedTariff } = useCity();
+    const tariff = selectedTariff;
+    const setTariff = setSelectedTariff;
 
     // Checkpoint State
     const [checkpointId, setCheckpointId] = useState<string>('');
