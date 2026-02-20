@@ -577,7 +577,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Мелитополь ДНР": {
+    "Мелитополь": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -617,7 +617,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Амросивка ДНР": {
+    "Амросивка": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -625,7 +625,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Снежное ДНР": {
+    "Снежное": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -633,7 +633,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Северное ДНР": {
+    "Северное": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -641,7 +641,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Енакиево ДНР": {
+    "Енакиево": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -657,7 +657,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Харцызск ДНР": {
+    "Харцызск": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -665,7 +665,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Торез ДНР": {
+    "Торез": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -673,7 +673,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Докучаевск ДНР": {
+    "Докучаевск": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -761,7 +761,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 50,
         "soberDriver": 120
     },
-    "Пелагеевка ДНР": {
+    "Пелагеевка": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -769,7 +769,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Ясеноватая ДНР": {
+    "Ясеноватая": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
@@ -785,7 +785,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
         "minivan": 120,
         "soberDriver": 120
     },
-    "Авдеевка ДНР": {
+    "Авдеевка": {
         "econom": 90,
         "standart": 90,
         "comfortPlus": 90,
