@@ -89,12 +89,6 @@ export default function Header() {
                 </nav>
 
                 <div className={styles.actions}>
-                    <div className={styles.socials}>
-                        <a href="https://vk.ru/ru.transfer" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="VK"><VKIcon size={20} /></a>
-                        <a href="https://t.me/Rom474" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Telegram"><TelegramIcon size={20} /></a>
-                        <a href="https://wa.me/79501587878" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="WhatsApp"><WhatsAppIcon size={20} /></a>
-                        <a href="https://max.ru/u/f9LHodD0cOJCpX9My7upgEOBL0dt-DNGWgrFFD4IwEdtYkMWb7DJK1v8yOo" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Max"><MaxIcon size={20} /></a>
-                    </div>
                     <a href={`tel:${currentCity.phone.replace(/[^\d+]/g, '')}`} className={styles.callBtn}>
                         <Phone size={18} className={styles.phoneIcon} />
                         <span className={styles.phoneText}>{currentCity.phone}</span>
@@ -108,6 +102,16 @@ export default function Header() {
                     >
                         {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
                     </button>
+                </div>
+            </div>
+
+            {/* Socials stay visible 'under' the main header bar */}
+            <div className={styles.socialBar}>
+                <div className={styles.socials}>
+                    <a href="https://vk.ru/ru.transfer" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="VK"><VKIcon size={18} /></a>
+                    <a href="https://t.me/Rom474" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Telegram"><TelegramIcon size={18} /></a>
+                    <a href="https://wa.me/79501587878" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="WhatsApp"><WhatsAppIcon size={18} /></a>
+                    <a href="https://max.ru/u/f9LHodD0cOJCpX9My7upgEOBL0dt-DNGWgrFFD4IwEdtYkMWb7DJK1v8yOo" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Max"><MaxIcon size={18} /></a>
                 </div>
             </div>
 

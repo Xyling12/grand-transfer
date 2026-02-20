@@ -19,8 +19,8 @@
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: 12px 64px;
-    /* Aggressive padding to stay inside the curve */
+    padding: 12px 24px;
+    /* Reset to normal padding */
     box-shadow: var(--shadow-card);
 }
 
@@ -179,7 +179,7 @@
 .actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     flex-shrink: 0;
     /* Don't squeeze the items */
 }
@@ -202,10 +202,29 @@
 
 .socialIcon:hover {
     color: var(--color-primary);
-    background: rgba(202, 138, 4, 0.1);
-    border-color: rgba(202, 138, 4, 0.2);
+    background: rgba(202, 138, 4, 0.2);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(202, 138, 4, 0.15);
+}
+
+.socialBar {
+    max-width: 1200px;
+    margin: 8px auto 0;
+    display: flex;
+    justify-content: flex-end;
+    /* Align to the right side */
+    padding: 0 40px;
+    animation: fadeInDown 0.5s ease backwards;
+}
+
+.socialBar .socials {
+    display: flex;
+    gap: 10px;
+    background: rgba(12, 10, 9, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 6px 12px;
+    border-radius: 50px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .callBtn {
@@ -299,8 +318,7 @@
 
 @media (max-width: 1150px) {
 
-    .navLinks,
-    .socials {
+    .navLinks {
         display: none;
     }
 
