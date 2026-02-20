@@ -285,7 +285,7 @@ export default function BookingForm() {
                                 <YMaps
                                     query={{
                                         apikey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || 'fc74dc00-3338-43b2-b494-859241a4ac3c',
-                                        load: 'package.full'
+                                        load: 'package.full,suggest'
                                     }}
                                 >
                                     <div style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none', overflow: 'hidden' }}>
@@ -303,7 +303,7 @@ export default function BookingForm() {
                                                 border: '1px solid var(--glass-border)'
                                             }}>
                                                 <Map
-                                                    state={{ center: [0, 0], bounds: routeRenderData.getBounds(), zoom: 9 }}
+                                                    state={{ bounds: routeRenderData.getBounds() }}
                                                     options={{ suppressMapOpenBlock: true }}
                                                     width="100%"
                                                     height="100%"
