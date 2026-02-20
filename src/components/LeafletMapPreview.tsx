@@ -16,11 +16,12 @@ L.Icon.Default.mergeOptions({
 interface LeafletMapPreviewProps {
     fromCoords: [number, number] | null;
     toCoords: [number, number] | null;
-    onRouteCalculated: (distanceKm: number, durationSeconds: number) => void;
+    checkpointCoords?: [number, number] | null;
+    onRouteCalculated: (distancesKm: number[], durationsSeconds: number[]) => void;
 }
 
 // Inner component to handle zoom/pan and routing updates
-function RoutingOverlay({ fromCoords, toCoords, onRouteCalculated }: LeafletMapPreviewProps) {
+function RoutingOverlay({ fromCoords, toCoords, checkpointCoords, onRouteCalculated }: LeafletMapPreviewProps) {
     const map = useMap();
     const [routeGeometry, setRouteGeometry] = useState<[number, number][]>([]);
 
@@ -47,7 +48,13 @@ function RoutingOverlay({ fromCoords, toCoords, onRouteCalculated }: LeafletMapP
             const fetchRoute = async () => {
                 try {
                     // OSRM expects coordinates as lon,lat
-                    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${fromCoords[1]},${fromCoords[0]};${toCoords[1]},${toCoords[0]}?overview=full&geometries=geojson`;
+                    let coordsString = `${fromCoords[1]},${fromCoords[0]}`;
+                    if (checkpointCoords) {
+                        coordsString += `;${checkpointCoords[1]},${checkpointCoords[0]}`;
+                    }
+                    coordsString += `;${toCoords[1]},${toCoords[0]}`;
+
+                    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`;
 
                     const res = await fetch(osrmUrl);
                     const data = await res.json();
@@ -55,8 +62,11 @@ function RoutingOverlay({ fromCoords, toCoords, onRouteCalculated }: LeafletMapP
                     if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
                         const route = data.routes[0];
 
-                        // Extract distance (meters) and duration (seconds)
-                        onRouteCalculated(route.distance / 1000, route.duration);
+                        // Extract distances (meters) and durations (seconds) for each leg
+                        const distances = route.legs.map((leg: any) => leg.distance / 1000);
+                        const durations = route.legs.map((leg: any) => leg.duration);
+
+                        onRouteCalculated(distances, durations);
 
                         // OSRM returns GeoJSON coordinates as [lon, lat], Leaflet wants [lat, lon]
                         const coordinates = route.geometry.coordinates.map((coord: number[]) => [coord[1], coord[0]] as [number, number]);
@@ -81,11 +91,12 @@ function RoutingOverlay({ fromCoords, toCoords, onRouteCalculated }: LeafletMapP
 
             fetchRoute();
         }
-    }, [fromCoords, toCoords, map]);
+    }, [fromCoords, toCoords, checkpointCoords, map]);
 
     return (
         <>
             {fromCoords && <Marker position={fromCoords} />}
+            {checkpointCoords && <Marker position={checkpointCoords} />}
             {toCoords && <Marker position={toCoords} />}
             {routeGeometry.length > 0 && <Polyline positions={routeGeometry} color="var(--color-primary, #3b82f6)" weight={4} opacity={0.8} />}
         </>
@@ -93,7 +104,7 @@ function RoutingOverlay({ fromCoords, toCoords, onRouteCalculated }: LeafletMapP
 }
 
 
-export default function LeafletMapPreview({ fromCoords, toCoords, onRouteCalculated }: LeafletMapPreviewProps) {
+export default function LeafletMapPreview({ fromCoords, toCoords, checkpointCoords, onRouteCalculated }: LeafletMapPreviewProps) {
     const center: [number, number] = fromCoords || [55.751574, 37.573856]; // Default to Moscow or fromCoords
 
     return (
@@ -110,6 +121,7 @@ export default function LeafletMapPreview({ fromCoords, toCoords, onRouteCalcula
             <RoutingOverlay
                 fromCoords={fromCoords}
                 toCoords={toCoords}
+                checkpointCoords={checkpointCoords}
                 onRouteCalculated={onRouteCalculated}
             />
         </MapContainer>

@@ -13,6 +13,7 @@ const LeafletMapPreview = dynamic(() => import('./LeafletMapPreview'), {
 import styles from './BookingForm.module.css';
 import { useCity } from '@/context/CityContext';
 import { cityTariffs, CityTariffs } from '@/data/tariffs';
+import { checkpoints } from '@/data/checkpoints';
 
 const TARIFFS = [
     { id: 'econom', name: 'Эконом', image: '/images/tariffs/economy-3d.png' },
@@ -52,48 +53,99 @@ export default function BookingForm() {
     const [toCity, setToCity] = useState('');
     const [tariff, setTariff] = useState('standart');
 
+    // Checkpoint State
+    const [checkpointId, setCheckpointId] = useState<string>('');
+    const activeCheckpoint = checkpoints.find(cp => cp.id === checkpointId);
+
     // Route Calculation State
-    const [priceCalc, setPriceCalc] = useState<{ roadKm: number; minPrice: number; duration: string; tariffName: string; } | null>(null);
+    const [priceCalc, setPriceCalc] = useState<{ roadKm: number; minPrice: number; duration: string; tariffName: string; rawDistances: number[] } | null>(null);
     const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 
     // Coordinate state for routing
     const [fromCoords, setFromCoords] = useState<[number, number] | null>(null);
     const [toCoords, setToCoords] = useState<[number, number] | null>(null);
 
-    const handleRouteCalculated = useCallback((distanceKm: number, durationSeconds: number) => {
-        const roadKm = Math.round(distanceKm);
-        const hours = Math.floor(durationSeconds / 3600);
-        const mins = Math.round((durationSeconds % 3600) / 60);
+    const handleRouteCalculated = useCallback((distancesKm: number[], durationsSeconds: number[]) => {
+        let totalKm = 0;
+        let totalSec = 0;
+
+        distancesKm.forEach(d => totalKm += d);
+        durationsSeconds.forEach(d => totalSec += d);
+
+        const roadKm = Math.round(totalKm);
+        const hours = Math.floor(totalSec / 3600);
+        const mins = Math.round((totalSec % 3600) / 60);
         const duration = hours === 0 ? `${mins} мин` : mins === 0 ? `${hours} ч` : `${hours} ч ${mins} мин`;
 
         const selectedTariff = TARIFFS.find(t => t.id === tariff);
-        const activeCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
-        const rate = activeCityTariffs[tariff as keyof CityTariffs] || 25;
-        const minPrice = Math.round((500 + roadKm * rate) / 100) * 100;
 
-        setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '' });
+        // Rate 1 (From)
+        const fromCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
+        const rate1 = fromCityTariffs[tariff as keyof CityTariffs] || 25;
+
+        // Rate 2 (To) - attempt to find destination city in tariffs
+        let toCityMatchedName = 'Москва';
+        for (const cityName of Object.keys(cityTariffs)) {
+            if (toCity.toLowerCase().includes(cityName.toLowerCase())) {
+                toCityMatchedName = cityName;
+                break;
+            }
+        }
+        const toCityTariffs = cityTariffs[toCityMatchedName] || cityTariffs['Москва'];
+        const rate2 = toCityTariffs[tariff as keyof CityTariffs] || 25;
+
+        let minPrice = 0;
+        if (distancesKm.length === 1) {
+            minPrice = Math.round((500 + roadKm * rate1) / 100) * 100;
+        } else if (distancesKm.length === 2) {
+            const rd1 = Math.round(distancesKm[0]);
+            const rd2 = Math.round(distancesKm[1]);
+            minPrice = Math.round((500 + rd1 * rate1 + rd2 * rate2) / 100) * 100;
+        }
+
+        setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '', rawDistances: distancesKm });
         setIsCalculatingRoute(false);
-    }, [tariff, currentCity]);
+    }, [tariff, currentCity, toCity]);
 
     // Update price if tariff changes while coords exist
     useEffect(() => {
         if (fromCoords && toCoords && priceCalc) {
             const selectedTariff = TARIFFS.find(t => t.id === tariff);
-            const activeCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
-            const rate = activeCityTariffs[tariff as keyof CityTariffs] || 25;
-            const minPrice = Math.round((500 + priceCalc.roadKm * rate) / 100) * 100;
+
+            const fromCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
+            const rate1 = fromCityTariffs[tariff as keyof CityTariffs] || 25;
+
+            let toCityMatchedName = 'Москва';
+            for (const cityName of Object.keys(cityTariffs)) {
+                if (toCity.toLowerCase().includes(cityName.toLowerCase())) {
+                    toCityMatchedName = cityName;
+                    break;
+                }
+            }
+            const toCityTariffs = cityTariffs[toCityMatchedName] || cityTariffs['Москва'];
+            const rate2 = toCityTariffs[tariff as keyof CityTariffs] || 25;
+
+            let minPrice = 0;
+            if (priceCalc.rawDistances.length === 1) {
+                minPrice = Math.round((500 + priceCalc.roadKm * rate1) / 100) * 100;
+            } else if (priceCalc.rawDistances.length === 2) {
+                const rd1 = Math.round(priceCalc.rawDistances[0]);
+                const rd2 = Math.round(priceCalc.rawDistances[1]);
+                minPrice = Math.round((500 + rd1 * rate1 + rd2 * rate2) / 100) * 100;
+            }
+
             setPriceCalc(prev => prev ? { ...prev, minPrice, tariffName: selectedTariff?.name || '' } : null);
         }
-    }, [tariff, currentCity]);
+    }, [tariff, currentCity, toCity]);
 
-    // Clear price if coords missing
+    // Clear price if coords missing or checkpoint changes
     useEffect(() => {
         if (!fromCoords || !toCoords) {
             setPriceCalc(null);
         } else {
             setIsCalculatingRoute(true);
         }
-    }, [fromCoords, toCoords]);
+    }, [fromCoords, toCoords, checkpointId]);
 
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
@@ -161,6 +213,21 @@ export default function BookingForm() {
                                     <p className={styles.priceHint} style={{ gridColumn: '1 / -1', marginTop: '-10px', opacity: 0.8 }}>
                                         <small>* Начните вводить точный адрес, и нажмите на подходящую подсказку из поиска.</small>
                                     </p>
+
+                                    <div className={styles.formGroup} style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                                        <label className={styles.label}>Промежуточный контрольно-пропускной пункт (опционально)</label>
+                                        <select
+                                            className={styles.input}
+                                            style={{ appearance: 'auto', paddingRight: '16px', backgroundColor: 'var(--glass-bg)', color: 'var(--color-text)', border: '1px solid var(--glass-border)' }}
+                                            value={checkpointId}
+                                            onChange={(e) => setCheckpointId(e.target.value)}
+                                        >
+                                            <option value="">-- Без КПП (Прямой маршрут) --</option>
+                                            {checkpoints.map(cp => (
+                                                <option key={cp.id} value={cp.id}>{cp.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <div style={{
@@ -177,6 +244,7 @@ export default function BookingForm() {
                                     <LeafletMapPreview
                                         fromCoords={fromCoords}
                                         toCoords={toCoords}
+                                        checkpointCoords={activeCheckpoint ? activeCheckpoint.coords : null}
                                         onRouteCalculated={handleRouteCalculated}
                                     />
                                 </div>
