@@ -193,12 +193,14 @@ export default function BookingForm() {
                                                 className={`${styles.tariffCard} ${tariff === t.id ? styles.tariffActive : ''}`}
                                                 onClick={() => setTariff(t.id)}
                                             >
-                                                {tariff === t.id && <CheckCircle2 size={18} className={styles.checkIcon} />}
+                                                {tariff === t.id && <CheckCircle2 size={16} className={styles.checkIcon} />}
                                                 <div className={styles.carImageWrapper}>
                                                     <img src={t.image} alt={t.name} className={styles.carImage} />
                                                 </div>
-                                                <span className={styles.tariffName}>{t.name}</span>
-                                                <span className={styles.tariffPrice}>{t.price}/км</span>
+                                                <div className={styles.tariffCardBody}>
+                                                    <span className={styles.tariffName}>{t.name}</span>
+                                                    <span className={styles.tariffPrice}>{t.price}/км</span>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>

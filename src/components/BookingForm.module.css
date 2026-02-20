@@ -135,80 +135,112 @@
 
 .tariffGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
     margin-top: 10px;
 }
 
 .tariffCard {
-    background: var(--color-secondary);
-    border: 2px solid var(--color-border);
-    padding: 16px;
-    border-radius: var(--radius-md);
+    border-radius: 14px;
     cursor: pointer;
-    text-align: center;
-    transition: all 0.25s ease;
     position: relative;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
 }
 
 .tariffCard:hover {
-    background: #fff;
-    border-color: rgba(99, 102, 241, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
 }
 
+/* Dark image header */
 .carImageWrapper {
-    height: 80px;
+    background-color: #161B2E;
+    border-radius: 12px 12px 0 0;
+    height: 90px;
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 8px;
-    perspective: 1000px;
+    padding: 8px 10px 0;
 }
 
 .carImage {
-    max-width: 120px;
+    width: 100%;
     height: auto;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s ease;
-    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     will-change: transform;
 }
 
 .tariffCard:hover .carImage {
-    transform: translateX(4px) translateY(-2px) scale(1.05);
-    filter: drop-shadow(-4px 6px 8px rgba(0, 0, 0, 0.08));
+    transform: scale(1.07) translateY(-3px);
 }
 
-.tariffActive {
+/* Light bottom with name and price */
+.tariffCardBody {
     background: #fff;
+    border: 1px solid var(--color-border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 8px 10px 10px;
+    flex: 1;
+}
+
+.tariffName {
+    display: block;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #1E293B;
+    margin-bottom: 2px;
+}
+
+.tariffPrice {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* Active state */
+.tariffActive {
     border-color: var(--color-primary);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 4px 18px rgba(99, 102, 241, 0.2);
+}
+
+.tariffActive .carImageWrapper {
+    background-color: #1a2040;
+}
+
+.tariffActive .carImage {
+    transform: scale(1.1) translateY(-4px);
 }
 
 .tariffActive .tariffName {
     color: var(--color-primary);
 }
 
-.tariffActive .carImage {
-    transform: scale(1.15);
-    filter: drop-shadow(0 8px 12px rgba(99, 102, 241, 0.3));
-}
-
-.tariffActive .tariffPrice {
-    color: var(--color-foreground);
-    font-weight: 600;
+.tariffActive .tariffCardBody {
+    border-color: var(--color-primary);
+    background: rgba(99, 102, 241, 0.03);
 }
 
 .checkIcon {
     position: absolute;
-    top: -10px;
-    right: -10px;
+    top: -8px;
+    right: -8px;
     background: #fff;
     border-radius: 50%;
     color: var(--color-primary);
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
     animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    z-index: 10;
 }
 
 @keyframes scaleIn {
