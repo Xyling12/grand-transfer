@@ -181,29 +181,29 @@
     background: rgba(99, 102, 241, 0.1);
 }
 
-/* Mobile slide-down menu */
+/* Mobile slide-down menu — dark glass theme */
 .mobileMenu {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(99, 102, 241, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    padding: 16px 24px 24px;
+    background: rgba(16, 20, 40, 0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(99, 102, 241, 0.2);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+    padding: 12px 20px 24px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    animation: slideDown 0.25s ease;
+    gap: 2px;
+    animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 999;
 }
 
 @keyframes slideDown {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-8px);
     }
 
     to {
@@ -213,25 +213,30 @@
 }
 
 .mobileLink {
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--color-text-muted);
-    padding: 12px 16px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+    padding: 13px 16px;
     border-radius: 10px;
-    transition: background 0.15s ease, color 0.15s ease;
+    border-left: 3px solid transparent;
+    transition: all 0.15s ease;
+    letter-spacing: 0.01em;
 }
 
 .mobileLink:hover {
-    background: rgba(99, 102, 241, 0.06);
-    color: var(--color-primary);
+    background: rgba(99, 102, 241, 0.12);
+    color: #fff;
+    border-left-color: var(--color-primary);
+    padding-left: 22px;
 }
 
 .mobileSocials {
     display: flex;
-    gap: 14px;
-    padding: 12px 16px 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-    margin-top: 8px;
+    gap: 16px;
+    padding: 16px 16px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 10px;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 /* ======= BREAKPOINTS ======= */
