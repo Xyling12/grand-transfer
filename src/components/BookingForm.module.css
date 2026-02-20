@@ -317,6 +317,47 @@
     margin-left: 8px;
 }
 
+.receiptBox {
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+}
+
+.receiptTitle {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+.receiptRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    font-size: 0.95rem;
+}
+
+.receiptRow:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.receiptRow span:first-child {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.receiptRow span:last-child {
+    font-weight: 600;
+    color: var(--color-primary);
+    font-size: 1.05rem;
+}
+
 .actions {
     display: flex;
     gap: 16px;

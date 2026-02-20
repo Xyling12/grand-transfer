@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, User, Phone, ChevronRight, ChevronLeft, CheckCircle2, Navigation, Ruler, Clock3, Loader2, Calendar, Clock } from 'lucide-react';
+import { MapPin, User, Phone, ChevronRight, ChevronLeft, CheckCircle2, Navigation, Ruler, Clock3, Loader2, Calendar, Clock, Route } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import LeafletSuggestInput from './LeafletSuggestInput';
 
@@ -226,18 +226,21 @@ export default function BookingForm() {
 
                                     {(requiresCheckpoint(fromCity) || requiresCheckpoint(toCity)) && (
                                         <div className={styles.formGroup} style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                                            <label className={styles.label}>Промежуточный контрольно-пропускной пункт (опционально)</label>
-                                            <select
-                                                className={styles.input}
-                                                style={{ appearance: 'auto', paddingRight: '16px', backgroundColor: 'var(--glass-bg)', color: 'var(--color-text)', border: '1px solid var(--glass-border)' }}
-                                                value={checkpointId}
-                                                onChange={(e) => setCheckpointId(e.target.value)}
-                                            >
-                                                <option value="">-- Без КПП (Прямой маршрут) --</option>
-                                                {checkpoints.map(cp => (
-                                                    <option key={cp.id} value={cp.id}>{cp.name}</option>
-                                                ))}
-                                            </select>
+                                            <label className={styles.label}>Маршрут через КПП (Опционально)</label>
+                                            <div className={styles.inputWrapper}>
+                                                <Route size={18} className={styles.icon} />
+                                                <select
+                                                    className={styles.input}
+                                                    style={{ appearance: 'auto', paddingRight: '16px', cursor: 'pointer', backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
+                                                    value={checkpointId}
+                                                    onChange={(e) => setCheckpointId(e.target.value)}
+                                                >
+                                                    <option value="" style={{ background: '#1c1917', color: '#fff' }}>Без КПП (Прямой маршрут)</option>
+                                                    {checkpoints.map(cp => (
+                                                        <option key={cp.id} value={cp.id} style={{ background: '#1c1917', color: '#fff' }}>{cp.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -314,10 +317,16 @@ export default function BookingForm() {
                                                 от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
                                             </div>
                                             {priceCalc.legPrices && priceCalc.legPrices.length === 2 && (
-                                                <div style={{ fontSize: '13px', marginTop: '12px', opacity: 0.9, textAlign: 'center', borderTop: '1px solid var(--glass-border)', paddingTop: '12px', lineHeight: '1.6' }}>
-                                                    <strong>Детализация стоимости:</strong><br />
-                                                    Откуда → КПП: <strong>{priceCalc.legPrices[0].toLocaleString('ru-RU')} ₽</strong><br />
-                                                    КПП → Куда: <strong>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</strong>
+                                                <div className={styles.receiptBox}>
+                                                    <div className={styles.receiptTitle}>Детализация маршрута</div>
+                                                    <div className={styles.receiptRow}>
+                                                        <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
+                                                        <span>{priceCalc.legPrices[0].toLocaleString('ru-RU')} ₽</span>
+                                                    </div>
+                                                    <div className={styles.receiptRow}>
+                                                        <span>После границы</span>
+                                                        <span>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</span>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
