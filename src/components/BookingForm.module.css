@@ -347,3 +347,96 @@
         padding: 28px 20px;
     }
 }
+
+/* ====== Price Calculator Block ====== */
+.priceResult {
+    margin-top: 16px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f0f0ff 0%, #e8e8ff 100%);
+    border: 1.5px solid rgba(99, 102, 241, 0.25);
+    padding: 16px 18px;
+    animation: fadeSlideUp 0.4s ease forwards;
+}
+
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.priceResultHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.priceResultLabel {
+    font-size: 0.78rem;
+    color: #64748B;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.priceResultTariff {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    background: rgba(99, 102, 241, 0.08);
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.priceResultStats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.priceStat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+.priceStatIcon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.priceResultTotal {
+    font-size: 1.4rem;
+    color: #1E293B;
+    line-height: 1.1;
+}
+
+.priceResultTotal strong {
+    font-size: 1.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--color-primary), #818CF8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.priceHint {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #94A3B8;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.03);
+}

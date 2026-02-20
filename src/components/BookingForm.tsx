@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { MapPin, Calendar, Clock, User, Phone, Users, ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { MapPin, Calendar, Clock, User, Phone, Users, ChevronRight, ChevronLeft, CheckCircle2, Navigation, Ruler, Clock3 } from 'lucide-react';
 import styles from './BookingForm.module.css';
 import { useCity } from '@/context/CityContext';
 import { cities } from '@/data/cities';
@@ -9,11 +9,11 @@ import { cities } from '@/data/cities';
 const CITIES = ["Москва", "Казань", "Уфа", "Самара", "Набережные Челны", "Нижний Новгород", "Санкт-Петербург", "Сочи", "Адлер", "Екатеринбург", "Челябинск", "Пермь"];
 
 const TARIFFS = [
-    { id: 'econom', name: 'Эконом', price: 'от 25 ₽', image: '/images/tariffs/economy-3d.png' },
-    { id: 'standart', name: 'Стандарт', price: 'от 30 ₽', image: '/images/tariffs/standard-3d.png' },
-    { id: 'comfort', name: 'Комфорт+', price: 'от 35 ₽', image: '/images/tariffs/comfort-3d.png' },
-    { id: 'business', name: 'Бизнес', price: 'от 40 ₽', image: '/images/tariffs/business-3d.png' },
-    { id: 'minivan', name: 'Минивэн', price: 'от 45 ₽', image: '/images/tariffs/minivan-3d.png' },
+    { id: 'econom', name: 'Эконом', price: 'от 25 ₽', pricePerKm: 25, image: '/images/tariffs/economy-3d.png' },
+    { id: 'standart', name: 'Стандарт', price: 'от 30 ₽', pricePerKm: 30, image: '/images/tariffs/standard-3d.png' },
+    { id: 'comfort', name: 'Комфорт+', price: 'от 35 ₽', pricePerKm: 35, image: '/images/tariffs/comfort-3d.png' },
+    { id: 'business', name: 'Бизнес', price: 'от 40 ₽', pricePerKm: 40, image: '/images/tariffs/business-3d.png' },
+    { id: 'minivan', name: 'Минивэн', price: 'от 45 ₽', pricePerKm: 45, image: '/images/tariffs/minivan-3d.png' },
 ];
 
 export default function BookingForm() {
@@ -32,6 +32,33 @@ export default function BookingForm() {
 
     const [toCity, setToCity] = useState('');
     const [tariff, setTariff] = useState('standart');
+
+    // Price Calculator
+    const priceCalc = useMemo(() => {
+        const fromData = cities.find(c => c.name.toLowerCase() === fromCity.toLowerCase());
+        const toData = cities.find(c => c.name.toLowerCase() === toCity.toLowerCase());
+        if (!fromData || !toData) return null;
+
+        const R = 6371;
+        const dLat = (toData.lat - fromData.lat) * (Math.PI / 180);
+        const dLon = (toData.lon - fromData.lon) * (Math.PI / 180);
+        const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(fromData.lat * Math.PI / 180) * Math.cos(toData.lat * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+        const straightKm = Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+        const roadKm = Math.round(straightKm * 1.3); // road winding factor
+
+        const selectedTariff = TARIFFS.find(t => t.id === tariff);
+        const rate = selectedTariff?.pricePerKm ?? 25;
+        const minPrice = Math.round((500 + roadKm * rate) / 100) * 100;
+
+        const minutes = Math.round(roadKm / 75 * 60) + 30;
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        const duration = hours === 0 ? `${mins} мин` : mins === 0 ? `${hours} ч` : `${hours} ч ${mins} мин`;
+
+        return { roadKm, minPrice, duration, tariffName: selectedTariff?.name };
+    }, [fromCity, toCity, tariff]);
+
 
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
@@ -206,6 +233,36 @@ export default function BookingForm() {
                                     </div>
                                 </div>
 
+                                {/* Price Calculator Result */}
+                                {priceCalc && (
+                                    <div className={styles.priceResult}>
+                                        <div className={styles.priceResultHeader}>
+                                            <span className={styles.priceResultLabel}>Расчёт стоимости</span>
+                                            <span className={styles.priceResultTariff}>{priceCalc.tariffName}</span>
+                                        </div>
+                                        <div className={styles.priceResultStats}>
+                                            <div className={styles.priceStat}>
+                                                <Ruler size={15} className={styles.priceStatIcon} />
+                                                <span>{priceCalc.roadKm} км</span>
+                                            </div>
+                                            <div className={styles.priceStat}>
+                                                <Clock3 size={15} className={styles.priceStatIcon} />
+                                                <span>~{priceCalc.duration}</span>
+                                            </div>
+                                        </div>
+                                        <div className={styles.priceResultTotal}>
+                                            от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!priceCalc && fromCity && toCity && (
+                                    <div className={styles.priceHint}>
+                                        <Navigation size={14} />
+                                        Укажите города из списка для предварительного расчёта цены
+                                    </div>
+                                )}
+
                                 <div className={styles.actions}>
                                     <button type="button" className={styles.nextBtn} onClick={() => setStep(2)}>
                                         Далее <ChevronRight size={18} style={{ display: 'inline', verticalAlign: 'middle' }} />
@@ -297,6 +354,6 @@ export default function BookingForm() {
                     </form>
                 </div>
             </div>
-        </section>
+        </section >
     );
 }
