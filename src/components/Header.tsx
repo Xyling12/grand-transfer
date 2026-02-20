@@ -9,6 +9,7 @@ import { useCity } from '@/context/CityContext';
 
 const NAV_LINKS = [
     { href: '/', label: 'Главная' },
+    { href: '#booking-form', label: 'Калькулятор' },
     { href: '#why-choose-us', label: 'О нас' },
     { href: '#tariffs', label: 'Тарифы' },
     { href: '#reviews', label: 'Отзывы' },
