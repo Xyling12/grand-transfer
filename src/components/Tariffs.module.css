@@ -201,4 +201,29 @@
     .grid {
         grid-template-columns: 1fr;
     }
+
+    .name {
+        font-size: 1.4rem;
+    }
+
+    .nameAlt {
+        font-size: 1.2rem;
+    }
+
+    .priceBadge {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+    }
+
+    .headerRow {
+        align-items: center;
+    }
+
+    .cardBody {
+        padding: 24px 20px;
+    }
+
+    .description {
+        font-size: 0.9rem;
+    }
 }
