@@ -87,6 +87,7 @@ export default function Header() {
 
                 <nav className={styles.nav}>
                     <div className={styles.navLinks}>
+                        <Link href="/" className={styles.link}>Главная</Link>
                         <Link href="#tariffs" className={styles.link}>Тарифы</Link>
                         <Link href="#about" className={styles.link}>О нас</Link>
                         <Link href="#reviews" className={styles.link}>Отзывы</Link>
