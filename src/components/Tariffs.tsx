@@ -7,42 +7,42 @@ const tariffs = [
         name: "Эконом",
         price: "от 25 ₽/км",
         description: "Для бюджетных поездок налегке. Лучшая цена без потери качества обслуживания.",
-        image: "/images/tariffs/economy.svg",
+        image: "/images/tariffs/economy-3d.png",
         features: ["Иномарки не старше 5 лет", "Кондиционер", "Детское кресло (по запросу)"]
     },
     {
         name: "Стандарт",
         price: "от 30 ₽/км",
         description: "Оптимальный выбор для дальних поездок. Просторный багажник и комфорт в пути.",
-        image: "/images/tariffs/standard.svg",
+        image: "/images/tariffs/standard-3d.png",
         features: ["Skoda Octavia / Kia Cerato", "Вместительный багажник", "Климат-контроль"]
     },
     {
         name: "Комфорт+",
         price: "от 35 ₽/км",
         description: "Повышенный комфорт, просторный салон, зарядка телефона и тишина в салоне.",
-        image: "/images/tariffs/comfort.svg",
+        image: "/images/tariffs/comfort-3d.png",
         features: ["Toyota Camry / Kia K5", "Зарядка для устройств", "Вода в салоне"]
     },
     {
         name: "Бизнес",
         price: "от 40 ₽/км",
         description: "Премиум автомобили, кожаный салон, вода, деловой стиль вождения.",
-        image: "/images/tariffs/business.svg",
+        image: "/images/tariffs/business-3d.png",
         features: ["Mercedes E-Class / BMW 5", "Премиальная акустика", "Деловой дресс-код водителя"]
     },
     {
         name: "Минивэн",
         price: "от 45 ₽/км",
         description: "Для больших компаний или семьи с багажом. Комфортная поездка до 7 человек.",
-        image: "/images/tariffs/minivan.svg",
+        image: "/images/tariffs/minivan-3d.png",
         features: ["До 7-8 мест", "Огромный багажник", "Кондиционер для заднего ряда"]
     },
     {
         name: "Трезвый водитель",
         price: "от 120 ₽/км",
         description: "Безопасная доставка вас и вашего автомобиля в любую точку.",
-        image: "/images/tariffs/sober.svg",
+        image: "/images/tariffs/sober-3d.png",
         features: ["Профессиональный драйвер", "Страховка включена", "Быстрая подача"]
     }
 ];

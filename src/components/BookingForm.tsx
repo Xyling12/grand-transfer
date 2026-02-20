@@ -9,11 +9,11 @@ import { cities } from '@/data/cities';
 const CITIES = ["Москва", "Казань", "Уфа", "Самара", "Набережные Челны", "Нижний Новгород", "Санкт-Петербург", "Сочи", "Адлер", "Екатеринбург", "Челябинск", "Пермь"];
 
 const TARIFFS = [
-    { id: 'econom', name: 'Эконом', price: 'от 25 ₽', image: '/images/tariffs/economy.svg' },
-    { id: 'standart', name: 'Стандарт', price: 'от 30 ₽', image: '/images/tariffs/standard.svg' },
-    { id: 'comfort', name: 'Комфорт+', price: 'от 35 ₽', image: '/images/tariffs/comfort.svg' },
-    { id: 'business', name: 'Бизнес', price: 'от 40 ₽', image: '/images/tariffs/business.svg' },
-    { id: 'minivan', name: 'Минивэн', price: 'от 45 ₽', image: '/images/tariffs/minivan.svg' },
+    { id: 'econom', name: 'Эконом', price: 'от 25 ₽', image: '/images/tariffs/economy-3d.png' },
+    { id: 'standart', name: 'Стандарт', price: 'от 30 ₽', image: '/images/tariffs/standard-3d.png' },
+    { id: 'comfort', name: 'Комфорт+', price: 'от 35 ₽', image: '/images/tariffs/comfort-3d.png' },
+    { id: 'business', name: 'Бизнес', price: 'от 40 ₽', image: '/images/tariffs/business-3d.png' },
+    { id: 'minivan', name: 'Минивэн', price: 'от 45 ₽', image: '/images/tariffs/minivan-3d.png' },
 ];
 
 export default function BookingForm() {
