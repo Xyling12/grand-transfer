@@ -119,3 +119,14 @@
         text-align: center;
     }
 }
+
+.disclaimer {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: #94A3B8;
+    line-height: 1.6;
+    text-align: center;
+}

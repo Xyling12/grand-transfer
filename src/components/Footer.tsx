@@ -3,7 +3,7 @@
 import styles from './Footer.module.css';
 import Link from 'next/link';
 import { Phone, Mail, MapPin, Car } from 'lucide-react';
-import { VKIcon, TelegramIcon, WhatsAppIcon } from './SocialIcons';
+import { VKIcon, TelegramIcon, WhatsAppIcon, MaxIcon } from './SocialIcons';
 import { useCity } from '@/context/CityContext';
 
 export default function Footer() {
@@ -26,6 +26,7 @@ export default function Footer() {
                             <a href="#" className={styles.socialLink} aria-label="VK"><VKIcon size={20} /></a>
                             <a href="#" className={styles.socialLink} aria-label="Telegram"><TelegramIcon size={20} /></a>
                             <a href="#" className={styles.socialLink} aria-label="WhatsApp"><WhatsAppIcon size={20} /></a>
+                            <a href="#" className={styles.socialLink} aria-label="Max"><MaxIcon size={20} /></a>
                         </div>
                     </div>
 
@@ -73,8 +74,10 @@ export default function Footer() {
                     <p>© {new Date().getFullYear()} GrandTransfer. Все права защищены.</p>
                     <div style={{ display: 'flex', gap: 20 }}>
                         <Link href="#" className={styles.link}>Политика конфиденциальности</Link>
-                        <Link href="#" className={styles.link}>Публичная оферта</Link>
                     </div>
+                </div>
+                <div className={styles.disclaimer}>
+                    Информация на сайте носит исключительно информационный характер и не является публичной офертой в соответствии со ст. 437 ГК РФ. Окончательная стоимость поездки согласовывается при оформлении заказа.
                 </div>
             </div>
         </footer>
