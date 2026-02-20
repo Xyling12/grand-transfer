@@ -155,7 +155,6 @@ export default function BookingForm() {
                                                     setToCity(text);
                                                     setToCoords(coords);
                                                 }}
-                                                cityContext={currentCity?.name}
                                             />
                                         </div>
                                     </div>
