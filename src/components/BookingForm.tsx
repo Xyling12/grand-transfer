@@ -97,7 +97,14 @@ export default function BookingForm() {
             setRouteRenderData(route);
             setIsCalculatingRoute(false);
         }).catch((err: any) => {
-            console.error('Yandex route error details:', err.message || err.description || JSON.stringify(err) || err);
+            const errorMsg = err.message || err.description || (typeof err === 'string' ? err : JSON.stringify(err));
+            console.error('Yandex route error details:', errorMsg);
+
+            // Fallback for user feedback
+            if (errorMsg.includes('permission') || errorMsg.includes('allowed') || errorMsg.includes('denied')) {
+                console.warn('Possible API Key permission issue detected.');
+            }
+
             setPriceCalc(null);
             setRouteRenderData(null);
             setIsCalculatingRoute(false);
@@ -201,7 +208,12 @@ export default function BookingForm() {
                                 </div>
 
                                 {/* Yandex Map Preview */}
-                                <YMaps query={{ apikey: 'd6af2cbb-9bf6-419b-a010-0937a76e48ab', load: 'package.full,SuggestView,route' }}>
+                                <YMaps
+                                    query={{
+                                        apikey: 'd6af2cbb-9bf6-419b-a010-0937a76e48ab',
+                                        load: 'package.full,SuggestView,route,geometry.pixel.circle'
+                                    }}
+                                >
                                     <div style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none', overflow: 'hidden' }}>
                                         {/* Hidden Map just to load ymaps library globally for SuggestView */}
                                         <Map defaultState={{ center: [55.751574, 37.573856], zoom: 9 }} onLoad={onLoadYmaps} />
