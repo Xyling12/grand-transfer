@@ -110,47 +110,52 @@
 }
 
 .primaryBtn {
-    background: var(--color-primary);
+    background: linear-gradient(135deg, var(--color-primary), #818CF8);
     color: #fff;
-    padding: 16px 32px;
+    padding: 16px 36px;
+    /* Чуть шире */
     border-radius: 50px;
-    font-size: 1rem;
+    font-size: 1.05rem;
+    /* Чуть крупнее */
     font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
     border: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .primaryBtn:hover {
-    transform: translateY(-3px);
-    background: var(--color-primary-hover);
-    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(99, 102, 241, 0.5);
 }
 
 .secondaryBtn {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     color: #fff;
-    padding: 16px 32px;
+    padding: 16px 36px;
     border-radius: 50px;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
     text-decoration: none;
 }
 
 .secondaryBtn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px) scale(1.02);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes fadeInUp {
