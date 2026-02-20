@@ -58,7 +58,7 @@ export default function BookingForm() {
     const activeCheckpoint = checkpoints.find(cp => cp.id === checkpointId);
 
     // Route Calculation State
-    const [priceCalc, setPriceCalc] = useState<{ roadKm: number; minPrice: number; duration: string; tariffName: string; rawDistances: number[] } | null>(null);
+    const [priceCalc, setPriceCalc] = useState<{ roadKm: number; minPrice: number; duration: string; tariffName: string; rawDistances: number[]; legPrices?: number[] } | null>(null);
     const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 
     // Coordinate state for routing
@@ -95,15 +95,20 @@ export default function BookingForm() {
         const rate2 = toCityTariffs[tariff as keyof CityTariffs] || 25;
 
         let minPrice = 0;
+        let legPrices: number[] = [];
         if (distancesKm.length === 1) {
             minPrice = Math.round((500 + roadKm * rate1) / 100) * 100;
+            legPrices = [minPrice];
         } else if (distancesKm.length === 2) {
             const rd1 = Math.round(distancesKm[0]);
             const rd2 = Math.round(distancesKm[1]);
-            minPrice = Math.round((500 + rd1 * rate1 + rd2 * rate2) / 100) * 100;
+            const price1 = Math.round((500 + rd1 * rate1) / 100) * 100;
+            const price2 = Math.round((rd2 * rate2) / 100) * 100;
+            minPrice = price1 + price2;
+            legPrices = [price1, price2];
         }
 
-        setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '', rawDistances: distancesKm });
+        setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '', rawDistances: distancesKm, legPrices });
         setIsCalculatingRoute(false);
     }, [tariff, currentCity, toCity]);
 
@@ -126,15 +131,20 @@ export default function BookingForm() {
             const rate2 = toCityTariffs[tariff as keyof CityTariffs] || 25;
 
             let minPrice = 0;
+            let legPrices: number[] = [];
             if (priceCalc.rawDistances.length === 1) {
                 minPrice = Math.round((500 + priceCalc.roadKm * rate1) / 100) * 100;
+                legPrices = [minPrice];
             } else if (priceCalc.rawDistances.length === 2) {
                 const rd1 = Math.round(priceCalc.rawDistances[0]);
                 const rd2 = Math.round(priceCalc.rawDistances[1]);
-                minPrice = Math.round((500 + rd1 * rate1 + rd2 * rate2) / 100) * 100;
+                const price1 = Math.round((500 + rd1 * rate1) / 100) * 100;
+                const price2 = Math.round((rd2 * rate2) / 100) * 100;
+                minPrice = price1 + price2;
+                legPrices = [price1, price2];
             }
 
-            setPriceCalc(prev => prev ? { ...prev, minPrice, tariffName: selectedTariff?.name || '' } : null);
+            setPriceCalc(prev => prev ? { ...prev, minPrice, tariffName: selectedTariff?.name || '', legPrices } : null);
         }
     }, [tariff, currentCity, toCity]);
 
@@ -303,6 +313,13 @@ export default function BookingForm() {
                                             <div className={styles.priceResultTotal}>
                                                 от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
                                             </div>
+                                            {priceCalc.legPrices && priceCalc.legPrices.length === 2 && (
+                                                <div style={{ fontSize: '13px', marginTop: '12px', opacity: 0.9, textAlign: 'center', borderTop: '1px solid var(--glass-border)', paddingTop: '12px', lineHeight: '1.6' }}>
+                                                    <strong>Детализация стоимости:</strong><br />
+                                                    Откуда → КПП: <strong>{priceCalc.legPrices[0].toLocaleString('ru-RU')} ₽</strong><br />
+                                                    КПП → Куда: <strong>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</strong>
+                                                </div>
+                                            )}
                                         </div>
                                     )
                                 }
