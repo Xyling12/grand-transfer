@@ -74,8 +74,10 @@ export default function Tariffs() {
                                         loading="lazy"
                                     />
                                 </div>
-                                <h3 className={styles.name}>{tariff.name}</h3>
-                                <div className={styles.cars}>{tariff.features[0]}</div>
+                                <div className={styles.nameRow}>
+                                    <h3 className={styles.name}>{tariff.name}</h3>
+                                    <div className={styles.cars}>{tariff.features[0]}</div>
+                                </div>
                             </div>
 
                             {/* Light Body */}
