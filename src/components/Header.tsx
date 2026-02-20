@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Phone, Car, MapPin, ChevronDown } from 'lucide-react';
-import { VKIcon, TelegramIcon, WhatsAppIcon } from './SocialIcons';
+import { VKIcon, TelegramIcon, WhatsAppIcon, MaxIcon } from './SocialIcons';
 import styles from './Header.module.css';
 import { useCity } from '@/context/CityContext';
 
@@ -99,6 +99,7 @@ export default function Header() {
                         <a href="#" className={styles.socialIcon} aria-label="VK"><VKIcon size={20} /></a>
                         <a href="#" className={styles.socialIcon} aria-label="Telegram"><TelegramIcon size={20} /></a>
                         <a href="#" className={styles.socialIcon} aria-label="WhatsApp"><WhatsAppIcon size={20} /></a>
+                        <a href="#" className={styles.socialIcon} aria-label="Max"><MaxIcon size={20} /></a>
                     </div>
                     <a href={`tel:${currentCity.phone.replace(/[^\d+]/g, '')}`} className={styles.callBtn}>
                         <Phone size={18} className={styles.phoneIcon} />

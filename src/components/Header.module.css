@@ -138,8 +138,12 @@
     }
 
     .socials {
-        display: none;
-        /* Hide socials on mobile to save space */
+        gap: 6px;
+    }
+
+    .socialIcon svg {
+        width: 18px;
+        height: 18px;
     }
 
     .phoneText {
@@ -165,20 +169,21 @@
     .header {
         padding: 12px 14px;
     }
-    
+
     .leftGroup {
         gap: 10px;
     }
-    
+
     .logo {
         font-size: 1.15rem;
         gap: 6px;
     }
-    
+
     .logoText {
-        display: none; /* Hide text on very small screens to save space, retaining only icon */
+        display: none;
+        /* Hide text on very small screens to save space, retaining only icon */
     }
-    
+
     .cityBtn {
         padding: 6px 10px;
         font-size: 0.8rem;

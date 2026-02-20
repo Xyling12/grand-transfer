@@ -28,3 +28,12 @@ export function WhatsAppIcon({ size = 20, color = 'currentColor' }: IconProps) {
         </svg>
     );
 }
+
+/* Max — российская социальная сеть (ex OK/Одноклассники Next) */
+export function MaxIcon({ size = 20, color = 'currentColor' }: IconProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-4.5 7.5c.828-1.118 2.138-1.5 2.138-1.5l1.112 1.113a1.8 1.8 0 0 0 2.5 0L14.362 14s1.31.382 2.138 1.5a.75.75 0 1 1-1.2.9c-.42-.56-.9-.85-.9-.85l-1.1 1.1a3.3 3.3 0 0 1-2.6 0L9.6 15.55s-.48.29-.9.85a.75.75 0 1 1-1.2-.9z" />
+        </svg>
+    );
+}
