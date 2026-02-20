@@ -13,7 +13,7 @@ const LeafletMapPreview = dynamic(() => import('./LeafletMapPreview'), {
 import styles from './BookingForm.module.css';
 import { useCity } from '@/context/CityContext';
 import { cityTariffs, CityTariffs } from '@/data/tariffs';
-import { checkpoints } from '@/data/checkpoints';
+import { checkpoints, requiresCheckpoint } from '@/data/checkpoints';
 
 const TARIFFS = [
     { id: 'econom', name: 'Эконом', image: '/images/tariffs/economy-3d.png' },
@@ -214,20 +214,22 @@ export default function BookingForm() {
                                         <small>* Начните вводить точный адрес, и нажмите на подходящую подсказку из поиска.</small>
                                     </p>
 
-                                    <div className={styles.formGroup} style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                                        <label className={styles.label}>Промежуточный контрольно-пропускной пункт (опционально)</label>
-                                        <select
-                                            className={styles.input}
-                                            style={{ appearance: 'auto', paddingRight: '16px', backgroundColor: 'var(--glass-bg)', color: 'var(--color-text)', border: '1px solid var(--glass-border)' }}
-                                            value={checkpointId}
-                                            onChange={(e) => setCheckpointId(e.target.value)}
-                                        >
-                                            <option value="">-- Без КПП (Прямой маршрут) --</option>
-                                            {checkpoints.map(cp => (
-                                                <option key={cp.id} value={cp.id}>{cp.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    {(requiresCheckpoint(fromCity) || requiresCheckpoint(toCity)) && (
+                                        <div className={styles.formGroup} style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                                            <label className={styles.label}>Промежуточный контрольно-пропускной пункт (опционально)</label>
+                                            <select
+                                                className={styles.input}
+                                                style={{ appearance: 'auto', paddingRight: '16px', backgroundColor: 'var(--glass-bg)', color: 'var(--color-text)', border: '1px solid var(--glass-border)' }}
+                                                value={checkpointId}
+                                                onChange={(e) => setCheckpointId(e.target.value)}
+                                            >
+                                                <option value="">-- Без КПП (Прямой маршрут) --</option>
+                                                {checkpoints.map(cp => (
+                                                    <option key={cp.id} value={cp.id}>{cp.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div style={{
