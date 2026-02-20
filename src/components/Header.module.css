@@ -19,8 +19,8 @@
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: 12px 48px;
-    /* Increased to clear the rounded corners */
+    padding: 12px 64px;
+    /* Aggressive padding to stay inside the curve */
     box-shadow: var(--shadow-card);
 }
 
@@ -179,8 +179,9 @@
 .actions {
     display: flex;
     align-items: center;
-    gap: 20px;
-    /* Reduced from 24px to give more room for socials */
+    gap: 16px;
+    flex-shrink: 0;
+    /* Don't squeeze the items */
 }
 
 .socials {
