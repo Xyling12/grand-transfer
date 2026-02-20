@@ -3,11 +3,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, User, Phone, ChevronRight, ChevronLeft, CheckCircle2, Navigation, Ruler, Clock3, Loader2, Calendar, Clock } from 'lucide-react';
-import { YMaps } from '@pbe/react-yandex-maps';
 import dynamic from 'next/dynamic';
-import YandexSuggestInput from './YandexSuggestInput';
+import LeafletSuggestInput from './LeafletSuggestInput';
 
-const YandexMapPreview = dynamic(() => import('./YandexMapPreview'), {
+const LeafletMapPreview = dynamic(() => import('./LeafletMapPreview'), {
     ssr: false,
     loading: () => <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--glass-border)', borderRadius: '16px' }}><Loader2 size={32} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} /></div>
 });
@@ -60,9 +59,6 @@ export default function BookingForm() {
     const [fromCoords, setFromCoords] = useState<[number, number] | null>(null);
     const [toCoords, setToCoords] = useState<[number, number] | null>(null);
 
-    // Global YMaps instance to share between Map and Suggest
-    const [ymapsInstance, setYmapsInstance] = useState<any>(null);
-
     const handleRouteCalculated = useCallback((distanceKm: number, durationSeconds: number) => {
         const roadKm = Math.round(distanceKm);
         const hours = Math.floor(durationSeconds / 3600);
@@ -109,239 +105,231 @@ export default function BookingForm() {
     };
 
     return (
-        <YMaps query={{
-            apikey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || 'fc74dc00-3338-43b2-b494-859241a4ac3c',
-            load: 'package.full'
-        }}>
-            <section className={`${styles.section} animate-on-scroll`} id="booking-form">
-                <div className={styles.container}>
-                    <div className={styles.formCard}>
-                        <div className={styles.stepIndicator}>
-                            <div className={`${styles.step} ${step >= 1 ? styles.stepActive : ''} ${step > 1 ? styles.stepCompleted : ''}`}>1</div>
-                            <div className={`${styles.step} ${step >= 2 ? styles.stepActive : ''}`}>2</div>
-                        </div>
+        <section className={`${styles.section} animate-on-scroll`} id="booking-form">
+            <div className={styles.container}>
+                <div className={styles.formCard}>
+                    <div className={styles.stepIndicator}>
+                        <div className={`${styles.step} ${step >= 1 ? styles.stepActive : ''} ${step > 1 ? styles.stepCompleted : ''}`}>1</div>
+                        <div className={`${styles.step} ${step >= 2 ? styles.stepActive : ''}`}>2</div>
+                    </div>
 
-                        <h2 className={styles.title}>
-                            {step === 1 ? "Рассчитать стоимость" : "Детали поездки"}
-                        </h2>
+                    <h2 className={styles.title}>
+                        {step === 1 ? "Рассчитать стоимость" : "Детали поездки"}
+                    </h2>
 
-                        <form onSubmit={handleSubmit}>
-                            {step === 1 && (
-                                <>
-                                    <div className={styles.grid}>
-                                        <div className={styles.formGroup}>
-                                            <label className={styles.label}>Откуда (Город, улица, номер дома)</label>
-                                            <div className={styles.inputWrapper}>
-                                                <MapPin size={18} className={styles.icon} />
-                                                <YandexSuggestInput
-                                                    className={styles.input}
-                                                    placeholder="г. Москва, ул. Ленина, д. 1"
-                                                    value={fromCity}
-                                                    onChange={(e) => setFromCity(e.target.value)}
-                                                    onSuggestSelect={(text, coords) => {
-                                                        setFromCity(text);
-                                                        setFromCoords(coords);
-                                                    }}
-                                                    ymaps={ymapsInstance}
-                                                />
-                                            </div>
+                    <form onSubmit={handleSubmit}>
+                        {step === 1 && (
+                            <>
+                                <div className={styles.grid}>
+                                    <div className={styles.formGroup}>
+                                        <label className={styles.label}>Откуда (Город, улица, номер дома)</label>
+                                        <div className={styles.inputWrapper}>
+                                            <MapPin size={18} className={styles.icon} />
+                                            <LeafletSuggestInput
+                                                className={styles.input}
+                                                placeholder="г. Москва, ул. Ленина, д. 1"
+                                                value={fromCity}
+                                                onChange={(e) => setFromCity(e.target.value)}
+                                                onSuggestSelect={(text, coords) => {
+                                                    setFromCity(text);
+                                                    setFromCoords(coords);
+                                                }}
+                                            />
                                         </div>
-
-                                        <div className={styles.formGroup}>
-                                            <label className={styles.label}>Куда (Город, улица, номер дома)</label>
-                                            <div className={styles.inputWrapper}>
-                                                <MapPin size={18} className={styles.icon} />
-                                                <YandexSuggestInput
-                                                    className={styles.input}
-                                                    placeholder="г. Казань, ул. Баумана, д. 2"
-                                                    value={toCity}
-                                                    onChange={(e) => setToCity(e.target.value)}
-                                                    onSuggestSelect={(text, coords) => {
-                                                        setToCity(text);
-                                                        setToCoords(coords);
-                                                    }}
-                                                    ymaps={ymapsInstance}
-                                                />
-                                            </div>
-                                        </div>
-                                        <p className={styles.priceHint} style={{ gridColumn: '1 / -1', marginTop: '-10px', opacity: 0.8 }}>
-                                            <small>* Начните вводить точный адрес, и нажмите на подходящую подсказку из Яндекс.Карт.</small>
-                                        </p>
-                                    </div>
-
-                                    <div style={{
-                                        marginTop: '20px',
-                                        borderRadius: '16px',
-                                        overflow: 'hidden',
-                                        height: '320px',
-                                        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                                        border: '1px solid var(--glass-border)',
-                                        width: '100%',
-                                        position: 'relative',
-                                        zIndex: 0
-                                    }}>
-                                        <YandexMapPreview
-                                            fromCoords={fromCoords}
-                                            toCoords={toCoords}
-                                            onRouteCalculated={handleRouteCalculated}
-                                            onLoadInstance={(ymaps) => setYmapsInstance(ymaps)}
-                                        />
                                     </div>
 
                                     <div className={styles.formGroup}>
-                                        <label className={styles.label}>Выберите тариф</label>
-                                        <div className={styles.tariffGrid}>
-                                            {TARIFFS.map((t) => (
-                                                <div
-                                                    key={t.id}
-                                                    className={`${styles.tariffCard} ${tariff === t.id ? styles.tariffActive : ''}`}
-                                                    onClick={() => setTariff(t.id)}
-                                                >
-                                                    {tariff === t.id && <CheckCircle2 size={16} className={styles.checkIcon} />}
-                                                    <div className={styles.carImageWrapper}>
-                                                        <img src={t.image} alt={t.name} className={styles.carImage} />
-                                                    </div>
-                                                    <div className={styles.tariffCardBody}>
-                                                        <span className={styles.tariffName}>{t.name}</span>
-                                                        <span className={styles.tariffPrice}>{t.price}/км</span>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                        <label className={styles.label}>Куда (Город, улица, номер дома)</label>
+                                        <div className={styles.inputWrapper}>
+                                            <MapPin size={18} className={styles.icon} />
+                                            <LeafletSuggestInput
+                                                className={styles.input}
+                                                placeholder="г. Казань, ул. Баумана, д. 2"
+                                                value={toCity}
+                                                onChange={(e) => setToCity(e.target.value)}
+                                                onSuggestSelect={(text, coords) => {
+                                                    setToCity(text);
+                                                    setToCoords(coords);
+                                                }}
+                                            />
                                         </div>
                                     </div>
+                                    <p className={styles.priceHint} style={{ gridColumn: '1 / -1', marginTop: '-10px', opacity: 0.8 }}>
+                                        <small>* Начните вводить точный адрес, и нажмите на подходящую подсказку из поиска.</small>
+                                    </p>
+                                </div>
 
-                                    {/* Price Calculator Result */}
-                                    {
-                                        isCalculatingRoute ? (
-                                            <div className={styles.priceResult} style={{ display: 'flex', justifyContent: 'center', padding: '30px' }}>
-                                                <Loader2 size={32} className={styles.spinner} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} />
-                                            </div>
-                                        ) : priceCalc && (
-                                            <div className={styles.priceResult}>
-                                                <div className={styles.priceResultHeader}>
-                                                    <span className={styles.priceResultLabel}>Точный расчёт стоимости</span>
-                                                    <span className={styles.priceResultTariff}>{priceCalc.tariffName}</span>
-                                                </div>
-                                                <div className={styles.priceResultStats}>
-                                                    <div className={styles.priceStat}>
-                                                        <Ruler size={15} className={styles.priceStatIcon} />
-                                                        <span>{priceCalc.roadKm} км</span>
-                                                    </div>
-                                                    <div className={styles.priceStat}>
-                                                        <Clock3 size={15} className={styles.priceStatIcon} />
-                                                        <span>~{priceCalc.duration}</span>
-                                                    </div>
-                                                </div>
-                                                <div className={styles.priceResultTotal}>
-                                                    от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
-                                                </div>
-                                            </div>
-                                        )
-                                    }
+                                <div style={{
+                                    marginTop: '20px',
+                                    borderRadius: '16px',
+                                    overflow: 'hidden',
+                                    height: '320px',
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                                    border: '1px solid var(--glass-border)',
+                                    width: '100%',
+                                    position: 'relative',
+                                    zIndex: 0
+                                }}>
+                                    <LeafletMapPreview
+                                        fromCoords={fromCoords}
+                                        toCoords={toCoords}
+                                        onRouteCalculated={handleRouteCalculated}
+                                    />
+                                </div>
 
-                                    {
-                                        !priceCalc && fromCity && toCity && (
-                                            <div className={styles.priceHint}>
-                                                <Navigation size={14} />
-                                                Укажите города из списка для предварительного расчёта цены
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Выберите тариф</label>
+                                    <div className={styles.tariffGrid}>
+                                        {TARIFFS.map((t) => (
+                                            <div
+                                                key={t.id}
+                                                className={`${styles.tariffCard} ${tariff === t.id ? styles.tariffActive : ''}`}
+                                                onClick={() => setTariff(t.id)}
+                                            >
+                                                {tariff === t.id && <CheckCircle2 size={16} className={styles.checkIcon} />}
+                                                <div className={styles.carImageWrapper}>
+                                                    <img src={t.image} alt={t.name} className={styles.carImage} />
+                                                </div>
+                                                <div className={styles.tariffCardBody}>
+                                                    <span className={styles.tariffName}>{t.name}</span>
+                                                    <span className={styles.tariffPrice}>{t.price}/км</span>
+                                                </div>
                                             </div>
-                                        )
-                                    }
-
-                                    <div className={styles.actions}>
-                                        <button type="button" className={styles.nextBtn} onClick={() => setStep(2)}>
-                                            Далее <ChevronRight size={18} style={{ display: 'inline', verticalAlign: 'middle' }} />
-                                        </button>
+                                        ))}
                                     </div>
-                                </>
-                            )}
+                                </div>
 
-                            {
-                                step === 2 && (
-                                    <>
-                                        <div className={styles.grid}>
-                                            <div className={styles.formGroup}>
-                                                <label className={styles.label}>Ваше Имя</label>
-                                                <div className={styles.inputWrapper}>
-                                                    <User size={18} className={styles.icon} />
-                                                    <input
-                                                        type="text"
-                                                        className={styles.input}
-                                                        placeholder="Как к вам обращаться?"
-                                                        value={name}
-                                                        onChange={(e) => setName(e.target.value)}
-                                                    />
+                                {/* Price Calculator Result */}
+                                {
+                                    isCalculatingRoute ? (
+                                        <div className={styles.priceResult} style={{ display: 'flex', justifyContent: 'center', padding: '30px' }}>
+                                            <Loader2 size={32} className={styles.spinner} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} />
+                                        </div>
+                                    ) : priceCalc && (
+                                        <div className={styles.priceResult}>
+                                            <div className={styles.priceResultHeader}>
+                                                <span className={styles.priceResultLabel}>Точный расчёт стоимости</span>
+                                                <span className={styles.priceResultTariff}>{priceCalc.tariffName}</span>
+                                            </div>
+                                            <div className={styles.priceResultStats}>
+                                                <div className={styles.priceStat}>
+                                                    <Ruler size={15} className={styles.priceStatIcon} />
+                                                    <span>{priceCalc.roadKm} км</span>
+                                                </div>
+                                                <div className={styles.priceStat}>
+                                                    <Clock3 size={15} className={styles.priceStatIcon} />
+                                                    <span>~{priceCalc.duration}</span>
                                                 </div>
                                             </div>
-
-                                            <div className={styles.formGroup}>
-                                                <label className={styles.label}>Телефон</label>
-                                                <div className={styles.inputWrapper}>
-                                                    <Phone size={18} className={styles.icon} />
-                                                    <input
-                                                        type="tel"
-                                                        className={styles.input}
-                                                        placeholder="+7 (999) 000-00-00"
-                                                        value={phone}
-                                                        onChange={(e) => setPhone(e.target.value)}
-                                                    />
-                                                </div>
+                                            <div className={styles.priceResultTotal}>
+                                                от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
                                             </div>
+                                        </div>
+                                    )
+                                }
 
-                                            <div className={styles.formGroup}>
-                                                <label className={styles.label}>Дата</label>
-                                                <div className={styles.inputWrapper}>
-                                                    <Calendar size={18} className={styles.icon} />
-                                                    <input
-                                                        type="date"
-                                                        className={styles.input}
-                                                        value={date}
-                                                        onChange={(e) => setDate(e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
+                                {
+                                    !priceCalc && fromCity && toCity && (
+                                        <div className={styles.priceHint}>
+                                            <Navigation size={14} />
+                                            Укажите города из списка для предварительного расчёта цены
+                                        </div>
+                                    )
+                                }
 
-                                            <div className={styles.formGroup}>
-                                                <label className={styles.label}>Время</label>
-                                                <div className={styles.inputWrapper}>
-                                                    <Clock size={18} className={styles.icon} />
-                                                    <input
-                                                        type="time"
-                                                        className={styles.input}
-                                                        value={time}
-                                                        onChange={(e) => setTime(e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
+                                <div className={styles.actions}>
+                                    <button type="button" className={styles.nextBtn} onClick={() => setStep(2)}>
+                                        Далее <ChevronRight size={18} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                                    </button>
+                                </div>
+                            </>
+                        )}
 
-                                            <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-                                                <label className={styles.label}>Количество пассажиров: {passengers}</label>
+                        {
+                            step === 2 && (
+                                <>
+                                    <div className={styles.grid}>
+                                        <div className={styles.formGroup}>
+                                            <label className={styles.label}>Ваше Имя</label>
+                                            <div className={styles.inputWrapper}>
+                                                <User size={18} className={styles.icon} />
                                                 <input
-                                                    type="range"
-                                                    min="1"
-                                                    max="8"
-                                                    value={passengers}
-                                                    onChange={(e) => setPassengers(parseInt(e.target.value))}
-                                                    style={{ width: '100%', accentColor: 'var(--color-primary)' }}
+                                                    type="text"
+                                                    className={styles.input}
+                                                    placeholder="Как к вам обращаться?"
+                                                    value={name}
+                                                    onChange={(e) => setName(e.target.value)}
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className={styles.actions}>
-                                            <button type="button" className={styles.backBtn} onClick={() => setStep(1)}>
-                                                <ChevronLeft size={18} style={{ display: 'inline', verticalAlign: 'middle' }} /> Назад
-                                            </button>
-                                            <button type="submit" className={styles.nextBtn}>
-                                                Заказать Трансфер
-                                            </button>
+                                        <div className={styles.formGroup}>
+                                            <label className={styles.label}>Телефон</label>
+                                            <div className={styles.inputWrapper}>
+                                                <Phone size={18} className={styles.icon} />
+                                                <input
+                                                    type="tel"
+                                                    className={styles.input}
+                                                    placeholder="+7 (999) 000-00-00"
+                                                    value={phone}
+                                                    onChange={(e) => setPhone(e.target.value)}
+                                                />
+                                            </div>
                                         </div>
-                                    </>
-                                )
-                            }
-                        </form >
-                    </div >
+
+                                        <div className={styles.formGroup}>
+                                            <label className={styles.label}>Дата</label>
+                                            <div className={styles.inputWrapper}>
+                                                <Calendar size={18} className={styles.icon} />
+                                                <input
+                                                    type="date"
+                                                    className={styles.input}
+                                                    value={date}
+                                                    onChange={(e) => setDate(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.formGroup}>
+                                            <label className={styles.label}>Время</label>
+                                            <div className={styles.inputWrapper}>
+                                                <Clock size={18} className={styles.icon} />
+                                                <input
+                                                    type="time"
+                                                    className={styles.input}
+                                                    value={time}
+                                                    onChange={(e) => setTime(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+                                            <label className={styles.label}>Количество пассажиров: {passengers}</label>
+                                            <input
+                                                type="range"
+                                                min="1"
+                                                max="8"
+                                                value={passengers}
+                                                onChange={(e) => setPassengers(parseInt(e.target.value))}
+                                                style={{ width: '100%', accentColor: 'var(--color-primary)' }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.actions}>
+                                        <button type="button" className={styles.backBtn} onClick={() => setStep(1)}>
+                                            <ChevronLeft size={18} style={{ display: 'inline', verticalAlign: 'middle' }} /> Назад
+                                        </button>
+                                        <button type="submit" className={styles.nextBtn}>
+                                            Заказать Трансфер
+                                        </button>
+                                    </div>
+                                </>
+                            )
+                        }
+                    </form >
                 </div >
-            </section >
-        </YMaps>
+            </div >
+        </section >
     );
 }
