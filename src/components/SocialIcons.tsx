@@ -29,11 +29,11 @@ export function WhatsAppIcon({ size = 20, color = 'currentColor' }: IconProps) {
     );
 }
 
-/* Max messenger — монохромная иконка (speech bubble) */
+/* Max messenger icon — P-ring style matching actual logo */
 export function MaxIcon({ size = 20, color = 'currentColor' }: IconProps) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.477 2 2 6.5 2 11.5c0 2.18.8 4.18 2.12 5.74L3 22l4.82-1.54C9.06 21.15 10.5 21.5 12 21.5c5.523 0 10-4.03 10-9S17.523 2 12 2zm0 2c4.418 0 8 3.13 8 7s-3.582 7-8 7c-1.35 0-2.62-.33-3.73-.9L5 18.5l.9-2.97A6.97 6.97 0 0 1 4 11c0-3.87 3.582-7 8-7zm-3 6v2h2v-2H9zm2 0v2h2v-2h-2zm2 0v2h2v-2h-2z" />
+            <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 2.09.636 4.03 1.726 5.637L2 22l4.442-1.7A9.955 9.955 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 2c4.418 0 8 3.582 8 8 0 4.418-3.582 8-8 8a7.96 7.96 0 0 1-3.866-.996L5 20l.998-3.04A7.96 7.96 0 0 1 4 12c0-4.418 3.582-8 8-8zm0 2a6 6 0 1 0 0 12A6 6 0 0 0 12 6zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z" />
         </svg>
     );
 }
