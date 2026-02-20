@@ -90,6 +90,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+    gap: 12px;
 }
 
 .nameAlt {
@@ -106,6 +107,8 @@
     border-radius: 20px;
     font-weight: 700;
     font-size: 0.9rem;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .description {
