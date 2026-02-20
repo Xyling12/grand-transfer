@@ -91,9 +91,9 @@
 }
 
 .label {
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--color-primary);
+    font-weight: 600;
 }
 
 .inputWrapper {
