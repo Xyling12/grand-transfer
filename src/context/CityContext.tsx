@@ -23,17 +23,17 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Only run on client after hydration
-        const savedCityId = localStorage.getItem('grand_transfer_city_id');
+        const sessionCityId = sessionStorage.getItem('grand_transfer_city_id');
 
-        if (savedCityId) {
-            const found = cities.find(c => c.id === savedCityId);
+        if (sessionCityId) {
+            const found = cities.find(c => c.id === sessionCityId);
             if (found) {
                 setCurrentCity(found);
-                return; // Prioritize localStorage over geolocation
+                return; // Use session storage if they already picked one this session
             }
         }
 
-        // Try to detect city via IP Geolocation if not set in localStorage
+        // Try to detect city via IP Geolocation if not set in sessionStorage
         const fetchCityByIP = async () => {
             try {
                 const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
@@ -43,7 +43,7 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
                     if (closest) {
                         console.log(`📍 IP Geolocation detected: ${closest.name}`);
                         setCurrentCity(closest);
-                        localStorage.setItem('grand_transfer_city_id', closest.id);
+                        sessionStorage.setItem('grand_transfer_city_id', closest.id);
                     }
                 }
             } catch (e) {
@@ -56,14 +56,19 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
 
     const handleSetCity = (city: City) => {
         setCurrentCity(city);
-        localStorage.setItem('grand_transfer_city_id', city.id);
+        sessionStorage.setItem('grand_transfer_city_id', city.id);
     };
+
+    const sortedCityList = [
+        currentCity,
+        ...cities.filter(c => c.id !== currentCity.id)
+    ];
 
     return (
         <CityContext.Provider value={{
             currentCity,
             setCity: handleSetCity,
-            cityList: cities,
+            cityList: sortedCityList,
             selectedTariff,
             setSelectedTariff
         }}>
