@@ -201,7 +201,6 @@ export default function BookingForm() {
                                                     setFromCity(text);
                                                     setFromCoords(coords);
                                                 }}
-                                                cityContext={currentCity?.name}
                                             />
                                         </div>
                                     </div>

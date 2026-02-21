@@ -26,12 +26,6 @@ export default function LeafletSuggestInput({ onSuggestSelect, cityContext, clas
         const timer = setTimeout(async () => {
             try {
                 let searchQuery = query;
-                if (cityContext && !query.toLowerCase().includes(cityContext.toLowerCase())) {
-                    // OSM/Nominatim often fails when regional modifiers like 'ДНР' or 'ЛНР' are added.
-                    // E.g. "Макеевка ДНР" -> "Макеевка".
-                    const cleanCity = cityContext.replace(/\s*(ДНР|ЛНР|Республика)\s*/gi, '').trim();
-                    searchQuery = `${cleanCity}, ${query}`;
-                }
 
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&addressdetails=1&limit=5&accept-language=ru`);
                 const data = await res.json();
