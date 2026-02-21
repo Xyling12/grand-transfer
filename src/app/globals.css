@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 :root {
   /* Premium Liquid Glass Palette */
@@ -13,6 +13,11 @@
   /* Brighter Gold */
   --color-primary-glow: rgba(202, 138, 4, 0.4);
 
+  /* Additional sophisticated gold variables */
+  --color-gold: #cca450;
+  --color-gold-light: #e6c57a;
+  --color-gold-dark: #a37c2b;
+
   --color-secondary: #1C1917;
   /* Slate Stone Dark */
   --color-accent: #EAB308;
@@ -25,8 +30,8 @@
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-blur: blur(12px);
 
-  --font-heading: 'Bodoni Moda', 'Georgia', serif;
-  --font-body: 'Jost', 'Helvetica Neue', sans-serif;
+  --font-heading: 'Cormorant', 'Georgia', serif;
+  --font-body: 'Montserrat', 'Helvetica Neue', sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 12px;

@@ -95,9 +95,8 @@ export default function Header() {
                         <a href="https://wa.me/79501587878" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="WhatsApp"><WhatsAppIcon size={18} /></a>
                         <a href="https://max.ru/u/f9LHodD0cOJCpX9My7upgEOBL0dt-DNGWgrFFD4IwEdtYkMWb7DJK1v8yOo" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Max"><MaxIcon size={18} /></a>
                     </div>
-                    <a href={`tel:${currentCity.phone.replace(/[^\d+]/g, '')}`} className={styles.callBtn}>
-                        <Phone size={18} className={styles.phoneIcon} />
-                        <span className={styles.phoneText}>{currentCity.phone}</span>
+                    <a href={`tel:${currentCity.phone.replace(/[^\d+]/g, '')}`} className={styles.callBtn} aria-label="Позвонить">
+                        <Phone size={18} />
                     </a>
 
                     {/* Hamburger — shows ≤1150px */}

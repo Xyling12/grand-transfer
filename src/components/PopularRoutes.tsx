@@ -38,7 +38,6 @@ export default function PopularRoutes() {
 
                             <div className={styles.priceBlock}>
                                 <div className={styles.price}>от {route.price.toLocaleString('ru-RU')} ₽</div>
-                                <div className={styles.priceNote}>Эконом • {getPricePerKm(route.price, route.distance)} ₽/км</div>
                             </div>
 
                             <button className={styles.button}>

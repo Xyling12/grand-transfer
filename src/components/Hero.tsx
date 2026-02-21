@@ -29,8 +29,8 @@ export default function Hero() {
                 <div className={styles.content}>
                     <h1 className={`${styles.title} animate-on-scroll`}>
                         <span className={styles.titleTop}>Междугороднее такси</span>
-                        <span className={styles.titleBottom}>Такси Межгород</span>
-                        <span className={styles.highlight}>из г. {currentCity.name}</span>
+                        <span className={styles.titleMiddle}>Такси<br />Межгород</span>
+                        <span className={styles.titleBottom}>из г. {currentCity.name}</span>
                     </h1>
 
                     <p className={`${styles.subtitle} animate-on-scroll delay-100`}>

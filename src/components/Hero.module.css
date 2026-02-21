@@ -51,6 +51,17 @@
     background: radial-gradient(circle at 30% 70%, rgba(20, 25, 35, 0.5) 0%, #000000 100%);
 }
 
+.heroWrapper {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+    /* Same horizontal padding as header/other sections roughly */
+    display: flex;
+    align-items: center;
+    /* This centers the content vertically if min-height is set on wrapper, but here .heroSection handles vertical center. */
+}
+
 .overlay {
     position: absolute;
     top: 0;
@@ -65,154 +76,130 @@
     position: relative;
     z-index: 2;
     max-width: 900px;
-    padding: 80px;
+    padding: 60px 0;
+    /* No side padding inside content so text aligns perfectly with the padding of heroWrapper */
     border-radius: var(--radius-2xl);
-
-    /* Ultimate Liquid Glass Effect */
-    background: rgba(20, 25, 30, 0.3);
-    backdrop-filter: blur(30px) saturate(160%);
-    -webkit-backdrop-filter: blur(30px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    border-left: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow:
-        0 40px 100px rgba(0, 0, 0, 0.7),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        inset 0 0 20px rgba(212, 175, 55, 0.05);
+    background: transparent;
+    text-align: left;
 }
 
 .title {
     font-family: var(--font-heading);
-    font-size: 5rem;
-    font-weight: 500;
     line-height: 1.1;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
     letter-spacing: 0.02em;
     color: #ffffff;
-    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-.highlight {
-    display: block;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 0.8em;
-    margin: 10px 0;
-    text-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
 }
 
 .titleTop {
     display: block;
-    font-size: 0.8em;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    color: var(--color-foreground);
+    font-size: 2.4rem;
+    font-weight: 400;
+    /* Regular elegant weight */
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+    /* Adding italic adds a very luxury feel to Cormorant */
+}
+
+.titleMiddle {
+    display: block;
+    font-size: 6rem;
+    /* Slightly larger for impact */
+    font-weight: 600;
+    /* Semi-bold */
+    line-height: 1;
+    color: var(--color-gold-light);
     margin-bottom: 0.5rem;
 }
 
 .titleBottom {
     display: block;
-    font-size: 1.1em;
-    font-weight: 800;
-    line-height: 1;
-    background: linear-gradient(to right, var(--color-primary), #EAB308);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
+    font-size: 4rem;
+    font-weight: 500;
+    line-height: 1.1;
+    color: #ffffff;
 }
 
 .subtitle {
     font-family: var(--font-body);
-    font-size: 1.3rem;
+    font-size: 1rem;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 3.5rem;
+    color: #a0a0a0;
+    margin-bottom: 2.5rem;
     max-width: 600px;
-    font-weight: 300;
-    letter-spacing: 0.01em;
+    font-weight: 400;
 }
 
 .actions {
     display: flex;
-    gap: 24px;
+    gap: 20px;
     align-items: center;
+    margin-top: 2rem;
 }
 
 .primaryBtn {
-    background: linear-gradient(135deg, var(--color-gold), #8B6508);
+    background: #0f0f0f;
     color: #fff;
-    padding: 18px 40px;
-    border-radius: var(--radius-lg);
+    padding: 16px 36px;
+    border-radius: 50px;
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 12px;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
-    font-size: 1.1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    box-shadow: 0 0 30px rgba(204, 164, 80, 0.15);
+    font-size: 1.05rem;
+    border: 1px solid rgba(204, 164, 80, 0.25);
 }
 
 .primaryBtn:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 15px 35px rgba(212, 175, 55, 0.5);
-    background: linear-gradient(135deg, #E8C14A, var(--color-gold));
+    transform: translateY(-2px);
+    box-shadow: 0 0 45px rgba(204, 164, 80, 0.3);
+    border-color: rgba(204, 164, 80, 0.5);
+    background: #151515;
 }
 
 .secondaryBtn {
-    padding: 18px 40px;
-    border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #0f0f0f;
     color: #fff;
-    font-weight: 500;
+    padding: 16px 36px;
+    border-radius: 50px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 12px;
     transition: all 0.3s ease;
-    font-size: 1.1rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.secondaryBtn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(to right,
-            transparent,
-            rgba(255, 255, 255, 0.05),
-            transparent);
-    transform: skewX(-20deg);
-    transition: all 0.7s ease;
-}
-
-.secondaryBtn:hover::before {
-    left: 200%;
+    box-shadow: 0 0 30px rgba(204, 164, 80, 0.15);
+    font-size: 1.05rem;
+    border: 1px solid rgba(204, 164, 80, 0.25);
 }
 
 .secondaryBtn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(212, 175, 55, 0.3);
-    color: var(--color-gold-light);
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 45px rgba(204, 164, 80, 0.3);
+    border-color: rgba(204, 164, 80, 0.5);
+    background: #151515;
 }
 
 @media (max-width: 768px) {
     .content {
         padding: 40px 20px;
-        margin: 0 15px;
+        margin: 0;
         text-align: center;
         backdrop-filter: blur(16px);
     }
 
-    .title {
-        font-size: 2.8rem;
+    .titleTop {
+        font-size: 1.8rem;
+    }
+
+    .titleMiddle {
+        font-size: 4rem;
+    }
+
+    .titleBottom {
+        font-size: 2.5rem;
     }
 
     .subtitle {
@@ -223,6 +210,7 @@
     .actions {
         flex-direction: column;
         width: 100%;
+        gap: 16px;
     }
 
     .primaryBtn,
@@ -234,14 +222,28 @@
 }
 
 @media (max-width: 480px) {
+    .heroWrapper {
+        padding: 0 20px;
+    }
+
     .content {
         padding: 30px 15px;
-        margin: 0 10px;
     }
 
     .title {
-        font-size: 2.2rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .titleTop {
+        font-size: 1.4rem;
+    }
+
+    .titleMiddle {
+        font-size: 3.2rem;
+    }
+
+    .titleBottom {
+        font-size: 2rem;
     }
 
     .subtitle {

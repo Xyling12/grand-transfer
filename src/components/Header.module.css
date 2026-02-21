@@ -11,6 +11,9 @@
 
 .headerScrolled {
     padding: 16px 24px;
+    display: flex;
+    justify-content: center;
+    /* Center the container inside the header */
 }
 
 .headerScrolled .container {
@@ -19,12 +22,11 @@
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: 10px 32px;
+    padding: 10px 24px;
+    /* Reduced side padding slightly to fit everything */
     box-shadow: var(--shadow-card);
-    width: 95%;
-    /* Use percentage to be more flexible */
+    width: 100%;
     max-width: 1400px;
-    /* Increased to fit everything comfortably */
 }
 
 .container {
@@ -37,6 +39,8 @@
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     border: 1px solid transparent;
     padding: 12px 0px;
+    width: 100%;
+    /* Ensure it takes full width but is clamped by max-width */
 }
 
 .leftGroup {
@@ -183,9 +187,8 @@
 .actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     flex-shrink: 0;
-    /* Don't squeeze the items */
 }
 
 .socials {
@@ -211,25 +214,24 @@
 }
 
 .callBtn {
-    background: linear-gradient(135deg, var(--color-primary), #A16207);
-    color: #fff;
-    padding: 10px 24px;
-    border-radius: 50px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 4px 15px rgba(202, 138, 4, 0.2);
+    color: var(--color-primary);
+    transition: all 0.3s ease;
     display: flex;
+    padding: 8px;
+    /* Slightly larger padding for the phone to make it stand out a bit from socials */
+    border-radius: 50%;
+    background: rgba(202, 138, 4, 0.1);
+    /* Slight gold tint baseline to distinguish from other socials */
+    border: 1px solid rgba(202, 138, 4, 0.3);
     align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    white-space: nowrap;
-    gap: 8px;
+    justify-content: center;
 }
 
 .callBtn:hover {
-    transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 8px 25px rgba(202, 138, 4, 0.4);
-    background: linear-gradient(135deg, var(--color-primary-hover), var(--color-primary));
+    color: #fff;
+    background: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(202, 138, 4, 0.4);
 }
 
 .hamburger {
@@ -310,9 +312,13 @@
 }
 
 @media (max-width: 1150px) {
+    .logoText {
+        display: none;
+    }
+}
 
-    .navLinks,
-    .socials {
+@media (max-width: 900px) {
+    .navLinks {
         display: none;
     }
 
@@ -336,7 +342,7 @@
         border-radius: var(--radius-lg);
     }
 
-    .callBtn {
+    .socials {
         display: none;
     }
 
@@ -347,10 +353,6 @@
 }
 
 @media (max-width: 480px) {
-    .logoText {
-        display: none;
-    }
-
     .container {
         gap: 10px;
     }
