@@ -174,3 +174,30 @@ button {
 .ymaps-2-1-79-suggest-ring {
   z-index: 999999 !important;
 }
+
+
+/* ===============================
+   Fixed Header Compensation
+   =============================== */
+
+:root {
+  --header-offset: 112px;
+  /* Desktop header height */
+}
+
+/* Сдвигаем весь контент вниз */
+main {
+  padding-top: var(--header-offset);
+}
+
+/* Если где-то main не применяется */
+body>div {
+  padding-top: var(--header-offset);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --header-offset: 84px;
+    /* Mobile header height */
+  }
+}
