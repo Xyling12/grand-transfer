@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Phone, Car, MapPin, ChevronDown, Menu, X } from 'lucide-react';
+import { Phone, Car, MapPin, ChevronDown, Menu, X, Search } from 'lucide-react';
 import { VKIcon, TelegramIcon, WhatsAppIcon, MaxIcon } from './SocialIcons';
 import styles from './Header.module.css';
 import { useCity } from '@/context/CityContext';
@@ -21,6 +21,7 @@ export default function Header() {
     const { currentCity, setCity, cityList } = useCity();
     const [isCityOpen, setIsCityOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -52,7 +53,10 @@ export default function Header() {
                     {/* City Selector */}
                     <div style={{ position: 'relative' }}>
                         <button
-                            onClick={() => setIsCityOpen(!isCityOpen)}
+                            onClick={() => {
+                                setIsCityOpen(!isCityOpen);
+                                setSearchQuery(''); // Reset search when opening/closing
+                            }}
                             className={styles.cityBtn}
                         >
                             <MapPin size={16} />
@@ -62,18 +66,54 @@ export default function Header() {
 
                         {isCityOpen && (
                             <div className={styles.cityDropdown}>
-                                {cityList.map(city => (
-                                    <button
-                                        key={city.id}
-                                        onClick={() => {
-                                            setCity(city);
-                                            setIsCityOpen(false);
-                                        }}
-                                        className={`${styles.cityOption} ${currentCity.id === city.id ? styles.cityOptionActive : ''}`}
-                                    >
-                                        {city.name}
-                                    </button>
-                                ))}
+                                <div className={styles.citySearchWrapper}>
+                                    <Search size={14} className={styles.citySearchIcon} />
+                                    <input
+                                        type="text"
+                                        placeholder="Поиск города..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className={styles.citySearchInput}
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className={styles.cityListScroll}>
+                                    {(() => {
+                                        const filtered = cityList.filter(city => city.name.toLowerCase().includes(searchQuery.trim().toLowerCase()));
+
+                                        if (filtered.length === 0) {
+                                            return (
+                                                <div className={styles.cityNotFound}>
+                                                    <p className={styles.cityNotFoundText}>Нет в списке</p>
+                                                    <button
+                                                        className={styles.cityNotFoundBtn}
+                                                        onClick={() => {
+                                                            setIsCityOpen(false);
+                                                            setSearchQuery('');
+                                                            document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });
+                                                        }}
+                                                    >
+                                                        Свой маршрут
+                                                    </button>
+                                                </div>
+                                            );
+                                        }
+
+                                        return filtered.map(city => (
+                                            <button
+                                                key={city.id}
+                                                onClick={() => {
+                                                    setCity(city);
+                                                    setIsCityOpen(false);
+                                                    setSearchQuery('');
+                                                }}
+                                                className={`${styles.cityOption} ${currentCity.id === city.id ? styles.cityOptionActive : ''}`}
+                                            >
+                                                {city.name}
+                                            </button>
+                                        ));
+                                    })()}
+                                </div>
                             </div>
                         )}
                     </div>
