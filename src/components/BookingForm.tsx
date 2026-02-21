@@ -289,7 +289,12 @@ export default function BookingForm() {
                                                             src={t.image}
                                                             alt={t.name}
                                                             className={styles.carImage}
-                                                            style={t.id === 'delivery' ? { transform: 'scale(1.3) translateY(-8px)' } : {}}
+                                                            style={{
+                                                                '--base-scale': t.id === 'delivery' ? 1.3 : (t.id === 'soberDriver' ? 1 : 1.2),
+                                                                '--base-translate': t.id === 'delivery' ? '-8px' : (t.id === 'soberDriver' ? '0px' : '-4px'),
+                                                                '--hover-scale': t.id === 'delivery' ? 1.4 : (t.id === 'soberDriver' ? 1.1 : 1.3),
+                                                                '--hover-translate': t.id === 'delivery' ? '-12px' : (t.id === 'soberDriver' ? '-2px' : '-6px')
+                                                            } as React.CSSProperties}
                                                         />
                                                     </div>
                                                     <div className={styles.tariffCardBody}>

@@ -89,7 +89,12 @@ export default function Tariffs() {
                                             src={tariff.image}
                                             alt={tariff.name}
                                             className={styles.image}
-                                            style={tariff.id === 'delivery' ? { transform: 'scale(1.4) translateY(-10px)' } : {}}
+                                            style={{
+                                                '--base-scale': tariff.id === 'delivery' ? 1.4 : (tariff.id === 'soberDriver' ? 1 : 1.25),
+                                                '--base-translate': tariff.id === 'delivery' ? '-10px' : (tariff.id === 'soberDriver' ? '0px' : '-5px'),
+                                                '--hover-scale': tariff.id === 'delivery' ? 1.5 : (tariff.id === 'soberDriver' ? 1.1 : 1.35),
+                                                '--hover-translate': tariff.id === 'delivery' ? '-15px' : (tariff.id === 'soberDriver' ? '-5px' : '-10px')
+                                            } as React.CSSProperties}
                                             loading="lazy"
                                         />
                                     </div>

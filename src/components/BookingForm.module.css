@@ -200,10 +200,11 @@
     max-height: 100%;
     object-fit: contain;
     transition: transform 0.5s ease;
+    transform: scale(var(--base-scale, 1)) translateY(var(--base-translate, 0));
 }
 
 .tariffCard:hover .carImage {
-    transform: scale(1.1) translateY(-2px);
+    transform: scale(var(--hover-scale, 1.1)) translateY(var(--hover-translate, -2px));
 }
 
 .tariffCardBody {
