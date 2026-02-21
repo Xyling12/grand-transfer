@@ -12,13 +12,23 @@
 }
 
 .grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
     gap: 40px;
+    justify-items: center;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+}
+
+/* Target the 7th item (orphan on 3-column layouts) and explicitly center it by making it span the columns or tweaking margin */
+@media (min-width: 1110px) {
+
+    /* Approximate breakpoint where 3 columns fit (340*3 + gaps) */
+    .card:nth-child(7) {
+        grid-column: 2 / 3;
+        /* Forces it into the middle column of a 3-column grid */
+    }
 }
 
 .card {
@@ -199,8 +209,11 @@
 
 @media (max-width: 768px) {
     .grid {
-        flex-direction: column;
-        align-items: center;
+        grid-template-columns: 1fr;
+    }
+
+    .card:nth-child(7) {
+        grid-column: auto;
     }
 
     .name {
