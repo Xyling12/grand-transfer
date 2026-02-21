@@ -317,19 +317,30 @@ export default function BookingForm() {
                                             <div className={styles.priceResultTotal}>
                                                 от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
                                             </div>
-                                            {priceCalc.legPrices && priceCalc.legPrices.length === 2 && (
-                                                <div className={styles.receiptBox}>
-                                                    <div className={styles.receiptTitle}>Детализация маршрута</div>
-                                                    <div className={styles.receiptRow}>
-                                                        <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
-                                                        <span>{priceCalc.legPrices[0].toLocaleString('ru-RU')} ₽</span>
-                                                    </div>
-                                                    <div className={styles.receiptRow}>
-                                                        <span>После границы</span>
-                                                        <span>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</span>
-                                                    </div>
+                                            <div className={styles.receiptBox}>
+                                                <div className={styles.receiptTitle} style={{ color: 'var(--color-primary)' }}>Детализация стоимости</div>
+                                                <div className={styles.receiptRow}>
+                                                    <span>Подача машины</span>
+                                                    <span>500 ₽</span>
                                                 </div>
-                                            )}
+                                                {priceCalc.legPrices && priceCalc.legPrices.length === 2 ? (
+                                                    <>
+                                                        <div className={styles.receiptRow}>
+                                                            <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
+                                                            <span>{(priceCalc.legPrices[0] - 500).toLocaleString('ru-RU')} ₽</span>
+                                                        </div>
+                                                        <div className={styles.receiptRow}>
+                                                            <span>После границы</span>
+                                                            <span>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</span>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className={styles.receiptRow}>
+                                                        <span>Километраж ({priceCalc.roadKm} км)</span>
+                                                        <span>{(priceCalc.minPrice - 500).toLocaleString('ru-RU')} ₽</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )
                                 }
