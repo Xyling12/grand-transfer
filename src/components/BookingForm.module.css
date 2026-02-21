@@ -184,7 +184,7 @@
 }
 
 .carImageWrapper {
-    background: transparent;
+    background: #000;
     height: 100px;
     display: flex;
     align-items: center;
@@ -200,6 +200,7 @@
     max-height: 100%;
     object-fit: contain;
     transition: transform 0.5s ease;
+    mix-blend-mode: screen;
 }
 
 .tariffCard:hover .carImage {
