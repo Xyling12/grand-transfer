@@ -22,6 +22,7 @@ const TARIFFS = [
     { id: 'business', name: 'Бизнес', image: '/images/tariffs/business-3d.png' },
     { id: 'minivan', name: 'Минивэн', image: '/images/tariffs/minivan-3d.png' },
     { id: 'soberDriver', name: 'Трезвый водитель', image: '/images/tariffs/sober-3d.png' },
+    { id: 'delivery', name: 'Доставка', image: '/images/tariffs/delivery-3d.png' },
 ];
 
 function haversineDistance(coords1: [number, number], coords2: [number, number]) {
@@ -83,7 +84,7 @@ export default function BookingForm() {
 
         // Rate 1 (From)
         const fromCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
-        const rate1 = fromCityTariffs[tariff as keyof CityTariffs] || 25;
+        const rate1 = tariff === 'delivery' ? (fromCityTariffs['econom'] || 25) : (fromCityTariffs[tariff as keyof CityTariffs] || 25);
 
         // Rate 2 (To) - attempt to find destination city in tariffs
         let toCityMatchedName = 'Москва';
@@ -94,17 +95,19 @@ export default function BookingForm() {
             }
         }
         const toCityTariffs = cityTariffs[toCityMatchedName] || cityTariffs['Москва'];
-        const rate2 = toCityTariffs[tariff as keyof CityTariffs] || 25;
+        const rate2 = tariff === 'delivery' ? (toCityTariffs['econom'] || 25) : (toCityTariffs[tariff as keyof CityTariffs] || 25);
+
+        const baseFee = tariff === 'delivery' ? 1500 : 500;
 
         let minPrice = 0;
         let legPrices: number[] = [];
         if (distancesKm.length === 1) {
-            minPrice = Math.round((500 + roadKm * rate1) / 100) * 100;
+            minPrice = Math.round((baseFee + roadKm * rate1) / 100) * 100;
             legPrices = [minPrice];
         } else if (distancesKm.length === 2) {
             const rd1 = Math.round(distancesKm[0]);
             const rd2 = Math.round(distancesKm[1]);
-            const price1 = Math.round((500 + rd1 * rate1) / 100) * 100;
+            const price1 = Math.round((baseFee + rd1 * rate1) / 100) * 100;
             const price2 = Math.round((rd2 * rate2) / 100) * 100;
             minPrice = price1 + price2;
             legPrices = [price1, price2];
@@ -120,7 +123,7 @@ export default function BookingForm() {
             const selectedTariff = TARIFFS.find(t => t.id === tariff);
 
             const fromCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
-            const rate1 = fromCityTariffs[tariff as keyof CityTariffs] || 25;
+            const rate1 = tariff === 'delivery' ? (fromCityTariffs['econom'] || 25) : (fromCityTariffs[tariff as keyof CityTariffs] || 25);
 
             let toCityMatchedName = 'Москва';
             for (const cityName of Object.keys(cityTariffs)) {
@@ -130,17 +133,19 @@ export default function BookingForm() {
                 }
             }
             const toCityTariffs = cityTariffs[toCityMatchedName] || cityTariffs['Москва'];
-            const rate2 = toCityTariffs[tariff as keyof CityTariffs] || 25;
+            const rate2 = tariff === 'delivery' ? (toCityTariffs['econom'] || 25) : (toCityTariffs[tariff as keyof CityTariffs] || 25);
+
+            const baseFee = tariff === 'delivery' ? 1500 : 500;
 
             let minPrice = 0;
             let legPrices: number[] = [];
             if (priceCalc.rawDistances.length === 1) {
-                minPrice = Math.round((500 + priceCalc.roadKm * rate1) / 100) * 100;
+                minPrice = Math.round((baseFee + priceCalc.roadKm * rate1) / 100) * 100;
                 legPrices = [minPrice];
             } else if (priceCalc.rawDistances.length === 2) {
                 const rd1 = Math.round(priceCalc.rawDistances[0]);
                 const rd2 = Math.round(priceCalc.rawDistances[1]);
-                const price1 = Math.round((500 + rd1 * rate1) / 100) * 100;
+                const price1 = Math.round((baseFee + rd1 * rate1) / 100) * 100;
                 const price2 = Math.round((rd2 * rate2) / 100) * 100;
                 minPrice = price1 + price2;
                 legPrices = [price1, price2];
@@ -280,11 +285,18 @@ export default function BookingForm() {
                                                 >
                                                     {tariff === t.id && <CheckCircle2 size={16} className={styles.checkIcon} />}
                                                     <div className={styles.carImageWrapper}>
-                                                        <img src={t.image} alt={t.name} className={styles.carImage} />
+                                                        <img
+                                                            src={t.image}
+                                                            alt={t.name}
+                                                            className={styles.carImage}
+                                                            style={t.id === 'delivery' ? { transform: 'scale(1.3) translateY(-8px)' } : {}}
+                                                        />
                                                     </div>
                                                     <div className={styles.tariffCardBody}>
                                                         <span className={styles.tariffName}>{t.name}</span>
-                                                        <span className={styles.tariffPrice}>от {itemPrice} ₽/км</span>
+                                                        <span className={styles.tariffPrice}>
+                                                            {t.id === 'delivery' ? 'от 1500 ₽' : `от ${itemPrice} ₽/км`}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             );
@@ -321,13 +333,13 @@ export default function BookingForm() {
                                                 <div className={styles.receiptTitle} style={{ color: 'var(--color-primary)' }}>Детализация стоимости</div>
                                                 <div className={styles.receiptRow}>
                                                     <span>Подача машины</span>
-                                                    <span>500 ₽</span>
+                                                    <span>{tariff === 'delivery' ? 1500 : 500} ₽</span>
                                                 </div>
                                                 {priceCalc.legPrices && priceCalc.legPrices.length === 2 ? (
                                                     <>
                                                         <div className={styles.receiptRow}>
                                                             <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
-                                                            <span>{(priceCalc.legPrices[0] - 500).toLocaleString('ru-RU')} ₽</span>
+                                                            <span>{(priceCalc.legPrices[0] - (tariff === 'delivery' ? 1500 : 500)).toLocaleString('ru-RU')} ₽</span>
                                                         </div>
                                                         <div className={styles.receiptRow}>
                                                             <span>После границы</span>
@@ -337,7 +349,7 @@ export default function BookingForm() {
                                                 ) : (
                                                     <div className={styles.receiptRow}>
                                                         <span>Километраж ({priceCalc.roadKm} км)</span>
-                                                        <span>{(priceCalc.minPrice - 500).toLocaleString('ru-RU')} ₽</span>
+                                                        <span>{(priceCalc.minPrice - (tariff === 'delivery' ? 1500 : 500)).toLocaleString('ru-RU')} ₽</span>
                                                     </div>
                                                 )}
                                             </div>

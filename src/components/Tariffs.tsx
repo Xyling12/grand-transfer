@@ -47,6 +47,13 @@ const tariffDefs = [
         description: "Наш профессиональный водитель безопасно доставит вас и ваш автомобиль домой.",
         image: "/images/tariffs/sober-3d.png",
         features: ["Опытные профессионалы", "Бережное вождение", "Безопасность авто"]
+    },
+    {
+        id: "delivery" as keyof CityTariffs,
+        name: "Доставка",
+        description: "Быстрая и надежная доставка посылок, документов и малогабаритных грузов.",
+        image: "/images/tariffs/delivery-3d.png",
+        features: ["От двери до двери", "Гарантия сохранности", "Срочная отправка"]
     }
 ];
 
@@ -82,6 +89,7 @@ export default function Tariffs() {
                                             src={tariff.image}
                                             alt={tariff.name}
                                             className={styles.image}
+                                            style={tariff.id === 'delivery' ? { transform: 'scale(1.4) translateY(-10px)' } : {}}
                                             loading="lazy"
                                         />
                                     </div>
@@ -95,7 +103,9 @@ export default function Tariffs() {
                                 <div className={styles.cardBody}>
                                     <div className={styles.headerRow}>
                                         <h4 className={styles.nameAlt}>{tariff.name}</h4>
-                                        <div className={styles.priceBadge}>от {price} ₽/км</div>
+                                        <div className={styles.priceBadge}>
+                                            {tariff.id === 'delivery' ? 'от 1500 ₽' : `от ${price} ₽/км`}
+                                        </div>
                                     </div>
 
                                     <p className={styles.description}>{tariff.description}</p>
