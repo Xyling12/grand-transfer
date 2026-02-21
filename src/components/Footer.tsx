@@ -62,10 +62,6 @@ export default function Footer() {
                                 <Mail size={18} className={styles.contactIcon} />
                                 <span>romanbatkovic1@yandex.ru</span>
                             </div>
-                            <div className={styles.contactItem}>
-                                <MapPin size={18} className={styles.contactIcon} />
-                                <span>г. Казань, ул. Баумана, 1</span>
-                            </div>
                         </div>
                     </div>
                 </div>
