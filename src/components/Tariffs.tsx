@@ -10,21 +10,21 @@ const tariffDefs = [
         id: "econom" as keyof CityTariffs,
         name: "Эконом",
         description: "Для бюджетных поездок налегке. Лучшая цена без потери качества.",
-        image: "/images/tariffs/economy-3d.webp",
+        image: "/images/tariffs/economy-dark-new.png",
         features: ["Гранта, Логан, Лачетти и аналоги", "Кондиционер", "Детское кресло"]
     },
     {
         id: "standart" as keyof CityTariffs,
         name: "Стандарт",
         description: "Оптимальный выбор для дальних поездок. Просторный багажник и комфорт.",
-        image: "/images/tariffs/standard-3d.webp",
+        image: "/images/tariffs/standard-dark-new.png",
         features: ["Рио, Солярис, Поло и аналоги", "Вместительный багажник", "Климат-контроль"]
     },
     {
         id: "comfort" as keyof CityTariffs,
         name: "Комфорт",
         description: "Автомобили C-класса. Улучшенный комфорт и тишина в салоне.",
-        image: "/images/tariffs/comfort-3d.webp",
+        image: "/images/tariffs/comfort-new.png",
         features: ["Октавия, Элантра, Церато", "Тихий салон", "Плавный ход"]
     },
     {
@@ -45,7 +45,7 @@ const tariffDefs = [
         id: "minivan" as keyof CityTariffs,
         name: "Минивэн",
         description: "Для больших компаний или семьи с багажом. Вместимость до 7-8 человек.",
-        image: "/images/tariffs/minivan-3d.webp",
+        image: "/images/tariffs/minivan-dark-new.png",
         features: ["Карнивал, Старекс и аналоги", "Огромный багажник", "Климат для заднего ряда"]
     },
     {
@@ -74,6 +74,23 @@ export default function Tariffs() {
 
     // Safe fallback to 'Москва' if city is somehow completely missing
     const activeTariffs = cityTariffs[currentCity?.name] || cityTariffs['Москва'];
+
+    // Adjust individual scales to visually align cars with different intrinsic bounds
+    const getStyleProps = (id: string) => {
+        const props: any = { '--hover-translate': '-10px' };
+        switch (id) {
+            case 'econom': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '-5px'; break;
+            case 'standart': props['--base-scale'] = 1.45; props['--hover-scale'] = 1.55; props['--base-translate'] = '-5px'; break;
+            case 'comfort': props['--base-scale'] = 1.25; props['--hover-scale'] = 1.35; props['--base-translate'] = '-5px'; break;
+            case 'comfortPlus': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '-5px'; break;
+            case 'business': props['--base-scale'] = 1.15; props['--hover-scale'] = 1.25; props['--base-translate'] = '5px'; break;
+            case 'minivan': props['--base-scale'] = 1.05; props['--hover-scale'] = 1.15; props['--base-translate'] = '10px'; break;
+            case 'soberDriver': props['--base-scale'] = 1.0; props['--hover-scale'] = 1.1; props['--base-translate'] = '0px'; props['--hover-translate'] = '-5px'; break;
+            case 'delivery': props['--base-scale'] = 1.4; props['--hover-scale'] = 1.5; props['--base-translate'] = '-15px'; props['--hover-translate'] = '-20px'; break;
+            default: props['--base-scale'] = 1.25; props['--hover-scale'] = 1.35; props['--base-translate'] = '-5px'; break;
+        }
+        return props as React.CSSProperties;
+    };
 
     return (
         <section className={`${styles.section} animate-on-scroll`} id="tariffs">
@@ -125,12 +142,7 @@ export default function Tariffs() {
                                             src={tariff.image}
                                             alt={`Автомобиль класса ${tariff.name} для междугороднего такси и трансфера: ${tariff.features[0]}`}
                                             className={styles.image}
-                                            style={{
-                                                '--base-scale': tariff.id === 'delivery' ? 1.4 : (tariff.id === 'soberDriver' ? 1 : 1.25),
-                                                '--base-translate': tariff.id === 'delivery' ? '-10px' : (tariff.id === 'soberDriver' ? '0px' : '-5px'),
-                                                '--hover-scale': tariff.id === 'delivery' ? 1.5 : (tariff.id === 'soberDriver' ? 1.1 : 1.35),
-                                                '--hover-translate': tariff.id === 'delivery' ? '-15px' : (tariff.id === 'soberDriver' ? '-5px' : '-10px')
-                                            } as React.CSSProperties}
+                                            style={getStyleProps(tariff.id)}
                                             loading="lazy"
                                         />
                                     </div>
