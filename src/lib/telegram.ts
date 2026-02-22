@@ -26,13 +26,15 @@ export async function sendOrderNotification(orderData: Record<string, string | n
     if (fromCityObj) fromRtext = `${fromCityObj.lat},${fromCityObj.lon}`;
     if (toCityObj) toRtext = `${toCityObj.lat},${toCityObj.lon}`;
 
-    // 2GIS Web fallback link (when exact city coordinates are missing)
+    // Use the exact format from the user's successful manual test.
+    // Format: https://2gis.ru/izhevsk/directions/points/{lonFrom}%2C{latFrom}%3B{lonTo}%2C{latTo}
+    // We can omit the specific city slug (like /izhevsk/) and 2GIS will auto-detect bounds
+    const directLink = `https://2gis.ru/directions/points/${fromCityObj?.lon || ''}%2C${fromCityObj?.lat || ''}%3B${toCityObj?.lon || ''}%2C${toCityObj?.lat || ''}`;
+
+    // Fallback for custom string inputs (no coordinates)
     const textFrom = orderData.fromCity ? encodeURIComponent(String(orderData.fromCity).trim()) : '';
     const textTo = orderData.toCity ? encodeURIComponent(String(orderData.toCity).trim()) : '';
-    // Use proper 2gis standard format for addresses via search routing
-    const webMapLink = `https://2gis.ru/routing?waypoint1=${textFrom}&waypoint2=${textTo}&type=car`;
-    // Smart Bridge Link (bypasses Telegram blocks via Intent API on Android)
-    const bridgeLink = `https://grand-transfer.vercel.app/route?lat_from=${fromCityObj?.lat || ''}&lon_from=${fromCityObj?.lon || ''}&lat_to=${toCityObj?.lat || ''}&lon_to=${toCityObj?.lon || ''}`;
+    const fallbackLink = `https://2gis.ru/routing?waypoint1=${textFrom}&waypoint2=${textTo}&type=car`;
 
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
@@ -42,7 +44,7 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🗺️ <b>Открыть маршрут:</b> <a href="${fromCityObj && toCityObj ? bridgeLink : webMapLink}">В 2GIS / Навигаторе �️</a>
+🗺️ <b>Открыть маршрут:</b> <a href="${fromCityObj && toCityObj ? directLink : fallbackLink}">В 2GIS (Онлайн / Приложение) 🗺️</a>
 🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
