@@ -16,22 +16,23 @@ function RouteRedirect() {
             // Android robust intent scheme to bypass WebView blockers
             // 2GIS format uses LONGITUDE first, then LATITUDE.
             const dgisIntent = `intent://2gis.ru/routeSearch/rsType/car/from/${lonFrom},${latFrom}/to/${lonTo},${latTo}#Intent;scheme=dgis;package=ru.dublgis.dgismobile;end`;
-            const naviIntent = `intent://build_route_on_map?lat_from=${latFrom}&lon_from=${lonFrom}&lat_to=${latTo}&lon_to=${lonTo}#Intent;scheme=yandexnavi;package=ru.yandex.yandexnavi;end`;
 
             // Standard fallback scheme primarily for iOS 
             const iosDgis = `dgis://2gis.ru/routeSearch/rsType/car/from/${lonFrom},${latFrom}/to/${lonTo},${latTo}`;
+            const webDgis = `https://2gis.ru/routing?waypoint1=${lonFrom}%2C${latFrom}&waypoint2=${lonTo}%2C${latTo}&type=car`;
 
             // Check if Android roughly
             const isAndroid = /android/i.test(navigator.userAgent || '');
 
             if (isAndroid) {
-                // Try 2GIS intent first, if fails then fallback to Yandex Navigator
+                // Try 2GIS intent exclusively. Will prompt to install from Play Market if not present.
                 window.location.href = dgisIntent;
-                setTimeout(() => {
-                    window.location.href = naviIntent;
-                }, 1000);
             } else {
                 window.location.href = iosDgis;
+                // Add minor timeout to fallback to web if 2GIS iOS app is missing
+                setTimeout(() => {
+                    window.location.href = webDgis;
+                }, 2500);
             }
         }
     }, [searchParams]);
