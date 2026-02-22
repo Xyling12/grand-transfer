@@ -338,7 +338,6 @@ export default function BookingForm() {
                                     <div style={{
                                         marginTop: '20px',
                                         borderRadius: '16px',
-                                        overflow: 'hidden',
                                         height: '320px',
                                         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                                         border: '1px solid var(--glass-border)',
