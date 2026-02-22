@@ -93,6 +93,36 @@ bot.command('reset', async (ctx) => {
     }
 });
 
+// Кнопка для выгрузки всех заказов в CSV (Excel)
+bot.command('export', async (ctx) => {
+    if (ctx.chat.id.toString() !== process.env.TELEGRAM_CHAT_ID) {
+        return ctx.reply('❌ У вас нет прав для выгрузки статистики.');
+    }
+
+    try {
+        const orders = await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
+
+        // Add BOM for Excel UTF-8 display
+        let csv = '\uFEFF';
+        csv += "ID;Дата;Откуда;Куда;Тариф;Пассажиров;Сумма;Имя;Телефон;Комментарий\n";
+
+        orders.forEach(o => {
+            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
+            const safeComment = (o.comments || '').replace(/;/g, ',').replace(/\n/g, ' ');
+            csv += `${o.id};${dateStr};${o.fromCity};${o.toCity};${o.tariff};${o.passengers};${o.priceEstimate || ''};${o.customerName};${o.customerPhone};${safeComment}\n`;
+        });
+
+        const buffer = Buffer.from(csv, 'utf8');
+        await ctx.replyWithDocument(
+            { source: buffer, filename: `orders_grandtransfer_${new Date().toISOString().split('T')[0]}.csv` },
+            { caption: '📄 Полная выгрузка базы заказов (можно открыть в Excel)' }
+        );
+    } catch (e) {
+        console.error('Export error:', e);
+        ctx.reply('❌ Произошла ошибка при экспорте.');
+    }
+});
+
 bot.launch().then(() => {
     console.log('🤖 Telegram bot is polling for commands...');
 });

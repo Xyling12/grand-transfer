@@ -21,7 +21,7 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🗺️ <b>Маршрут на карте:</b> <a href="https://yandex.ru/maps/?rtext=${encodeURIComponent(String(orderData.fromCity || ''))}~${encodeURIComponent(String(orderData.toCity || ''))}">Открыть Яндекс Карты</a>
+🗺️ <b>Маршрут на карте:</b> <a href="https://yandex.ru/maps/?mode=routes&rtext=${encodeURIComponent(String(orderData.fromCity || ''))}~${encodeURIComponent(String(orderData.toCity || ''))}&rtt=auto">Открыть Яндекс Карты (Маршрут)</a>
 🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
