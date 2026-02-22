@@ -42,6 +42,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "GrandTransfer – Межгородское такси",
     description: "Мгновенный расчет стоимости и комфортные поездки по межгороду."
+  },
+  verification: {
+    google: "6jdi0lGUwUYQl-a_LsZFZYz8709GNp18Zed3SohrgvQ",
   }
 };
 
