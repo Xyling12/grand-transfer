@@ -2,6 +2,7 @@
 export interface CityTariffs {
     econom: number;
     standart: number;
+    comfort: number;
     comfortPlus: number;
     business: number;
     minivan: number;
@@ -13,6 +14,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Ижевск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -21,6 +23,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Воткинск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -29,6 +32,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Сарапул": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -37,6 +41,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Балезино": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -45,6 +50,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Глазов": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -53,6 +59,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Ува": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -61,6 +68,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Можга": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -69,6 +77,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Алнаши": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -77,6 +86,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Игра": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -85,6 +95,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Якшур бодья": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -93,6 +104,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Агрыз": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -101,6 +113,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Пычас": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -109,6 +122,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Вавож": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -117,6 +131,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Набережные Челны": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -125,6 +140,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Нижникамск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -133,6 +149,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Елабуга": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -141,6 +158,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Менделеевск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -149,6 +167,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Мензелинск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -157,6 +176,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Альметьевск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -165,6 +185,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Бугульма": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -173,6 +194,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Лениногорск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -181,6 +203,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Заинск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -189,6 +212,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Чистополь": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -197,6 +221,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Казань": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -205,6 +230,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Лаишево": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -213,6 +239,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Зеленодольск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -221,6 +248,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Инополис": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -229,6 +257,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Новочебоксарск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -237,6 +266,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Йошкар-Ола": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -245,6 +275,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Киров": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -253,6 +284,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Кирово Чепецк": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -261,6 +293,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Пермь": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -269,6 +302,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Губаха": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -277,6 +311,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Кунгур": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -285,6 +320,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Добрянка": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -293,6 +329,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Чусовой": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -301,6 +338,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Лысьва": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -309,6 +347,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Верещагино": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -317,6 +356,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Оса": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -325,6 +365,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Нытва": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -333,6 +374,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Очер": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -341,6 +383,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Ростов на Дону": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -349,6 +392,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Таганрог": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -357,6 +401,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Каменск Шахтинск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -365,6 +410,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Шахты": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -373,6 +419,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Новошахтинск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -381,6 +428,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Батайск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -389,6 +437,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Новочеркасск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -397,6 +446,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Миллерово": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -405,6 +455,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Азов": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -413,6 +464,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Гуково": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -421,6 +473,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Белая Калитва": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -429,6 +482,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Матвеев Курган": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -437,6 +491,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Волгоград": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -445,6 +500,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Камышин": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -453,6 +509,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Волжский": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -461,6 +518,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Саратов": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -469,6 +527,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Энгельс": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -477,6 +536,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Балаково": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -485,6 +545,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Вольск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -493,6 +554,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Самара": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -501,6 +563,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Тольятти": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -509,6 +572,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Новокуйбышевск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -517,6 +581,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Чапаевск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -525,6 +590,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Отрадный": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -533,6 +599,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Сызрань": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -541,6 +608,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Ульяновск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -549,6 +617,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Димитровград": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -557,6 +626,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Новоульяновск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -565,6 +635,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Болгар": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -573,6 +644,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Мариуполь": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -581,6 +653,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Мелитополь": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -589,6 +662,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Волноваха": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -597,6 +671,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "ДНР Донецк": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -605,6 +680,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Макеевка": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -613,6 +689,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Дебальцево": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -621,6 +698,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Амросивка": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -629,6 +707,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Снежное": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -637,6 +716,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Северное": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -645,6 +725,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Енакиево": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -653,6 +734,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "МоспиноДНР": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -661,6 +743,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Харцызск": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -669,6 +752,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Торез": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -677,6 +761,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Докучаевск": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -685,6 +770,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Бердянск": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -693,6 +779,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Херсон": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -701,6 +788,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Симферополь": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -709,6 +797,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Севастополь": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -717,6 +806,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Джанкой": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -725,6 +815,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Весело Вознесенка": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -733,6 +824,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "КПП Успенка": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -741,6 +833,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "КПП Чертково": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -749,6 +842,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "КПП Должанский": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -757,6 +851,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "КПП Богучар": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -765,6 +860,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Пелагеевка": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -773,6 +869,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Ясеноватая": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -781,6 +878,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "МарьенкаДНР": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -789,6 +887,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Авдеевка": {
         "econom": 90,
         "standart": 90,
+        "comfort": 90,
         "comfortPlus": 90,
         "business": 150,
         "minivan": 120,
@@ -797,6 +896,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Воронеж": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -805,6 +905,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Нововоронеж": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -813,6 +914,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Ровеньки": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -821,6 +923,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Белгород": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -829,6 +932,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Старый Оскол": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -837,6 +941,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Шебекино": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -845,6 +950,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Новый Оскол": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -853,6 +959,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Курск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -861,6 +968,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Рыльск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -869,6 +977,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Нижний Новгород": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -877,6 +986,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Дзержинск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -885,6 +995,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Кстово": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -893,6 +1004,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Владимир": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -901,6 +1013,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Муром": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -909,6 +1022,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Тула": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -917,6 +1031,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Тверь": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -925,6 +1040,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Тамбов": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -933,6 +1049,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Орёл": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -941,6 +1058,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Иваново": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -949,6 +1067,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Кострома": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -957,6 +1076,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Липецк": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -965,6 +1085,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Смоленск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -973,6 +1094,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Москва": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 50,
@@ -981,6 +1103,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Химки": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -989,6 +1112,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Подольск": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -997,6 +1121,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Серпухов": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1005,6 +1130,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Зеленоград": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1013,6 +1139,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Электросталь": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1021,6 +1148,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Орехово Зуево": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1029,6 +1157,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Воскресенск": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1037,6 +1166,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Егорьевск": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1045,6 +1175,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Щёлково": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1053,6 +1184,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Наро-Фоминск": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1061,6 +1193,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Раменское": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1069,6 +1202,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Любирцы": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1077,6 +1211,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Одинцово": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1085,6 +1220,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Балашиха": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1093,6 +1229,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Лосино Петровский": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1101,6 +1238,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Мытищи": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1109,6 +1247,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Ногинск": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1117,6 +1256,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Купавна": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1125,6 +1265,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Реутов": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1133,6 +1274,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Рязань": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1141,6 +1283,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Вологда": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1149,6 +1292,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Великий Новгород": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1157,6 +1301,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Санкт Петербург": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1165,6 +1310,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Шушары": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1173,6 +1319,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Колпино": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1181,6 +1328,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Астрахань": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1189,6 +1337,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Сыктывкар": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1197,6 +1346,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Екатеринбург": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1205,6 +1355,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт Домодедово": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1213,6 +1364,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт Внуково": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1221,6 +1373,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт Шереметьево": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1229,6 +1382,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Курумоч Аэропорт Самара": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1237,6 +1391,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Екатеринбург аэропорт Кольцово": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1245,6 +1400,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Большое Савино аэропорт Пермь": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1253,6 +1409,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт Уфа Мустая Карима": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1261,6 +1418,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт Казань Г.М Тукая": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1269,6 +1427,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт ИжевскМ.Т Калашникова": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1277,6 +1436,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт Бегишево Н.В Ламаева": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1285,6 +1445,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт Ульяновск Баратаевка": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1293,6 +1454,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт Сочи Адлер": {
         "econom": 30,
         "standart": 32,
+        "comfort": 37,
         "comfortPlus": 42,
         "business": 80,
         "minivan": 55,
@@ -1301,6 +1463,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт Оренбург": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1309,6 +1472,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Оренбург": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1317,6 +1481,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Орск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1325,6 +1490,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Тоцкое": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1333,6 +1499,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Тоцкое 2": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1341,6 +1508,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Сорочинск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1349,6 +1517,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Соль Илецк": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1357,6 +1526,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Бузулук": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1365,6 +1535,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Бугуруслан": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1373,6 +1544,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Стерлитамак": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1381,6 +1553,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Салават": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1389,6 +1562,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Челябинск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1397,6 +1571,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Магнитогорск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1405,6 +1580,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Злотоуст": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1413,6 +1589,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Копейск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1421,6 +1598,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Мелеуз": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1429,6 +1607,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Ишимбай": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1437,6 +1616,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Аэропорт Челябинск Баландина": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1445,6 +1625,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Нефтекамск": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,
@@ -1453,6 +1634,7 @@ export const cityTariffs: Record<string, CityTariffs> = {
     "Березники": {
         "econom": 28,
         "standart": 30,
+        "comfort": 35,
         "comfortPlus": 40,
         "business": 80,
         "minivan": 50,

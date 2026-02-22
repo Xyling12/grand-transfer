@@ -21,6 +21,13 @@ const tariffDefs = [
         features: ["Рио, Солярис, Поло и аналоги", "Вместительный багажник", "Климат-контроль"]
     },
     {
+        id: "comfort" as keyof CityTariffs,
+        name: "Комфорт",
+        description: "Автомобили C-класса. Улучшенный комфорт и тишина в салоне.",
+        image: "/images/tariffs/comfort-3d.webp",
+        features: ["Октавия, Элантра, Церато", "Тихий салон", "Плавный ход"]
+    },
+    {
         id: "comfortPlus" as keyof CityTariffs,
         name: "Комфорт+",
         description: "Автомобили D-класса. Просторный салон и премиум удобство.",

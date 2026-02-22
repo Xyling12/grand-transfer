@@ -19,6 +19,7 @@ import { checkpoints, requiresCheckpoint } from '@/data/checkpoints';
 const TARIFFS = [
     { id: 'econom', name: 'Эконом', image: '/images/tariffs/economy-3d.webp' },
     { id: 'standart', name: 'Стандарт', image: '/images/tariffs/standard-3d.webp' },
+    { id: 'comfort', name: 'Комфорт', image: '/images/tariffs/comfort-3d.webp' },
     { id: 'comfortPlus', name: 'Комфорт+', image: '/images/tariffs/comfort-3d.webp' },
     { id: 'business', name: 'Бизнес', image: '/images/tariffs/business-3d.webp' },
     { id: 'minivan', name: 'Минивэн', image: '/images/tariffs/minivan-3d.webp' },
@@ -94,7 +95,7 @@ export default function BookingForm() {
         const toCityTariffs = cityTariffs[toCityMatchedName] || cityTariffs['Москва'];
         const rate2 = tariff === 'delivery' ? (toCityTariffs['econom'] || 25) : (toCityTariffs[tariff as keyof CityTariffs] || 25);
 
-        const baseFee = tariff === 'delivery' ? 1500 : 500;
+        const baseFee = tariff === 'delivery' ? 1500 : 0;
 
         let minPrice = 0;
         let legPrices: number[] = [];
@@ -132,7 +133,7 @@ export default function BookingForm() {
             const toCityTariffs = cityTariffs[toCityMatchedName] || cityTariffs['Москва'];
             const rate2 = tariff === 'delivery' ? (toCityTariffs['econom'] || 25) : (toCityTariffs[tariff as keyof CityTariffs] || 25);
 
-            const baseFee = tariff === 'delivery' ? 1500 : 500;
+            const baseFee = tariff === 'delivery' ? 1500 : 0;
 
             let minPrice = 0;
             let legPrices: number[] = [];
@@ -391,15 +392,17 @@ export default function BookingForm() {
                                                 </div>
                                                 <div className={styles.receiptBox}>
                                                     <div className={styles.receiptTitle} style={{ color: 'var(--color-primary)' }}>Детализация стоимости</div>
-                                                    <div className={styles.receiptRow}>
-                                                        <span>Подача машины</span>
-                                                        <span>{tariff === 'delivery' ? 1500 : 500} ₽</span>
-                                                    </div>
+                                                    {tariff === 'delivery' && (
+                                                        <div className={styles.receiptRow}>
+                                                            <span>Подача (доставка)</span>
+                                                            <span>1500 ₽</span>
+                                                        </div>
+                                                    )}
                                                     {priceCalc.legPrices && priceCalc.legPrices.length === 2 ? (
                                                         <>
                                                             <div className={styles.receiptRow}>
                                                                 <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
-                                                                <span>{(priceCalc.legPrices[0] - (tariff === 'delivery' ? 1500 : 500)).toLocaleString('ru-RU')} ₽</span>
+                                                                <span>{(priceCalc.legPrices[0] - (tariff === 'delivery' ? 1500 : 0)).toLocaleString('ru-RU')} ₽</span>
                                                             </div>
                                                             <div className={styles.receiptRow}>
                                                                 <span>После границы</span>
@@ -409,7 +412,7 @@ export default function BookingForm() {
                                                     ) : (
                                                         <div className={styles.receiptRow}>
                                                             <span>Километраж ({priceCalc.roadKm} км)</span>
-                                                            <span>{(priceCalc.minPrice - (tariff === 'delivery' ? 1500 : 500)).toLocaleString('ru-RU')} ₽</span>
+                                                            <span>{(priceCalc.minPrice - (tariff === 'delivery' ? 1500 : 0)).toLocaleString('ru-RU')} ₽</span>
                                                         </div>
                                                     )}
                                                 </div>
