@@ -215,3 +215,22 @@
     box-shadow: 0 0 20px var(--color-primary-glow);
     transform: translateY(-2px);
 }
+
+@media (max-width: 768px) {
+    .card {
+        min-width: 85vw;
+        max-width: 85vw;
+        padding: 24px;
+    }
+    
+    .quoteIcon {
+        top: 15px;
+        right: 15px;
+        font-size: 3.5rem;
+    }
+    
+    .text {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+}
