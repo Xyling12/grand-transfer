@@ -132,8 +132,8 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
                     top: 'calc(100% + 4px)',
                     left: 0,
                     right: 0,
-                    zIndex: 1000,
-                    background: 'var(--color-bg)',
+                    zIndex: 99999,
+                    background: 'var(--color-secondary)',
                     border: '1px solid var(--glass-border)',
                     borderRadius: '12px',
                     padding: '8px 0',
@@ -150,7 +150,7 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
                                 cursor: 'pointer',
                                 fontSize: '14px',
                                 lineHeight: '1.4',
-                                color: 'var(--color-text)',
+                                color: 'var(--color-foreground)',
                                 borderBottom: idx < suggestions.length - 1 ? '1px solid var(--glass-border)' : 'none',
                                 transition: 'background 0.2s ease'
                             }}
