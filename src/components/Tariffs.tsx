@@ -81,7 +81,7 @@ export default function Tariffs() {
         switch (id) {
             case 'econom': props['--base-scale'] = 1.4; props['--hover-scale'] = 1.5; props['--base-translate'] = '-5px'; break;
             case 'standart': props['--base-scale'] = 1.0; props['--hover-scale'] = 1.1; props['--base-translate'] = '0px'; break;
-            case 'comfort': props['--base-scale'] = 1.0; props['--hover-scale'] = 1.1; props['--base-translate'] = '0px'; break;
+            case 'comfort': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '0px'; break;
             case 'comfortPlus': props['--base-scale'] = 1.25; props['--hover-scale'] = 1.35; props['--base-translate'] = '-5px'; break;
             case 'business': props['--base-scale'] = 1.15; props['--hover-scale'] = 1.25; props['--base-translate'] = '0px'; break;
             case 'minivan': props['--base-scale'] = 1.45; props['--hover-scale'] = 1.55; props['--base-translate'] = '-5px'; break;
