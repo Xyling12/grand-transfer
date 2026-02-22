@@ -282,6 +282,7 @@ export default function BookingForm() {
                                                     onChange={(e) => {
                                                         setFromCity(e.target.value);
                                                         setFromCoords(null);
+                                                        setPriceCalc(null);
                                                     }}
                                                     onSuggestSelect={(text, coords) => {
                                                         setFromCity(text);
@@ -302,6 +303,7 @@ export default function BookingForm() {
                                                     onChange={(e) => {
                                                         setToCity(e.target.value);
                                                         setToCoords(null);
+                                                        setPriceCalc(null);
                                                     }}
                                                     onSuggestSelect={(text, coords) => {
                                                         setToCity(text);
