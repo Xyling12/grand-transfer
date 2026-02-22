@@ -45,7 +45,16 @@ export default function Header() {
         <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ''}`}>
             <div className={styles.container}>
                 <div className={styles.leftGroup}>
-                    <Link href="/" className={styles.logo}>
+                    <Link
+                        href="/"
+                        className={styles.logo}
+                        onClick={(e) => {
+                            if (window.location.pathname === '/') {
+                                e.preventDefault();
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                        }}
+                    >
                         <Car size={28} />
                         <span className={styles.logoText}>GrandTransfer</span>
                     </Link>
