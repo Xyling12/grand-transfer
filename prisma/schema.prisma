@@ -19,3 +19,14 @@ model Order {
   customerPhone String
   comments      String?
 }
+
+model Driver {
+  id             String    @id @default(cuid())
+  telegramId     BigInt    @unique
+  username       String?
+  firstName      String?
+  status         String    @default("PENDING") // PENDING, APPROVED, BANNED
+  // Future subscription
+  subExpiresAt   DateTime? 
+  createdAt      DateTime  @default(now())
+}

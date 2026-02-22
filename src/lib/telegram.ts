@@ -34,9 +34,27 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 `;
 
     try {
-        await bot.telegram.sendMessage(chatId, message, { parse_mode: 'HTML' });
+        const approvedDrivers = await prisma.driver.findMany({
+            where: { status: 'APPROVED' }
+        });
+
+        // Send to all approved drivers
+        if (approvedDrivers.length > 0) {
+            for (const driver of approvedDrivers) {
+                try {
+                    await bot.telegram.sendMessage(driver.telegramId.toString(), message, { parse_mode: 'HTML' });
+                } catch (err) {
+                    console.error(`Failed to send to driver ${driver.telegramId}:`, err);
+                }
+            }
+        } else {
+            // Fallback to admin/chat ID if nobody is approved yet
+            if (chatId) {
+                await bot.telegram.sendMessage(chatId, message, { parse_mode: 'HTML' });
+            }
+        }
     } catch (e) {
-        console.error('Failed to send Telegram message:', e);
+        console.error('Failed to notify drivers:', e);
     }
 }
 
