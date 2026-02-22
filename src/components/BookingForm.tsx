@@ -99,16 +99,22 @@ export default function BookingForm() {
 
         let minPrice = 0;
         let legPrices: number[] = [];
-        if (distancesKm.length === 1) {
-            minPrice = Math.round((baseFee + roadKm * rate1) / 100) * 100;
-            legPrices = [minPrice];
-        } else if (distancesKm.length === 2) {
-            const rd1 = Math.round(distancesKm[0]);
-            const rd2 = Math.round(distancesKm[1]);
-            const price1 = Math.round((baseFee + rd1 * rate1) / 100) * 100;
-            const price2 = Math.round((rd2 * rate2) / 100) * 100;
-            minPrice = price1 + price2;
-            legPrices = [price1, price2];
+
+        if (tariff === 'delivery') {
+            minPrice = 1500;
+            legPrices = [1500];
+        } else {
+            if (distancesKm.length === 1) {
+                minPrice = Math.round((baseFee + roadKm * rate1) / 100) * 100;
+                legPrices = [minPrice];
+            } else if (distancesKm.length === 2) {
+                const rd1 = Math.round(distancesKm[0]);
+                const rd2 = Math.round(distancesKm[1]);
+                const price1 = Math.round((baseFee + rd1 * rate1) / 100) * 100;
+                const price2 = Math.round((rd2 * rate2) / 100) * 100;
+                minPrice = price1 + price2;
+                legPrices = [price1, price2];
+            }
         }
 
         setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '', rawDistances: distancesKm, legPrices });
@@ -137,16 +143,22 @@ export default function BookingForm() {
 
             let minPrice = 0;
             let legPrices: number[] = [];
-            if (priceCalc.rawDistances.length === 1) {
-                minPrice = Math.round((baseFee + priceCalc.roadKm * rate1) / 100) * 100;
-                legPrices = [minPrice];
-            } else if (priceCalc.rawDistances.length === 2) {
-                const rd1 = Math.round(priceCalc.rawDistances[0]);
-                const rd2 = Math.round(priceCalc.rawDistances[1]);
-                const price1 = Math.round((baseFee + rd1 * rate1) / 100) * 100;
-                const price2 = Math.round((rd2 * rate2) / 100) * 100;
-                minPrice = price1 + price2;
-                legPrices = [price1, price2];
+
+            if (tariff === 'delivery') {
+                minPrice = 1500;
+                legPrices = [1500];
+            } else {
+                if (priceCalc.rawDistances.length === 1) {
+                    minPrice = Math.round((baseFee + priceCalc.roadKm * rate1) / 100) * 100;
+                    legPrices = [minPrice];
+                } else if (priceCalc.rawDistances.length === 2) {
+                    const rd1 = Math.round(priceCalc.rawDistances[0]);
+                    const rd2 = Math.round(priceCalc.rawDistances[1]);
+                    const price1 = Math.round((baseFee + rd1 * rate1) / 100) * 100;
+                    const price2 = Math.round((rd2 * rate2) / 100) * 100;
+                    minPrice = price1 + price2;
+                    legPrices = [price1, price2];
+                }
             }
 
             setTimeout(() => setPriceCalc(prev => prev ? { ...prev, minPrice, tariffName: selectedTariff?.name || '', legPrices } : null), 0);
@@ -384,10 +396,12 @@ export default function BookingForm() {
                                                     <span className={styles.priceResultTariff}>{priceCalc.tariffName}</span>
                                                 </div>
                                                 <div className={styles.priceResultStats}>
-                                                    <div className={styles.priceStat}>
-                                                        <Ruler size={15} className={styles.priceStatIcon} />
-                                                        <span>{priceCalc.roadKm} км</span>
-                                                    </div>
+                                                    {tariff !== 'delivery' && (
+                                                        <div className={styles.priceStat}>
+                                                            <Ruler size={15} className={styles.priceStatIcon} />
+                                                            <span>{priceCalc.roadKm} км</span>
+                                                        </div>
+                                                    )}
                                                     <div className={styles.priceStat}>
                                                         <Clock3 size={15} className={styles.priceStatIcon} />
                                                         <span>~{priceCalc.duration}</span>
@@ -397,36 +411,43 @@ export default function BookingForm() {
                                                     от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
                                                 </div>
                                                 {tariff === 'delivery' && (
-                                                    <div style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '15px', marginTop: '-10px', opacity: 0.8 }}>
-                                                        * Для уточнения окончательной стоимости обратитесь к диспетчеру
+                                                    <div style={{
+                                                        textAlign: 'center',
+                                                        fontSize: '0.95rem',
+                                                        color: '#fff',
+                                                        background: 'rgba(212, 175, 55, 0.15)',
+                                                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                                                        borderRadius: '8px',
+                                                        padding: '12px 16px',
+                                                        marginBottom: '20px',
+                                                        marginTop: '-5px',
+                                                        fontWeight: 500
+                                                    }}>
+                                                        * Для уточнения окончательной стоимости доставки обратитесь к диспетчеру
                                                     </div>
                                                 )}
-                                                <div className={styles.receiptBox}>
-                                                    <div className={styles.receiptTitle} style={{ color: 'var(--color-primary)' }}>Детализация стоимости</div>
-                                                    {tariff === 'delivery' && (
-                                                        <div className={styles.receiptRow}>
-                                                            <span>Подача (доставка)</span>
-                                                            <span>1500 ₽</span>
-                                                        </div>
-                                                    )}
-                                                    {priceCalc.legPrices && priceCalc.legPrices.length === 2 ? (
-                                                        <>
+                                                {tariff !== 'delivery' && (
+                                                    <div className={styles.receiptBox}>
+                                                        <div className={styles.receiptTitle} style={{ color: 'var(--color-primary)' }}>Детализация стоимости</div>
+                                                        {priceCalc.legPrices && priceCalc.legPrices.length === 2 ? (
+                                                            <>
+                                                                <div className={styles.receiptRow}>
+                                                                    <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
+                                                                    <span>{(priceCalc.legPrices[0] - (tariff === 'delivery' ? 1500 : 0)).toLocaleString('ru-RU')} ₽</span>
+                                                                </div>
+                                                                <div className={styles.receiptRow}>
+                                                                    <span>После границы</span>
+                                                                    <span>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</span>
+                                                                </div>
+                                                            </>
+                                                        ) : (
                                                             <div className={styles.receiptRow}>
-                                                                <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
-                                                                <span>{(priceCalc.legPrices[0] - (tariff === 'delivery' ? 1500 : 0)).toLocaleString('ru-RU')} ₽</span>
+                                                                <span>Километраж ({priceCalc.roadKm} км)</span>
+                                                                <span>{(priceCalc.minPrice - (tariff === 'delivery' ? 1500 : 0)).toLocaleString('ru-RU')} ₽</span>
                                                             </div>
-                                                            <div className={styles.receiptRow}>
-                                                                <span>После границы</span>
-                                                                <span>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</span>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <div className={styles.receiptRow}>
-                                                            <span>Километраж ({priceCalc.roadKm} км)</span>
-                                                            <span>{(priceCalc.minPrice - (tariff === 'delivery' ? 1500 : 0)).toLocaleString('ru-RU')} ₽</span>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         )
                                     }
