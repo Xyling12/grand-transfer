@@ -466,7 +466,17 @@ export default function BookingForm() {
                                     }
 
                                     <div className={styles.actions}>
-                                        <button type="button" className={styles.nextBtn} onClick={() => setStep(2)}>
+                                        <button
+                                            type="button"
+                                            className={styles.nextBtn}
+                                            onClick={() => {
+                                                setStep(2);
+                                                // Wait for render, then scroll to the top of the form
+                                                setTimeout(() => {
+                                                    document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                }, 50);
+                                            }}
+                                        >
                                             Далее <ChevronRight size={18} style={{ display: 'inline', verticalAlign: 'middle' }} />
                                         </button>
                                     </div>
