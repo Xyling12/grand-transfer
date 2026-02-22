@@ -359,8 +359,30 @@ export default function BookingForm() {
                                         <label className={styles.label}>Выберите тариф</label>
                                         <div className={styles.tariffGrid}>
                                             {TARIFFS.map((t) => {
-                                                const activeCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
-                                                const itemPrice = activeCityTariffs[t.id as keyof CityTariffs] || 25;
+                                                const fromCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
+                                                const itemPrice = fromCityTariffs[t.id as keyof CityTariffs] || 25;
+                                                const rate1 = t.id === 'delivery' ? (fromCityTariffs['econom'] || 25) : (fromCityTariffs[t.id as keyof CityTariffs] || 25);
+
+                                                let toCityMatchedName = 'Москва';
+                                                for (const cityName of Object.keys(cityTariffs)) {
+                                                    if (toCity.toLowerCase().includes(cityName.toLowerCase())) {
+                                                        toCityMatchedName = cityName;
+                                                        break;
+                                                    }
+                                                }
+                                                const toCityTariffs = cityTariffs[toCityMatchedName] || cityTariffs['Москва'];
+                                                const rate2 = t.id === 'delivery' ? (toCityTariffs['econom'] || 25) : (toCityTariffs[t.id as keyof CityTariffs] || 25);
+
+                                                let approxPrice = 0;
+                                                if (priceCalc && priceCalc.rawDistances) {
+                                                    if (priceCalc.rawDistances.length === 1) {
+                                                        approxPrice = Math.round((priceCalc.roadKm * rate1) / 100) * 100;
+                                                    } else if (priceCalc.rawDistances.length === 2) {
+                                                        const p1 = Math.round((priceCalc.rawDistances[0] * rate1) / 100) * 100;
+                                                        const p2 = Math.round((priceCalc.rawDistances[1] * rate2) / 100) * 100;
+                                                        approxPrice = p1 + p2;
+                                                    }
+                                                }
 
                                                 return (
                                                     <div
@@ -391,7 +413,7 @@ export default function BookingForm() {
                                                                 <div className={styles.priceEstimate}>
                                                                     <div className={styles.priceLabel}>Примерная стоимость</div>
                                                                     <div className={styles.priceValue}>
-                                                                        {(t.id === 'delivery' || t.id === 'soberDriver') ? 'от 1500 ₽' : `~ ${priceCalc.minPrice} ₽`}
+                                                                        {(t.id === 'delivery' || t.id === 'soberDriver') ? 'от 1500 ₽' : `~ ${approxPrice.toLocaleString('ru-RU')} ₽`}
                                                                     </div>
                                                                 </div>
                                                             )}
