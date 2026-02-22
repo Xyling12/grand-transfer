@@ -10,21 +10,21 @@ const tariffDefs = [
         id: "econom" as keyof CityTariffs,
         name: "Эконом",
         description: "Для бюджетных поездок налегке. Лучшая цена без потери качества.",
-        image: "/images/tariffs/economy-dark-new.png",
+        image: "/images/tariffs/economy-dark-new.png?v=2",
         features: ["Гранта, Логан, Лачетти и аналоги", "Кондиционер", "Детское кресло"]
     },
     {
         id: "standart" as keyof CityTariffs,
         name: "Стандарт",
         description: "Оптимальный выбор для дальних поездок. Просторный багажник и комфорт.",
-        image: "/images/tariffs/standard-dark-new.png",
+        image: "/images/tariffs/standard-dark-new.png?v=2",
         features: ["Рио, Солярис, Поло и аналоги", "Вместительный багажник", "Климат-контроль"]
     },
     {
         id: "comfort" as keyof CityTariffs,
         name: "Комфорт",
         description: "Автомобили C-класса. Улучшенный комфорт и тишина в салоне.",
-        image: "/images/tariffs/comfort-new.png",
+        image: "/images/tariffs/comfort-new.png?v=2",
         features: ["Октавия, Элантра, Церато", "Тихий салон", "Плавный ход"]
     },
     {
@@ -45,7 +45,7 @@ const tariffDefs = [
         id: "minivan" as keyof CityTariffs,
         name: "Минивэн",
         description: "Для больших компаний или семьи с багажом. Вместимость до 7-8 человек.",
-        image: "/images/tariffs/minivan-dark-new.png",
+        image: "/images/tariffs/minivan-v2.png",
         features: ["Карнивал, Старекс и аналоги", "Огромный багажник", "Климат для заднего ряда"]
     },
     {
@@ -79,12 +79,12 @@ export default function Tariffs() {
     const getStyleProps = (id: string) => {
         const props: any = { '--hover-translate': '-10px' };
         switch (id) {
-            case 'econom': props['--base-scale'] = 1.1; props['--hover-scale'] = 1.2; props['--base-translate'] = '5px'; break;
-            case 'standart': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '-5px'; break;
-            case 'comfort': props['--base-scale'] = 1.45; props['--hover-scale'] = 1.55; props['--base-translate'] = '-5px'; break;
-            case 'comfortPlus': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '-2px'; break;
-            case 'business': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '5px'; break;
-            case 'minivan': props['--base-scale'] = 1.2; props['--hover-scale'] = 1.3; props['--base-translate'] = '5px'; break;
+            case 'econom': props['--base-scale'] = 1.4; props['--hover-scale'] = 1.5; props['--base-translate'] = '-5px'; break;
+            case 'standart': props['--base-scale'] = 1.0; props['--hover-scale'] = 1.1; props['--base-translate'] = '0px'; break;
+            case 'comfort': props['--base-scale'] = 1.0; props['--hover-scale'] = 1.1; props['--base-translate'] = '0px'; break;
+            case 'comfortPlus': props['--base-scale'] = 1.25; props['--hover-scale'] = 1.35; props['--base-translate'] = '-5px'; break;
+            case 'business': props['--base-scale'] = 1.15; props['--hover-scale'] = 1.25; props['--base-translate'] = '0px'; break;
+            case 'minivan': props['--base-scale'] = 1.45; props['--hover-scale'] = 1.55; props['--base-translate'] = '-5px'; break;
             case 'soberDriver': props['--base-scale'] = 1.0; props['--hover-scale'] = 1.1; props['--base-translate'] = '0px'; props['--hover-translate'] = '-5px'; break;
             case 'delivery': props['--base-scale'] = 1.4; props['--hover-scale'] = 1.5; props['--base-translate'] = '-15px'; props['--hover-translate'] = '-20px'; break;
             default: props['--base-scale'] = 1.25; props['--hover-scale'] = 1.35; props['--base-translate'] = '-5px'; break;
