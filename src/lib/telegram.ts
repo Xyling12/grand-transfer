@@ -7,11 +7,27 @@ const chatId = process.env.TELEGRAM_CHAT_ID;
 
 const prisma = new PrismaClient();
 
+import { cities } from '@/data/cities';
+
 export async function sendOrderNotification(orderData: Record<string, string | number | null | undefined>) {
     if (!bot || !chatId) {
         console.warn('Telegram bot is not configured properly (missing token or chat ID)');
         return;
     }
+
+    // Try to resolve city coordinates
+    const fromCityObj = cities.find(c => c.name.toLowerCase() === String(orderData.fromCity || '').trim().toLowerCase());
+    const toCityObj = cities.find(c => c.name.toLowerCase() === String(orderData.toCity || '').trim().toLowerCase());
+
+    let fromRtext = orderData.fromCity ? encodeURIComponent(String(orderData.fromCity)) : '';
+    let toRtext = orderData.toCity ? encodeURIComponent(String(orderData.toCity)) : '';
+
+    // If coordinates are found, use them (lat,lon format) for precise mobile routing
+    if (fromCityObj) fromRtext = `${fromCityObj.lat},${fromCityObj.lon}`;
+    if (toCityObj) toRtext = `${toCityObj.lat},${toCityObj.lon}`;
+
+    const rtextValue = `${fromRtext}~${toRtext}`;
+    const mapLink = `https://yandex.ru/maps/?mode=routes&rtext=${rtextValue}&rtt=auto`;
 
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
@@ -21,7 +37,7 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🗺️ <b>Маршрут на карте:</b> <a href="https://yandex.ru/maps/?mode=routes&rtext=${encodeURIComponent(String(orderData.fromCity || ''))}~${encodeURIComponent(String(orderData.toCity || ''))}&rtt=auto">Открыть Яндекс Карты (Маршрут)</a>
+🗺️ <b>Маршрут на карте:</b> <a href="${mapLink}">Проложить маршрут (Яндекс)</a>
 🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
