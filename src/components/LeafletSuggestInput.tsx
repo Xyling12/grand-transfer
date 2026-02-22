@@ -18,36 +18,40 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
     const [query, setQuery] = useState(props.value as string || '');
     const [suggestions, setSuggestions] = useState<OsmSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setQuery(props.value as string || '');
-    }, [props.value]);
+    const [isFetching, setIsFetching] = useState(false);
+    const [hasSelected, setHasSelected] = useState(false);
 
     useEffect(() => {
         if (!query || query.length < 3) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSuggestions([]);
             return;
         }
 
+        if (hasSelected) {
+            setHasSelected(false);
+            return;
+        }
+
+        setIsFetching(true);
         const timer = setTimeout(async () => {
             try {
-                const searchQuery = query;
-
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&addressdetails=1&limit=5&accept-language=ru`);
+                // Add countrycodes to vastly improve relevance for CIS region
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&accept-language=ru&countrycodes=ru,by,kz`);
                 const data = await res.json();
 
                 if (data && Array.isArray(data)) {
                     setSuggestions(data);
+                    if (data.length > 0) setShowSuggestions(true);
                 }
             } catch (err) {
                 console.error("Nominatim fetch error:", err);
+            } finally {
+                setIsFetching(false);
             }
-        }, 800);
+        }, 500);
 
         return () => clearTimeout(timer);
-    }, [query]);
+    }, [query, hasSelected]);
 
     // Handle clicks outside to close suggestion dropdown
     useEffect(() => {
@@ -60,10 +64,37 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const handleSelect = (item: OsmSuggestion) => {
+        const displayName = item.display_name;
+        const lat = parseFloat(item.lat);
+        const lon = parseFloat(item.lon);
+
+        setHasSelected(true);
+        setQuery(displayName);
+        setShowSuggestions(false);
+        onSuggestSelect(displayName, [lat, lon]);
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(e.target.value);
-        setShowSuggestions(true);
         if (props.onChange) props.onChange(e);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && suggestions.length > 0) {
+            e.preventDefault();
+            handleSelect(suggestions[0]);
+        }
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        // Delay to allow click on suggestion list to register first
+        setTimeout(() => {
+            if (suggestions.length > 0 && !hasSelected) {
+                handleSelect(suggestions[0]);
+            }
+            if (props.onBlur) props.onBlur(e);
+        }, 200);
     };
 
     return (
@@ -73,56 +104,61 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
                 className={className}
                 value={query}
                 onChange={handleChange}
-                onFocus={() => {
+                onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
+                onFocus={(e) => {
                     if (suggestions.length > 0) setShowSuggestions(true);
+                    if (props.onFocus) props.onFocus(e);
                 }}
                 autoComplete="off"
             />
 
+            {isFetching && (
+                <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, pointerEvents: 'none' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                    </svg>
+                </div>
+            )}
+
             {showSuggestions && suggestions.length > 0 && (
                 <ul style={{
                     position: 'absolute',
-                    top: '100%',
+                    top: 'calc(100% + 4px)',
                     left: 0,
                     right: 0,
                     zIndex: 1000,
-                    background: 'var(--glass-bg)',
-                    backdropFilter: 'blur(16px)',
+                    background: 'var(--color-bg)',
                     border: '1px solid var(--glass-border)',
-                    borderRadius: '8px',
-                    margin: '4px 0 0 0',
+                    borderRadius: '12px',
                     padding: '8px 0',
                     listStyle: 'none',
-                    maxHeight: '200px',
+                    maxHeight: '250px',
                     overflowY: 'auto',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
                 }}>
                     {suggestions.map((item, idx) => (
                         <li
                             key={item.place_id || idx}
                             style={{
-                                padding: '8px 16px',
+                                padding: '10px 16px',
                                 cursor: 'pointer',
                                 fontSize: '14px',
+                                lineHeight: '1.4',
                                 color: 'var(--color-text)',
-                                borderBottom: idx < suggestions.length - 1 ? '1px solid var(--glass-border)' : 'none'
+                                borderBottom: idx < suggestions.length - 1 ? '1px solid var(--glass-border)' : 'none',
+                                transition: 'background 0.2s ease'
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(212, 175, 55, 0.15)')}
                             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                            onClick={() => {
-                                const displayName = item.display_name;
-                                const lat = parseFloat(item.lat);
-                                const lon = parseFloat(item.lon);
-
-                                setQuery(displayName);
-                                setShowSuggestions(false);
-
-                                // Leaflet uses [lat, lon] instead of [lon, lat] for coordinates or vice versa
-                                // Let's strictly use [lat, lon] which is Leaflet standard 
-                                onSuggestSelect(displayName, [lat, lon]);
-                            }}
+                            onClick={() => handleSelect(item)}
                         >
-                            {item.display_name}
+                            <div style={{ fontWeight: 500, marginBottom: '2px' }}>
+                                {item.display_name.split(',')[0]}
+                            </div>
+                            <div style={{ fontSize: '12px', opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {item.display_name.split(',').slice(1).join(',').trim()}
+                            </div>
                         </li>
                     ))}
                 </ul>
