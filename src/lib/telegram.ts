@@ -29,19 +29,8 @@ export async function sendOrderNotification(orderData: Record<string, string | n
     // Ensure coordinates are strings and trim any whitespace
     const rtextValue = `${fromRtext}~${toRtext}`;
 
-    // Web fallback link
+    // Web fallback link (this is seamlessly intercepted by mobile apps natively)
     const webMapLink = `https://yandex.ru/maps/?rtext=${rtextValue}&rtt=auto`;
-    // Deep link specifically for Yandex Navigator (builds route immediately)
-    let naviLink = '';
-    // Alternative deep link for Yandex Maps app
-    let mapsApp = '';
-
-    if (fromCityObj && toCityObj) {
-        // Yandex Navi requires lat_to and lon_to as primary destination, lat_from and lon_from are optional but good to have
-        naviLink = `yandexnavi://build_route_on_map?lat_from=${fromCityObj.lat}&lon_from=${fromCityObj.lon}&lat_to=${toCityObj.lat}&lon_to=${toCityObj.lon}`;
-        // Yandex Maps uses a different scheme using rtext (same as web)
-        mapsApp = `yandexmaps://maps.yandex.ru/?rtext=${fromCityObj.lat},${fromCityObj.lon}~${toCityObj.lat},${toCityObj.lon}&rtt=auto`;
-    }
 
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
@@ -51,8 +40,7 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🗺️ <b>Открыть маршрут:</b>
-${naviLink ? `• <a href="${naviLink}">В Навигаторе (📱)</a>\n• <a href="${mapsApp}">В Яндекс Картах (📱)</a>\n• <a href="${webMapLink}">В Браузере (💻)</a>` : `• <a href="${webMapLink}">В Браузере (💻)</a>`}
+🗺️ <b>Открыть маршрут:</b> <a href="${webMapLink}">В Яндекс.Картах / Навигаторе �️</a>
 🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
