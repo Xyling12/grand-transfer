@@ -1,9 +1,10 @@
 "use client";
 // @ts-nocheck
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, MessageSquare, MapPin, Users, Route, Ruler, Clock3, Navigation, User, Phone, Calendar, Clock } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 import LeafletSuggestInput from './LeafletSuggestInput';
 import { useCity } from '@/context/CityContext';
 import { useGeolocationCity } from '@/hooks/useGeolocationCity';
@@ -27,29 +28,42 @@ const TARIFFS = [
     { id: 'delivery', name: 'Доставка', image: '/images/tariffs/delivery-3d.webp' },
 ];
 
-export default function BookingForm() {
+function BookingFormContent() {
     const { currentCity } = useCity();
     const defaultGeoCity = useGeolocationCity('Ижевск');
     const [step, setStep] = useState(1);
 
+    const searchParams = useSearchParams();
+    const urlFrom = searchParams.get('from');
+    const urlTo = searchParams.get('to');
+
     // Form State
     const [fromCity, setFromCity] = useState('');
+    const [toCity, setToCity] = useState('');
 
     // Update fromCity when geolocation resolves, but only if user hasn't typed anything yet
     useEffect(() => {
-        if (!fromCity && defaultGeoCity) {
+        if (urlFrom) {
+            setFromCity(urlFrom);
+        } else if (!fromCity && defaultGeoCity) {
             setFromCity(defaultGeoCity);
         }
-    }, [defaultGeoCity, fromCity]);
+    }, [defaultGeoCity, fromCity, urlFrom]);
 
     // Update form when city changes globally
     useEffect(() => {
-        if (currentCity) {
+        if (urlFrom) {
+            setTimeout(() => setFromCity(urlFrom), 0);
+        } else if (currentCity) {
             setTimeout(() => setFromCity(currentCity.name), 0);
         }
-    }, [currentCity]);
+    }, [currentCity, urlFrom]);
 
-    const [toCity, setToCity] = useState('');
+    useEffect(() => {
+        if (urlTo) {
+            setToCity(urlTo);
+        }
+    }, [urlTo]);
     const { selectedTariff, setSelectedTariff } = useCity();
     const tariff = selectedTariff;
     const setTariff = setSelectedTariff;
@@ -648,5 +662,17 @@ export default function BookingForm() {
                 </div >
             </div >
         </section >
+    );
+}
+
+export default function BookingForm() {
+    return (
+        <Suspense fallback={
+            <div style={{ minHeight: '600px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Loader2 size={32} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} />
+            </div>
+        }>
+            <BookingFormContent />
+        </Suspense>
     );
 }

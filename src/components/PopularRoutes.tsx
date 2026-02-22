@@ -3,11 +3,18 @@
 
 import styles from './PopularRoutes.module.css';
 import { useCity } from '@/context/CityContext';
-
-
+import { useRouter } from 'next/navigation';
 
 export default function PopularRoutes() {
     const { currentCity } = useCity();
+    const router = useRouter();
+
+    const handleRouteClick = (toCity: string) => {
+        router.push(`/?from=${encodeURIComponent(currentCity.name)}&to=${encodeURIComponent(toCity)}#booking-form`, { scroll: false });
+        setTimeout(() => {
+            document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    };
 
     return (
         <section className={`${styles.section} animate - on - scroll`} id="popular-routes">
@@ -38,7 +45,7 @@ export default function PopularRoutes() {
                                 <div className={styles.price}>от {route.price.toLocaleString('ru-RU')} ₽</div>
                             </div>
 
-                            <button className={styles.button}>
+                            <button className={styles.button} onClick={() => handleRouteClick(route.to)}>
                                 Подробнее
                             </button>
                         </div>
