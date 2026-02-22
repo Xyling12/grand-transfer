@@ -22,7 +22,7 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
     const [hasSelected, setHasSelected] = useState(false);
 
     useEffect(() => {
-        if (!query || query.length < 3) {
+        if (!query || query.length < 1) {
             setSuggestions([]);
             return;
         }
@@ -99,6 +99,11 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
 
     return (
         <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
+            <style>{`
+                @keyframes lsi-spin {
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
             <input
                 {...props}
                 className={className}
@@ -115,7 +120,7 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
 
             {isFetching && (
                 <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, pointerEvents: 'none' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'lsi-spin 1s linear infinite' }}>
                         <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
                     </svg>
                 </div>

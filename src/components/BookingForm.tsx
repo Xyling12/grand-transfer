@@ -270,7 +270,7 @@ export default function BookingForm() {
                         <form onSubmit={handleSubmit}>
                             {step === 1 && (
                                 <>
-                                    <div className={styles.grid}>
+                                    <div className={styles.grid} style={{ position: 'relative', zIndex: 10 }}>
                                         <div className={styles.formGroup}>
                                             <label className={styles.label}>Откуда (Город, улица, номер дома)</label>
                                             <div className={styles.inputWrapper}>
