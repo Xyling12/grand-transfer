@@ -79,12 +79,12 @@ export default function Tariffs() {
     const getStyleProps = (id: string) => {
         const props: any = { '--hover-translate': '-10px' };
         switch (id) {
-            case 'econom': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '-5px'; break;
-            case 'standart': props['--base-scale'] = 1.45; props['--hover-scale'] = 1.55; props['--base-translate'] = '-5px'; break;
-            case 'comfort': props['--base-scale'] = 1.25; props['--hover-scale'] = 1.35; props['--base-translate'] = '-5px'; break;
-            case 'comfortPlus': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '-5px'; break;
-            case 'business': props['--base-scale'] = 1.15; props['--hover-scale'] = 1.25; props['--base-translate'] = '5px'; break;
-            case 'minivan': props['--base-scale'] = 1.05; props['--hover-scale'] = 1.15; props['--base-translate'] = '10px'; break;
+            case 'econom': props['--base-scale'] = 1.1; props['--hover-scale'] = 1.2; props['--base-translate'] = '5px'; break;
+            case 'standart': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '-5px'; break;
+            case 'comfort': props['--base-scale'] = 1.45; props['--hover-scale'] = 1.55; props['--base-translate'] = '-5px'; break;
+            case 'comfortPlus': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '-2px'; break;
+            case 'business': props['--base-scale'] = 1.35; props['--hover-scale'] = 1.45; props['--base-translate'] = '5px'; break;
+            case 'minivan': props['--base-scale'] = 1.2; props['--hover-scale'] = 1.3; props['--base-translate'] = '5px'; break;
             case 'soberDriver': props['--base-scale'] = 1.0; props['--hover-scale'] = 1.1; props['--base-translate'] = '0px'; props['--hover-translate'] = '-5px'; break;
             case 'delivery': props['--base-scale'] = 1.4; props['--hover-scale'] = 1.5; props['--base-translate'] = '-15px'; props['--hover-translate'] = '-20px'; break;
             default: props['--base-scale'] = 1.25; props['--hover-scale'] = 1.35; props['--base-translate'] = '-5px'; break;
