@@ -26,11 +26,10 @@ export async function sendOrderNotification(orderData: Record<string, string | n
     if (fromCityObj) fromRtext = `${fromCityObj.lat},${fromCityObj.lon}`;
     if (toCityObj) toRtext = `${toCityObj.lat},${toCityObj.lon}`;
 
-    // Ensure coordinates are strings and trim any whitespace
-    const rtextValue = `${fromRtext}~${toRtext}`;
-
-    // Web fallback link (this is seamlessly intercepted by mobile apps natively)
-    const webMapLink = `https://yandex.ru/maps/?rtext=${rtextValue}&rtt=auto`;
+    // 2GIS Web fallback link (when exact city coordinates are missing)
+    const textFrom = orderData.fromCity ? encodeURIComponent(String(orderData.fromCity).trim()) : '';
+    const textTo = orderData.toCity ? encodeURIComponent(String(orderData.toCity).trim()) : '';
+    const webMapLink = `https://2gis.ru/routing?waypoint1=${textFrom}&waypoint2=${textTo}&type=car`;
     // Smart Bridge Link (bypasses Telegram blocks via Intent API on Android)
     const bridgeLink = `https://grand-transfer.vercel.app/route?lat_from=${fromCityObj?.lat || ''}&lon_from=${fromCityObj?.lon || ''}&lat_to=${toCityObj?.lat || ''}&lon_to=${toCityObj?.lon || ''}`;
 
