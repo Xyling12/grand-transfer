@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import LeafletSuggestInput from './LeafletSuggestInput';
 import { useCity } from '@/context/CityContext';
 import { useGeolocationCity } from '@/hooks/useGeolocationCity';
+import { cities } from '@/data/cities';
 
 const LeafletMapPreview = dynamic(() => import('./LeafletMapPreview'), {
     ssr: false,
@@ -42,10 +43,19 @@ function BookingFormContent() {
     const [fromCity, setFromCity] = useState('');
     const [toCity, setToCity] = useState('');
 
+    // Coordinate state for routing
+    const [fromCoords, setFromCoords] = useState<[number, number] | null>(null);
+    const [toCoords, setToCoords] = useState<[number, number] | null>(null);
+
     // Update fromCity when geolocation resolves, but only if user hasn't typed anything yet
     useEffect(() => {
         if (urlFrom) {
             setFromCity(urlFrom);
+            // Auto-find coords for fromCity from our DB
+            const matchedCity = cities.find(c => c.name.toLowerCase() === urlFrom.toLowerCase() || c.namePrepositional.toLowerCase() === urlFrom.toLowerCase());
+            if (matchedCity) {
+                setFromCoords([matchedCity.lat, matchedCity.lon]);
+            }
         } else if (!fromCity && defaultGeoCity) {
             setFromCity(defaultGeoCity);
         }
@@ -56,13 +66,20 @@ function BookingFormContent() {
         if (urlFrom) {
             setTimeout(() => setFromCity(urlFrom), 0);
         } else if (currentCity) {
-            setTimeout(() => setFromCity(currentCity.name), 0);
+            setTimeout(() => {
+                setFromCity(currentCity.name);
+                setFromCoords([currentCity.lat, currentCity.lon]);
+            }, 0);
         }
     }, [currentCity, urlFrom]);
 
     useEffect(() => {
         if (urlTo) {
             setToCity(urlTo);
+            const matchedCity = cities.find(c => c.name.toLowerCase() === urlTo.toLowerCase() || c.namePrepositional.toLowerCase() === urlTo.toLowerCase());
+            if (matchedCity) {
+                setToCoords([matchedCity.lat, matchedCity.lon]);
+            }
         }
     }, [urlTo]);
 
@@ -83,10 +100,6 @@ function BookingFormContent() {
     // Route Calculation State
     const [priceCalc, setPriceCalc] = useState<{ roadKm: number; minPrice: number; duration: string; tariffName: string; rawDistances: number[]; legPrices?: number[] } | null>(null);
     const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
-
-    // Coordinate state for routing
-    const [fromCoords, setFromCoords] = useState<[number, number] | null>(null);
-    const [toCoords, setToCoords] = useState<[number, number] | null>(null);
 
     const handleRouteCalculated = useCallback((distancesKm: number[], durationsSeconds: number[]) => {
         let totalKm = 0;
