@@ -26,6 +26,19 @@ bot.command('stats', async (ctx) => {
             },
         });
 
+        // Get count per dataset (grouped by tariff)
+        const tariffGroups = await prisma.order.groupBy({
+            by: ['tariff'],
+            _count: {
+                tariff: true,
+            },
+            orderBy: {
+                _count: {
+                    tariff: 'desc'
+                }
+            }
+        });
+
         const recentOrders = await prisma.order.findMany({
             take: 10,
             orderBy: { createdAt: 'desc' },
@@ -34,6 +47,17 @@ bot.command('stats', async (ctx) => {
         let recentRevenue = 0;
         recentOrders.forEach(o => { recentRevenue += (o.priceEstimate || 0); });
 
+        // Format tariff stats
+        let tariffStatsStr = "";
+        if (tariffGroups.length > 0) {
+            tariffStatsStr = "<b>Заказов по тарифам:</b>\n" + tariffGroups.map(t => {
+                const capitalizedName = t.tariff ? t.tariff.charAt(0).toUpperCase() + t.tariff.slice(1) : 'Не указан';
+                return `- ${capitalizedName}: ${t._count.tariff} шт.`;
+            }).join('\n') + "\n────────────────";
+        } else {
+            tariffStatsStr = "<b>Заказов по тарифам:</b> Пока пусто\n────────────────";
+        }
+
         const formattedMsg = `
 📊 <b>Статистика GrandTransfer</b>
 ────────────────
@@ -41,6 +65,7 @@ bot.command('stats', async (ctx) => {
 ✅ Заявок оформлено: ${totalOrders}
 💰 Выручка (оценочно): ~${sumResult._sum.priceEstimate || 0} ₽
 ────────────────
+${tariffStatsStr}
 <b>Последние 10 заявок:</b>
 🚗 Выручка: ~${recentRevenue} ₽
         `.trim();
