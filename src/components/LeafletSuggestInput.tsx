@@ -120,11 +120,6 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
                                 // Leaflet uses [lat, lon] instead of [lon, lat] for coordinates or vice versa
                                 // Let's strictly use [lat, lon] which is Leaflet standard 
                                 onSuggestSelect(displayName, [lat, lon]);
-
-                                if (props.onChange) {
-                                    const event = { target: { value: displayName } } as unknown as React.ChangeEvent<HTMLInputElement>;
-                                    props.onChange(event);
-                                }
                             }}
                         >
                             {item.display_name}
