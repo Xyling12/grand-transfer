@@ -42,7 +42,7 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🗺️ <b>Открыть маршрут:</b> <a href="${fromCityObj && toCityObj ? bridgeLink : webMapLink}">В Навигаторе / Картах 🚗</a>
+🗺️ <b>Открыть маршрут:</b> <a href="${fromCityObj && toCityObj ? bridgeLink : webMapLink}">В 2GIS / Навигаторе �️</a>
 🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
