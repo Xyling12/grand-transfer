@@ -20,8 +20,29 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://grand-transfer.ru'),
   title: "GrandTransfer – Межгородское такси",
   description: "Межгородское такси, где комфорт и безопасность — не опция, а стандарт.",
+  keywords: "междугороднее такси, трансфер межгород, заказ такси, комфорт, минивэн, доставка, трезвый водитель",
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    url: "https://grand-transfer.ru",
+    siteName: "GrandTransfer",
+    title: "GrandTransfer – Межгородское такси класса Комфорт и Бизнес",
+    description: "Надежные междугородние поездки с фиксированной ценой. Закажите комфортный трансфер прямо сейчас.",
+    images: [{
+      url: "/images/og-image.jpg", // TODO: create an actual image later if needed
+      width: 1200,
+      height: 630,
+      alt: "GrandTransfer"
+    }]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GrandTransfer – Межгородское такси",
+    description: "Мгновенный расчет стоимости и комфортные поездки по межгороду."
+  }
 };
 
 export default function RootLayout({
