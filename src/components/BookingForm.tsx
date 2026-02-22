@@ -378,7 +378,7 @@ export default function BookingForm() {
                                                         <div className={styles.tariffCardBody}>
                                                             <span className={styles.tariffName}>{t.name}</span>
                                                             <span className={styles.tariffPrice}>
-                                                                {t.id === 'delivery' ? 'от 1500 ₽' : t.id === 'soberDriver' ? 'к диспетчеру' : `от ${itemPrice} ₽/км`}
+                                                                {t.id === 'delivery' ? 'от 1500 ₽' : `от ${itemPrice} ₽/км`}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -412,9 +412,9 @@ export default function BookingForm() {
                                                     </div>
                                                 </div>
                                                 <div className={styles.priceResultTotal}>
-                                                    {tariff === 'soberDriver' ? 'к диспетчеру' : <>от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong></>}
+                                                    от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
                                                 </div>
-                                                {tariff === 'delivery' && (
+                                                {(tariff === 'delivery' || tariff === 'soberDriver') && (
                                                     <div style={{
                                                         textAlign: 'center',
                                                         fontSize: '0.95rem',
@@ -427,7 +427,7 @@ export default function BookingForm() {
                                                         marginTop: '-5px',
                                                         fontWeight: 500
                                                     }}>
-                                                        * Для уточнения окончательной стоимости доставки обратитесь к диспетчеру
+                                                        * Для уточнения окончательной стоимости {tariff === 'delivery' ? 'доставки' : 'услуги'} обратитесь к диспетчеру
                                                     </div>
                                                 )}
                                                 {tariff !== 'delivery' && (
