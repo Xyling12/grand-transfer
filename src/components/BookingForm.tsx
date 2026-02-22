@@ -36,6 +36,7 @@ function BookingFormContent() {
     const searchParams = useSearchParams();
     const urlFrom = searchParams.get('from');
     const urlTo = searchParams.get('to');
+    const urlTariff = searchParams.get('tariff');
 
     // Form State
     const [fromCity, setFromCity] = useState('');
@@ -64,9 +65,16 @@ function BookingFormContent() {
             setToCity(urlTo);
         }
     }, [urlTo]);
+
     const { selectedTariff, setSelectedTariff } = useCity();
     const tariff = selectedTariff;
     const setTariff = setSelectedTariff;
+
+    useEffect(() => {
+        if (urlTariff && setTariff) {
+            setTariff(urlTariff);
+        }
+    }, [urlTariff, setTariff]);
 
     // Checkpoint State
     const [checkpointId, setCheckpointId] = useState<string>('');

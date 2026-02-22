@@ -10,7 +10,7 @@ export default function PopularRoutes() {
     const router = useRouter();
 
     const handleRouteClick = (toCity: string) => {
-        router.push(`/?from=${encodeURIComponent(currentCity.name)}&to=${encodeURIComponent(toCity)}#booking-form`, { scroll: false });
+        router.push(`/?from=${encodeURIComponent(currentCity.name)}&to=${encodeURIComponent(toCity)}&tariff=standart#booking-form`, { scroll: false });
         setTimeout(() => {
             document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
