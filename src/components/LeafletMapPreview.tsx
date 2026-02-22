@@ -33,12 +33,14 @@ function RoutingOverlay({ fromCoords, toCoords, checkpointCoords, onRouteCalcula
 
         // Just focus on from point if only from is provided
         if (fromCoords && !toCoords) {
+            setTimeout(() => setRouteGeometry([]), 0);
             map.flyTo(fromCoords, 13);
             return;
         }
 
         // Just focus on to point if only to is provided
         if (!fromCoords && toCoords) {
+            setTimeout(() => setRouteGeometry([]), 0);
             map.flyTo(toCoords, 13);
             return;
         }
