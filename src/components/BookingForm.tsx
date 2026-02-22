@@ -427,6 +427,18 @@ export default function BookingForm() {
                                                 <div className={styles.priceResultTotal}>
                                                     от <strong>{(tariff === 'delivery' || tariff === 'soberDriver') ? '1 500' : priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
                                                 </div>
+
+                                                {(tariff !== 'delivery' && tariff !== 'soberDriver') && (
+                                                    <div style={{
+                                                        textAlign: 'center',
+                                                        fontSize: '0.85rem',
+                                                        color: 'var(--color-text-muted)',
+                                                        marginTop: '8px',
+                                                        marginBottom: '12px'
+                                                    }}>
+                                                        * Платные участки дороги оплачиваются отдельно
+                                                    </div>
+                                                )}
                                                 {(tariff === 'delivery' || tariff === 'soberDriver') && (
                                                     <div style={{
                                                         textAlign: 'center',
