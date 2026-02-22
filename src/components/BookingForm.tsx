@@ -412,7 +412,7 @@ export default function BookingForm() {
                                                     </div>
                                                 </div>
                                                 <div className={styles.priceResultTotal}>
-                                                    от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
+                                                    {tariff === 'soberDriver' ? 'к диспетчеру' : <>от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong></>}
                                                 </div>
                                                 {tariff === 'delivery' && (
                                                     <div style={{
