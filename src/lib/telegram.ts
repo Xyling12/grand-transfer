@@ -31,6 +31,8 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
     // Web fallback link (this is seamlessly intercepted by mobile apps natively)
     const webMapLink = `https://yandex.ru/maps/?rtext=${rtextValue}&rtt=auto`;
+    // Smart Bridge Link (bypasses Telegram blocks via Intent API on Android)
+    const bridgeLink = `https://grand-transfer.vercel.app/route?lat_from=${fromCityObj?.lat || ''}&lon_from=${fromCityObj?.lon || ''}&lat_to=${toCityObj?.lat || ''}&lon_to=${toCityObj?.lon || ''}`;
 
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
@@ -40,7 +42,7 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🗺️ <b>Открыть маршрут:</b> <a href="${webMapLink}">В Яндекс.Картах / Навигаторе �️</a>
+🗺️ <b>Открыть маршрут:</b> <a href="${fromCityObj && toCityObj ? bridgeLink : webMapLink}">В Навигаторе / Картах 🚗</a>
 🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
