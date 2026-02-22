@@ -106,57 +106,17 @@
 
 ---
 _Добавляйте записи в этот файл при выполнении новых крупных задач, чтобы не терять контекст!_
-# Telegram Driver Access System Implementation
-
-## Goal
-Close the Telegram Bot and/or Driver features so that only approved drivers can receive notifications or interact with the system. Lay the foundation for a future paid-subscription group model. 
-
-## Proposed Architecture
-
-This system shifts the focus from website-auth to Telegram Bot auth.
-
-### 1. Database Schema Updates
-We will add a new `Driver` model to Prisma to track authorized Telegram users.
-
-#### `prisma/schema.prisma`
-```prisma
-model Driver {
-  id             String    @id @default(cuid())
-  telegramId     BigInt    @unique
-  username       String?
-  firstName      String?
-  status         String    @default("PENDING") // PENDING, APPROVED, BANNED
-  // Future subscription fields
-  subExpiresAt   DateTime? 
-  createdAt      DateTime  @default(now())
-}
-```
-
-### 2. Telegram Bot Command Handling
-In the current setup, `telegram.ts` simply pushes notifications. We need the bot to actually receive messages (like `/start`) from drivers to register their Telegram ID.
-We'll implement a simple Next.js API route (`/api/webhook/telegram`) to handle Telegram Webhooks.
-
-#### Logic flow:
-1. **Driver:** Sends `/start` to the bot.
-2. **Bot Webhook:** Checks if `telegramId` is in the database.
-   - If missing: Creates a new `Driver` record with `status: "PENDING"`. Sends "Заявка на доступ отправлена администратору."
-   - If `status: "PENDING"`: Sends "Ваша заявка ожидает подтверждения."
-   - If `status: "APPROVED"`: Sends "Доступ разрешен. Вы в системе."
-
-### 3. Administrator Control Panel
-We need a secure place for the administrator to approve or reject drivers.
-
-#### `/src/app/admin/drivers/page.tsx`
-A protected Next.js page (secured by a simple hardcoded admin password or NextAuth) displaying a table of all drivers.
-- **Actions:** Buttons for "Одобрить" (Approve) and "Заблокировать" (Ban).
-- When a driver is approved, the system can optionally send them a Telegram message via the bot: *"Доступ в закрытый клуб водителей открыт!"*
-
-### 4. Group Integration (Future)
-Since the goal is a paid group:
-1. The Bot is added as an Administrator to a private Telegram Channel/Group.
-2. When a driver's subscription expires, the bot automatically removes them via the Telegram `banChatMember` API.
-3. The Bot can generate one-time invite links for newly approved drivers using `createChatInviteLink`.
-
-## User Review Required
-1. Do you want the bot to **automatically** invite approved drivers to a private Telegram Group right now, or should we just focus on building the "Одобрение" (Approval) system first?
-2. How do you want to secure the Admin panel on the website? A simple secret PIN code, or a full login/password system just for you?
+### 18. Закрытая Система Доступа Водителей (Telegram Bot)
+*   **Архитектура БД:** В `schema.prisma` добавлена новая таблица `Driver` для хранения авторизованных Telegram-пользователей. Модель включает поля `telegramId` (BigInt), `username`, `firstName` и `status` (`PENDING`, `APPROVED`, `BANNED`).
+*   **Регистрация через Бота:** Скрипт бота (`scripts/bot.ts`) полностью переписан на интерактивный лад:
+    *   При отправке команды `/start` бот проверяет пользователя по базе.
+    *   Если водитель новый, создается запись со статусом `PENDING`, а бот сообщает: *"Ваша заявка отправлена администратору"*.
+    *   **Защита от спама заказов:** Уведомления о новых заказах с сайта (`src/lib/telegram.ts`) теперь рассылаются циклом **только** тем водителям, у которых стоит статус `APPROVED`.
+*   **Меню Бота (ReplyKeyboard):** Добавлена удобная клавиатура с кнопками.
+    *   Для обычных водителей: `📊 Статистика`, `🚗 Мои заказы`.
+    *   **Эксклюзивно для Админа:** Автоматически добавляются кнопки `📥 Выгрузить EXCEL`, `🗑 Очистить БД` и `🌐 Панель управления на сайте`, если `Chat ID` совпадает с ID владельца из `.env`.
+*   **Панель Управления (Admin Panel):** Создана секретная Server-Side страница `/admin/drivers` для управления доступом.
+    *   Вход защищен PIN-кодом (**7878**).
+    *   Панель выводит таблицу всех зарегистрированных в боте водителей.
+    *   Добавлены кнопки "Одобрить", "Бан" и "Удалить", которые напрямую (через Next.js Server Actions) меняют статус в базе данных `SQLite`.
+*   **Запуск:** Бот локально запущен через команду `npx tsx scripts/bot.ts` в фоновом режиме, слушая команды (Long Polling).
