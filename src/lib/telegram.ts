@@ -33,9 +33,13 @@ export async function sendOrderNotification(orderData: Record<string, string | n
     const webMapLink = `https://yandex.ru/maps/?rtext=${rtextValue}&rtt=auto`;
     // Deep link specifically for Yandex Navigator (builds route immediately)
     let naviLink = '';
+    // Alternative deep link for Yandex Maps app
+    let mapsApp = '';
 
     if (fromCityObj && toCityObj) {
+        // Yandex Navi requires lat_to and lon_to as primary destination, lat_from and lon_from are optional but good to have
         naviLink = `yandexnavi://build_route_on_map?lat_from=${fromCityObj.lat}&lon_from=${fromCityObj.lon}&lat_to=${toCityObj.lat}&lon_to=${toCityObj.lon}`;
+        mapsApp = `yandexmaps://build_route_on_map/?lat_from=${fromCityObj.lat}&lon_from=${fromCityObj.lon}&lat_to=${toCityObj.lat}&lon_to=${toCityObj.lon}`;
     }
 
     const message = `
@@ -46,7 +50,8 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🗺️ <b>Открыть маршрут:</b> ${naviLink ? `<a href="${naviLink}">В Навигаторе (📱)</a> | <a href="${webMapLink}">В Браузере (💻)</a>` : `<a href="${webMapLink}">В Браузере (💻)</a>`}
+🗺️ <b>Открыть маршрут:</b>
+${naviLink ? `• <a href="${naviLink}">В Навигаторе (📱)</a>\n• <a href="${mapsApp}">В Яндекс Картах (📱)</a>\n• <a href="${webMapLink}">В Браузере (💻)</a>` : `• <a href="${webMapLink}">В Браузере (💻)</a>`}
 🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
