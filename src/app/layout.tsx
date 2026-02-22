@@ -20,27 +20,27 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://xn--c1acbe2apap.com'),
-  title: "GrandTransfer – Такси межгород",
-  description: "Межгородское такси, где комфорт и безопасность — не опция, а стандарт.",
-  keywords: "междугороднее такси, такси межгород, заказ такси, комфорт, минивэн, доставка, трезвый водитель",
+  metadataBase: new URL('https://www.xn--c1adbj4b9a7c.com'),
+  title: "Междугороднее такси | GrandTransfer",
+  description: "Межгородское такси по всей России и СНГ. Комфорт и безопасность — наш стандарт. Закажите трансфер до границы (КПП) или в другой город.",
+  keywords: "междугороднее такси, такси межгород, заказ такси, комфорт, минивэн, такси граница кпп, трезвый водитель",
   openGraph: {
     type: "website",
     locale: "ru_RU",
-    url: "https://xn--c1acbe2apap.com",
+    url: "https://www.xn--c1adbj4b9a7c.com",
     siteName: "GrandTransfer",
-    title: "Такси межгород | GrandTransfer",
-    description: "Надежные междугородние поездки с фиксированной ценой. Закажите комфортный трансфер прямо сейчас.",
+    title: "Такси Межгород | GrandTransfer",
+    description: "Надежные междугородние поездки с фиксированной ценой до любого города или границы. Закажите комфортный трансфер прямо сейчас.",
     images: [{
-      url: "/images/og-image.jpg", // TODO: create an actual image later if needed
+      url: "/images/og-image.jpg",
       width: 1200,
       height: 630,
-      alt: "GrandTransfer"
+      alt: "Междугороднее такси GrandTransfer"
     }]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Такси межгород | GrandTransfer",
+    title: "Такси Межгород | GrandTransfer",
     description: "Мгновенный расчет стоимости и комфортные поездки по межгороду."
   },
   verification: {

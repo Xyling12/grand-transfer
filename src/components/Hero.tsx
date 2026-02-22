@@ -1,18 +1,36 @@
 "use client";
 
 
+import { useSearchParams } from 'next/navigation';
 import { ArrowRight, Phone } from 'lucide-react';
 import styles from './Hero.module.css';
 // Image removed
 import { useCity } from '@/context/CityContext';
+import { Suspense } from 'react';
 
-export default function Hero() {
+function HeroContent() {
     const { currentCity } = useCity();
+    const searchParams = useSearchParams();
+    const utmCampaign = searchParams.get('utm_campaign');
 
     const scrollToBooking = () => {
         const element = document.getElementById('booking-form');
         element?.scrollIntoView({ behavior: 'smooth' });
     };
+
+    let mainTitle = 'Междугороднее такси';
+    let middleTitle = <>Такси<br />Межгород</>;
+    let subTitle = `из г. ${currentCity.name}`;
+    let descriptionText = <>Комфортные поездки в любой город. Фиксированная цена.<br />Безопасно, надежно, вовремя.</>;
+
+    if (utmCampaign === 'search_border') {
+        mainTitle = 'Трансфер до границы';
+        middleTitle = <>Такси<br />до КПП</>;
+        descriptionText = <>Поездки до границы и контрольно-пропускных пунктов.<br />Помощь с багажом. Точный расчет.</>;
+    } else if (utmCampaign === 'search_general') {
+        mainTitle = 'Премиальный трансфер';
+        descriptionText = <>Чистые авто (Комфорт, Бизнес, Минивэн). Подача вовремя.<br />Точный расчет на сайте.</>;
+    }
 
     return (
         <section className={styles.heroSection}>
@@ -25,14 +43,13 @@ export default function Hero() {
             <div className="container">
                 <div className={styles.content}>
                     <h1 className={`${styles.title} animate-on-scroll`}>
-                        <span className={styles.titleTop}>Междугороднее такси</span>
-                        <span className={styles.titleMiddle}>Такси<br />Межгород</span>
-                        <span className={styles.titleBottom}>из г. {currentCity.name}</span>
+                        <span className={styles.titleTop}>{mainTitle}</span>
+                        <span className={styles.titleMiddle}>{middleTitle}</span>
+                        <span className={styles.titleBottom}>{subTitle}</span>
                     </h1>
 
                     <p className={`${styles.subtitle} animate-on-scroll delay-100`}>
-                        Комфортные поездки в любой город. Фиксированная цена.<br />
-                        Безопасно, надежно, вовремя.
+                        {descriptionText}
                     </p>
 
                     <div className={`${styles.actions} animate-on-scroll delay-200`}>
@@ -46,5 +63,13 @@ export default function Hero() {
                 </div>
             </div>
         </section>
+    );
+}
+
+export default function Hero() {
+    return (
+        <Suspense fallback={<div className={styles.heroSection}></div>}>
+            <HeroContent />
+        </Suspense>
     );
 }
