@@ -21,7 +21,7 @@ const jost = Jost({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://xn--c1acbe2apap.com'),
-  title: "GrandTransfer – Такси Межгород | Междугороднее такси",
+  title: "GrandTransfer – Такси межгород",
   description: "Межгородское такси, где комфорт и безопасность — не опция, а стандарт.",
   keywords: "междугороднее такси, такси межгород, заказ такси, комфорт, минивэн, доставка, трезвый водитель",
   openGraph: {
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     locale: "ru_RU",
     url: "https://xn--c1acbe2apap.com",
     siteName: "GrandTransfer",
-    title: "GrandTransfer – Такси Межгород | Междугороднее такси",
+    title: "Такси межгород | GrandTransfer",
     description: "Надежные междугородние поездки с фиксированной ценой. Закажите комфортный трансфер прямо сейчас.",
     images: [{
       url: "/images/og-image.jpg", // TODO: create an actual image later if needed
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "GrandTransfer – Такси Межгород | Междугороднее такси",
+    title: "Такси межгород | GrandTransfer",
     description: "Мгновенный расчет стоимости и комфортные поездки по межгороду."
   },
   verification: {
