@@ -22,19 +22,7 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
     const [selectedTariff, setSelectedTariff] = useState<string>('standart');
 
     useEffect(() => {
-        // Only run on client after hydration
-        const sessionCityId = sessionStorage.getItem('grand_transfer_city_id');
-
-        if (sessionCityId) {
-            const found = cities.find(c => c.id === sessionCityId);
-            if (found) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
-                setCurrentCity(found);
-                return; // Use session storage if they already picked one this session
-            }
-        }
-
-        // Try to detect city via IP Geolocation if not set in sessionStorage
+        // Always try to detect city via IP Geolocation on mount
         const fetchCityByIP = async () => {
             try {
                 const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
@@ -44,7 +32,6 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
                     if (closest) {
                         console.log(`📍 IP Geolocation detected: ${closest.name}`);
                         setCurrentCity(closest);
-                        sessionStorage.setItem('grand_transfer_city_id', closest.id);
                     }
                 }
             } catch (e) {
@@ -57,7 +44,6 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
 
     const handleSetCity = (city: City) => {
         setCurrentCity(city);
-        sessionStorage.setItem('grand_transfer_city_id', city.id);
     };
 
     const sortedCityList = [
