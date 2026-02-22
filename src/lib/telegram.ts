@@ -15,28 +15,32 @@ export async function sendOrderNotification(orderData: Record<string, string | n
         return;
     }
 
+    const fromCoords = orderData.fromCoords as unknown as [number, number] | undefined;
+    const toCoords = orderData.toCoords as unknown as [number, number] | undefined;
+
     // Dadata often returns cities with regions ("Ижевск, Удмуртская Респ..."). We only want the first part to match our DB.
     const fromCityStr = String(orderData.fromCity || '').split(',')[0].trim().toLowerCase();
     const toCityStr = String(orderData.toCity || '').split(',')[0].trim().toLowerCase();
 
-    // Try to resolve city coordinates from our internal cities.ts database
+    // Try to resolve city coordinates from our internal cities.ts database as a fallback
     const fromCityObj = cities.find(c => c.name.toLowerCase() === fromCityStr);
     const toCityObj = cities.find(c => c.name.toLowerCase() === toCityStr);
 
-    let fromRtext = orderData.fromCity ? encodeURIComponent(String(orderData.fromCity)) : '';
-    let toRtext = orderData.toCity ? encodeURIComponent(String(orderData.toCity)) : '';
+    let finalLink = '';
 
-    // If coordinates are found, use them (lat,lon format) for precise mobile routing
-    if (fromCityObj) fromRtext = `${fromCityObj.lat},${fromCityObj.lon}`;
-    if (toCityObj) toRtext = `${toCityObj.lat},${toCityObj.lon}`;
-
-    // Use the exact 2GIS format from the user's successful manual test for fully matched coordinates.
-    // Format: https://2gis.ru/directions/points/{lonFrom}%2C{latFrom}%3B{lonTo}%2C{latTo}
-    const directLink = `https://2gis.ru/directions/points/${fromCityObj?.lon || ''}%2C${fromCityObj?.lat || ''}%3B${toCityObj?.lon || ''}%2C${toCityObj?.lat || ''}`;
-
-    // Yandex Web fallback link (for completely unknown custom cities where we lack coordinates). 
-    // 2GIS routing by text string alone is broken, so Yandex is required here.
-    const fallbackLink = `https://yandex.ru/maps/?rtext=${fromRtext}~${toRtext}&rtt=auto`;
+    if (fromCoords && toCoords && Array.isArray(fromCoords) && Array.isArray(toCoords)) {
+        // We have EXACT coordinates straight from the user's browser (Leaflet/Dadata).
+        // 2GIS routing strictly requires Longitude first, then Latitude!
+        finalLink = `https://2gis.ru/routing?waypoint1=${fromCoords[1]},${fromCoords[0]}&waypoint2=${toCoords[1]},${toCoords[0]}&type=car`;
+    } else if (fromCityObj && toCityObj) {
+        // Fallback to our hardcoded database city coordinates
+        finalLink = `https://2gis.ru/routing?waypoint1=${fromCityObj.lon},${fromCityObj.lat}&waypoint2=${toCityObj.lon},${toCityObj.lat}&type=car`;
+    } else {
+        // Worst-case scenario: No coordinates matched at all. Use Yandex text search.
+        const textFrom = orderData.fromCity ? encodeURIComponent(String(orderData.fromCity)) : '';
+        const textTo = orderData.toCity ? encodeURIComponent(String(orderData.toCity)) : '';
+        finalLink = `https://yandex.ru/maps/?rtext=${textFrom}~${textTo}&rtt=auto`;
+    }
 
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
@@ -46,7 +50,7 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🗺️ <b>Открыть маршрут:</b> <a href="${fromCityObj && toCityObj ? directLink : fallbackLink}">В 2GIS (Онлайн / Приложение) 🗺️</a>
+🗺️ <b>Открыть маршрут:</b> <a href="${finalLink}">В 2GIS (Приложение / Веб) 🗺️</a>
 🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
