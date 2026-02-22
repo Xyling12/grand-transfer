@@ -39,7 +39,8 @@ export async function sendOrderNotification(orderData: Record<string, string | n
     if (fromCityObj && toCityObj) {
         // Yandex Navi requires lat_to and lon_to as primary destination, lat_from and lon_from are optional but good to have
         naviLink = `yandexnavi://build_route_on_map?lat_from=${fromCityObj.lat}&lon_from=${fromCityObj.lon}&lat_to=${toCityObj.lat}&lon_to=${toCityObj.lon}`;
-        mapsApp = `yandexmaps://build_route_on_map/?lat_from=${fromCityObj.lat}&lon_from=${fromCityObj.lon}&lat_to=${toCityObj.lat}&lon_to=${toCityObj.lon}`;
+        // Yandex Maps uses a different scheme using rtext (same as web)
+        mapsApp = `yandexmaps://maps.yandex.ru/?rtext=${fromCityObj.lat},${fromCityObj.lon}~${toCityObj.lat},${toCityObj.lon}&rtt=auto`;
     }
 
     const message = `
