@@ -10,21 +10,21 @@ const tariffDefs = [
         id: "econom" as keyof CityTariffs,
         name: "Эконом",
         description: "Для бюджетных поездок налегке. Лучшая цена без потери качества.",
-        image: "/images/tariffs/economy-dark-new.png?v=2",
+        image: "/images/tariffs/economy-dark-new.webp?v=3",
         features: ["Гранта, Логан, Лачетти и аналоги", "Кондиционер", "Детское кресло"]
     },
     {
         id: "standart" as keyof CityTariffs,
         name: "Стандарт",
         description: "Оптимальный выбор для дальних поездок. Просторный багажник и комфорт.",
-        image: "/images/tariffs/standard-dark-new.png?v=2",
+        image: "/images/tariffs/standard-dark-new.webp?v=3",
         features: ["Рио, Солярис, Поло и аналоги", "Вместительный багажник", "Климат-контроль"]
     },
     {
         id: "comfort" as keyof CityTariffs,
         name: "Комфорт",
         description: "Автомобили C-класса. Улучшенный комфорт и тишина в салоне.",
-        image: "/images/tariffs/comfort-new.png?v=2",
+        image: "/images/tariffs/comfort-new.webp?v=3",
         features: ["Октавия, Элантра, Церато", "Тихий салон", "Плавный ход"]
     },
     {
@@ -45,7 +45,7 @@ const tariffDefs = [
         id: "minivan" as keyof CityTariffs,
         name: "Минивэн",
         description: "Для больших компаний или семьи с багажом. Вместимость до 7-8 человек.",
-        image: "/images/tariffs/minivan-v2.png",
+        image: "/images/tariffs/minivan-v2.webp",
         features: ["Карнивал, Старекс и аналоги", "Огромный багажник", "Климат для заднего ряда"]
     },
     {
