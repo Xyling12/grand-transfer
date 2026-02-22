@@ -115,7 +115,7 @@ export default function LeafletMapPreview({ fromCoords, toCoords, checkpointCoor
             center={center}
             zoom={9}
             scrollWheelZoom={true}
-            style={{ width: '100%', height: '100%', zIndex: 1 }}
+            style={{ width: '100%', height: '100%', zIndex: 0 }}
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

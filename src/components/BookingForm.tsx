@@ -270,7 +270,7 @@ export default function BookingForm() {
                         <form onSubmit={handleSubmit}>
                             {step === 1 && (
                                 <>
-                                    <div className={styles.grid} style={{ position: 'relative', zIndex: 10 }}>
+                                    <div className={styles.grid} style={{ position: 'relative', zIndex: 1000 }}>
                                         <div className={styles.formGroup}>
                                             <label className={styles.label}>Откуда (Город, улица, номер дома)</label>
                                             <div className={styles.inputWrapper}>
@@ -344,7 +344,7 @@ export default function BookingForm() {
                                         border: '1px solid var(--glass-border)',
                                         width: '100%',
                                         position: 'relative',
-                                        zIndex: 0
+                                        zIndex: 1
                                     }}>
                                         <LeafletMapPreview
                                             fromCoords={fromCoords}
