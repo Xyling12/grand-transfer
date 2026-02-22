@@ -26,8 +26,17 @@ export async function sendOrderNotification(orderData: Record<string, string | n
     if (fromCityObj) fromRtext = `${fromCityObj.lat},${fromCityObj.lon}`;
     if (toCityObj) toRtext = `${toCityObj.lat},${toCityObj.lon}`;
 
+    // Ensure coordinates are strings and trim any whitespace
     const rtextValue = `${fromRtext}~${toRtext}`;
-    const mapLink = `https://yandex.ru/maps/?mode=routes&rtext=${rtextValue}&rtt=auto`;
+
+    // Web fallback link
+    const webMapLink = `https://yandex.ru/maps/?rtext=${rtextValue}&rtt=auto`;
+    // Deep link specifically for Yandex Navigator (builds route immediately)
+    let naviLink = '';
+
+    if (fromCityObj && toCityObj) {
+        naviLink = `yandexnavi://build_route_on_map?lat_from=${fromCityObj.lat}&lon_from=${fromCityObj.lon}&lat_to=${toCityObj.lat}&lon_to=${toCityObj.lon}`;
+    }
 
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
@@ -37,7 +46,7 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🗺️ <b>Маршрут на карте:</b> <a href="${mapLink}">Проложить маршрут (Яндекс)</a>
+🗺️ <b>Открыть маршрут:</b> ${naviLink ? `<a href="${naviLink}">В Навигаторе (📱)</a> | <a href="${webMapLink}">В Браузере (💻)</a>` : `<a href="${webMapLink}">В Браузере (💻)</a>`}
 🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
