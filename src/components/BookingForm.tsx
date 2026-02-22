@@ -378,7 +378,7 @@ export default function BookingForm() {
                                                         <div className={styles.tariffCardBody}>
                                                             <span className={styles.tariffName}>{t.name}</span>
                                                             <span className={styles.tariffPrice}>
-                                                                {t.id === 'delivery' ? 'от 1500 ₽' : `от ${itemPrice} ₽/км`}
+                                                                {t.id === 'delivery' ? 'от 1500 ₽' : t.id === 'soberDriver' ? 'к диспетчеру' : `от ${itemPrice} ₽/км`}
                                                             </span>
                                                         </div>
                                                     </div>

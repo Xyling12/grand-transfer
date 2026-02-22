@@ -157,7 +157,7 @@ export default function Tariffs() {
                                     <div className={styles.headerRow}>
                                         <h4 className={styles.nameAlt}>{tariff.name}</h4>
                                         <div className={styles.priceBadge}>
-                                            {tariff.id === 'delivery' ? 'от 1500 ₽' : `от ${price} ₽/км`}
+                                            {tariff.id === 'delivery' ? 'от 1500 ₽' : tariff.id === 'soberDriver' ? 'к диспетчеру' : `от ${price} ₽/км`}
                                         </div>
                                     </div>
 
