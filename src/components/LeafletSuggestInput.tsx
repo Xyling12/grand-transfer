@@ -36,7 +36,7 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
         const timer = setTimeout(async () => {
             try {
                 // Add countrycodes to vastly improve relevance for CIS region
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&accept-language=ru&countrycodes=ru,by,kz`);
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&accept-language=ru&countrycodes=ru,by,kz,ua`);
                 const data = await res.json();
 
                 if (data && Array.isArray(data)) {

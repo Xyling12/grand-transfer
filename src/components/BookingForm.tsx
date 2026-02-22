@@ -431,10 +431,15 @@ export default function BookingForm() {
                                                 {(tariff !== 'delivery' && tariff !== 'soberDriver') && (
                                                     <div style={{
                                                         textAlign: 'center',
-                                                        fontSize: '0.85rem',
-                                                        color: 'var(--color-text-muted)',
-                                                        marginTop: '8px',
-                                                        marginBottom: '12px'
+                                                        fontSize: '0.90rem',
+                                                        color: '#fff',
+                                                        background: 'rgba(212, 175, 55, 0.1)',
+                                                        border: '1px solid rgba(212, 175, 55, 0.2)',
+                                                        borderRadius: '8px',
+                                                        padding: '12px 16px',
+                                                        marginBottom: '20px',
+                                                        marginTop: '10px',
+                                                        fontWeight: 400
                                                     }}>
                                                         * Платные участки дороги оплачиваются отдельно
                                                     </div>
@@ -455,26 +460,17 @@ export default function BookingForm() {
                                                         * Для уточнения окончательной стоимости {tariff === 'delivery' ? 'доставки' : 'услуги'} обратитесь к диспетчеру
                                                     </div>
                                                 )}
-                                                {(tariff !== 'delivery' && tariff !== 'soberDriver') && (
+                                                {(tariff !== 'delivery' && tariff !== 'soberDriver' && priceCalc.legPrices && priceCalc.legPrices.length === 2) && (
                                                     <div className={styles.receiptBox}>
                                                         <div className={styles.receiptTitle} style={{ color: 'var(--color-primary)' }}>Детализация стоимости</div>
-                                                        {priceCalc.legPrices && priceCalc.legPrices.length === 2 ? (
-                                                            <>
-                                                                <div className={styles.receiptRow}>
-                                                                    <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
-                                                                    <span>{(priceCalc.legPrices[0]).toLocaleString('ru-RU')} ₽</span>
-                                                                </div>
-                                                                <div className={styles.receiptRow}>
-                                                                    <span>После границы</span>
-                                                                    <span>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</span>
-                                                                </div>
-                                                            </>
-                                                        ) : (
-                                                            <div className={styles.receiptRow}>
-                                                                <span>Километраж ({priceCalc.roadKm} км)</span>
-                                                                <span>{(priceCalc.minPrice).toLocaleString('ru-RU')} ₽</span>
-                                                            </div>
-                                                        )}
+                                                        <div className={styles.receiptRow}>
+                                                            <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
+                                                            <span>{(priceCalc.legPrices[0]).toLocaleString('ru-RU')} ₽</span>
+                                                        </div>
+                                                        <div className={styles.receiptRow}>
+                                                            <span>После границы</span>
+                                                            <span>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</span>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
