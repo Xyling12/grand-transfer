@@ -257,7 +257,10 @@ export default function BookingForm() {
                                                     className={styles.input}
                                                     placeholder="г. Москва, ул. Ленина, д. 1"
                                                     value={fromCity}
-                                                    onChange={(e) => setFromCity(e.target.value)}
+                                                    onChange={(e) => {
+                                                        setFromCity(e.target.value);
+                                                        setFromCoords(null);
+                                                    }}
                                                     onSuggestSelect={(text, coords) => {
                                                         setFromCity(text);
                                                         setFromCoords(coords);
@@ -274,7 +277,10 @@ export default function BookingForm() {
                                                     className={styles.input}
                                                     placeholder="г. Казань, ул. Баумана, д. 2"
                                                     value={toCity}
-                                                    onChange={(e) => setToCity(e.target.value)}
+                                                    onChange={(e) => {
+                                                        setToCity(e.target.value);
+                                                        setToCoords(null);
+                                                    }}
                                                     onSuggestSelect={(text, coords) => {
                                                         setToCity(text);
                                                         setToCoords(coords);
@@ -390,6 +396,11 @@ export default function BookingForm() {
                                                 <div className={styles.priceResultTotal}>
                                                     от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
                                                 </div>
+                                                {tariff === 'delivery' && (
+                                                    <div style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '15px', marginTop: '-10px', opacity: 0.8 }}>
+                                                        * Для уточнения окончательной стоимости обратитесь к диспетчеру
+                                                    </div>
+                                                )}
                                                 <div className={styles.receiptBox}>
                                                     <div className={styles.receiptTitle} style={{ color: 'var(--color-primary)' }}>Детализация стоимости</div>
                                                     {tariff === 'delivery' && (
