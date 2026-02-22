@@ -70,6 +70,7 @@ export default function Footer() {
                     <p>© {new Date().getFullYear()} GrandTransfer. Все права защищены.</p>
                     <div style={{ display: 'flex', gap: 20 }}>
                         <Link href="/privacy" className={styles.link}>Политика конфиденциальности</Link>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Разработка: <a href="https://t.me/mxivsh" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>Ившин М.С</a></span>
                     </div>
                 </div>
                 <div className={styles.disclaimer}>

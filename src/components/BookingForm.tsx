@@ -17,13 +17,13 @@ import { cityTariffs, CityTariffs } from '@/data/tariffs';
 import { checkpoints, requiresCheckpoint } from '@/data/checkpoints';
 
 const TARIFFS = [
-    { id: 'econom', name: 'Эконом', image: '/images/tariffs/economy-3d.png' },
-    { id: 'standart', name: 'Стандарт', image: '/images/tariffs/standard-3d.png' },
-    { id: 'comfortPlus', name: 'Комфорт+', image: '/images/tariffs/comfort-3d.png' },
-    { id: 'business', name: 'Бизнес', image: '/images/tariffs/business-3d.png' },
-    { id: 'minivan', name: 'Минивэн', image: '/images/tariffs/minivan-3d.png' },
-    { id: 'soberDriver', name: 'Трезвый водитель', image: '/images/tariffs/sober-3d.png' },
-    { id: 'delivery', name: 'Доставка', image: '/images/tariffs/delivery-3d.png' },
+    { id: 'econom', name: 'Эконом', image: '/images/tariffs/economy-3d.webp' },
+    { id: 'standart', name: 'Стандарт', image: '/images/tariffs/standard-3d.webp' },
+    { id: 'comfortPlus', name: 'Комфорт+', image: '/images/tariffs/comfort-3d.webp' },
+    { id: 'business', name: 'Бизнес', image: '/images/tariffs/business-3d.webp' },
+    { id: 'minivan', name: 'Минивэн', image: '/images/tariffs/minivan-3d.webp' },
+    { id: 'soberDriver', name: 'Трезвый водитель', image: '/images/tariffs/sober-3d.webp' },
+    { id: 'delivery', name: 'Доставка', image: '/images/tariffs/delivery-3d.webp' },
 ];
 
 export default function BookingForm() {
