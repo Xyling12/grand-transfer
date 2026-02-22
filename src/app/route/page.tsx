@@ -43,9 +43,10 @@ function RouteRedirect() {
     const latTo = searchParams.get('lat_to');
     const lonTo = searchParams.get('lon_to');
 
+    // 2GIS app format: lon,lat
     const iosDgis = `dgis://2gis.ru/routeSearch/rsType/car/from/${lonFrom},${latFrom}/to/${lonTo},${latTo}`;
-    const iosNavi = `yandexnavi://build_route_on_map?lat_from=${latFrom}&lon_from=${lonFrom}&lat_to=${latTo}&lon_to=${lonTo}`;
-    const webDgis = `https://2gis.ru/routing?waypoint1=${lonFrom}%2C${latFrom}&waypoint2=${lonTo}%2C${latTo}&type=car`;
+    // 2GIS Web Format (works universally on Desktop, iOS, Android):
+    const webDgis = `https://2gis.ru/directions/points/${lonFrom}%2C${latFrom}%3B${lonTo}%2C${latTo}`;
 
     return (
         <div style={{ padding: '40px 20px', fontFamily: 'sans-serif', textAlign: 'center', maxWidth: '500px', margin: '0 auto' }}>
@@ -60,12 +61,6 @@ function RouteRedirect() {
                     style={{ padding: '16px', background: '#97CC04', color: '#fff', textDecoration: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '18px', boxShadow: '0 4px 10px rgba(151, 204, 4, 0.4)' }}
                 >
                     🟢 Открыть в 2GIS
-                </a>
-                <a
-                    href={iosNavi}
-                    style={{ padding: '16px', background: '#FFCC00', color: '#000', textDecoration: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '18px' }}
-                >
-                    🚗 В Яндекс.Навигаторе
                 </a>
                 <a
                     href={webDgis}
