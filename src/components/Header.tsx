@@ -30,20 +30,24 @@ export default function Header() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Close mobile menu on outside click
+    // Close menus on outside click
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-                setIsMobileMenuOpen(false);
+                if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+                if (isCityOpen) setIsCityOpen(false);
             }
         };
-        if (isMobileMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+        // Always listen if either menu is open
+        if (isMobileMenuOpen || isCityOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isMobileMenuOpen]);
+    }, [isMobileMenuOpen, isCityOpen]);
 
     return (
         <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ''}`}>
-            <div className={styles.container}>
+            <div className={styles.container} ref={menuRef}>
                 <div className={styles.leftGroup}>
                     <Link
                         href="/"
