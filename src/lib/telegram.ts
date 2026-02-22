@@ -15,9 +15,13 @@ export async function sendOrderNotification(orderData: Record<string, string | n
         return;
     }
 
-    // Try to resolve city coordinates
-    const fromCityObj = cities.find(c => c.name.toLowerCase() === String(orderData.fromCity || '').trim().toLowerCase());
-    const toCityObj = cities.find(c => c.name.toLowerCase() === String(orderData.toCity || '').trim().toLowerCase());
+    // Dadata often returns cities with regions ("Ижевск, Удмуртская Респ..."). We only want the first part to match our DB.
+    const fromCityStr = String(orderData.fromCity || '').split(',')[0].trim().toLowerCase();
+    const toCityStr = String(orderData.toCity || '').split(',')[0].trim().toLowerCase();
+
+    // Try to resolve city coordinates from our internal cities.ts database
+    const fromCityObj = cities.find(c => c.name.toLowerCase() === fromCityStr);
+    const toCityObj = cities.find(c => c.name.toLowerCase() === toCityStr);
 
     let fromRtext = orderData.fromCity ? encodeURIComponent(String(orderData.fromCity)) : '';
     let toRtext = orderData.toCity ? encodeURIComponent(String(orderData.toCity)) : '';
@@ -26,15 +30,13 @@ export async function sendOrderNotification(orderData: Record<string, string | n
     if (fromCityObj) fromRtext = `${fromCityObj.lat},${fromCityObj.lon}`;
     if (toCityObj) toRtext = `${toCityObj.lat},${toCityObj.lon}`;
 
-    // Use the exact format from the user's successful manual test.
-    // Format: https://2gis.ru/izhevsk/directions/points/{lonFrom}%2C{latFrom}%3B{lonTo}%2C{latTo}
-    // We can omit the specific city slug (like /izhevsk/) and 2GIS will auto-detect bounds
+    // Use the exact 2GIS format from the user's successful manual test for fully matched coordinates.
+    // Format: https://2gis.ru/directions/points/{lonFrom}%2C{latFrom}%3B{lonTo}%2C{latTo}
     const directLink = `https://2gis.ru/directions/points/${fromCityObj?.lon || ''}%2C${fromCityObj?.lat || ''}%3B${toCityObj?.lon || ''}%2C${toCityObj?.lat || ''}`;
 
-    // Fallback for custom string inputs (no coordinates)
-    const textFrom = orderData.fromCity ? encodeURIComponent(String(orderData.fromCity).trim()) : '';
-    const textTo = orderData.toCity ? encodeURIComponent(String(orderData.toCity).trim()) : '';
-    const fallbackLink = `https://2gis.ru/routing?waypoint1=${textFrom}&waypoint2=${textTo}&type=car`;
+    // Yandex Web fallback link (for completely unknown custom cities where we lack coordinates). 
+    // 2GIS routing by text string alone is broken, so Yandex is required here.
+    const fallbackLink = `https://yandex.ru/maps/?rtext=${fromRtext}~${toRtext}&rtt=auto`;
 
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
