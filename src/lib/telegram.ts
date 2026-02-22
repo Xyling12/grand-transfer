@@ -15,33 +15,6 @@ export async function sendOrderNotification(orderData: Record<string, string | n
         return;
     }
 
-    const fromCoords = orderData.fromCoords as unknown as [number, number] | undefined;
-    const toCoords = orderData.toCoords as unknown as [number, number] | undefined;
-
-    // Dadata often returns cities with regions ("Ижевск, Удмуртская Респ..."). We only want the first part to match our DB.
-    const fromCityStr = String(orderData.fromCity || '').split(',')[0].trim().toLowerCase();
-    const toCityStr = String(orderData.toCity || '').split(',')[0].trim().toLowerCase();
-
-    // Try to resolve city coordinates from our internal cities.ts database as a fallback
-    const fromCityObj = cities.find(c => c.name.toLowerCase() === fromCityStr);
-    const toCityObj = cities.find(c => c.name.toLowerCase() === toCityStr);
-
-    let finalLink = '';
-
-    if (fromCoords && toCoords && Array.isArray(fromCoords) && Array.isArray(toCoords)) {
-        // We have EXACT coordinates straight from the user's browser (Leaflet/Dadata).
-        // 2GIS routing strictly requires Longitude first, then Latitude!
-        finalLink = `https://2gis.ru/routing?waypoint1=${fromCoords[1]},${fromCoords[0]}&waypoint2=${toCoords[1]},${toCoords[0]}&type=car`;
-    } else if (fromCityObj && toCityObj) {
-        // Fallback to our hardcoded database city coordinates
-        finalLink = `https://2gis.ru/routing?waypoint1=${fromCityObj.lon},${fromCityObj.lat}&waypoint2=${toCityObj.lon},${toCityObj.lat}&type=car`;
-    } else {
-        // Worst-case scenario: No coordinates matched at all. Use Yandex text search.
-        const textFrom = orderData.fromCity ? encodeURIComponent(String(orderData.fromCity)) : '';
-        const textTo = orderData.toCity ? encodeURIComponent(String(orderData.toCity)) : '';
-        finalLink = `https://yandex.ru/maps/?rtext=${textFrom}~${textTo}&rtt=auto`;
-    }
-
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
 
@@ -50,7 +23,6 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🗺️ <b>Открыть маршрут:</b> <a href="${finalLink}">В 2GIS (Приложение / Веб) 🗺️</a>
 🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}

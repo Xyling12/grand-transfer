@@ -200,8 +200,6 @@ export default function BookingForm() {
                 body: JSON.stringify({
                     fromCity,
                     toCity,
-                    fromCoords,
-                    toCoords,
                     tariff,
                     passengers,
                     customerName: name,
