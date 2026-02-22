@@ -212,6 +212,10 @@ export default function BookingForm() {
 
             if (res.ok) {
                 setSubmitSuccess(true);
+                // Trigger Yandex Metrika Goal (ensure ID matches layout)
+                if (typeof window !== 'undefined' && (window as any).ym) {
+                    (window as any).ym(106952983, 'reachGoal', 'order_submitted');
+                }
             } else {
                 alert('Произошла ошибка при отправке заявки. Пожалуйста, попробуйте еще раз или свяжитесь с нами по телефону.');
             }

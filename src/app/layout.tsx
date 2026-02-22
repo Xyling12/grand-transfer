@@ -45,6 +45,8 @@ export const metadata: Metadata = {
   }
 };
 
+import YandexMetrika from "@/components/YandexMetrika";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,6 +56,7 @@ export default function RootLayout({
     <html lang="ru">
       <body className={`${bodoni.variable} ${jost.variable} `}>
         <SchemaOrg />
+        <YandexMetrika />
         <CityProvider>
           <ScrollAnimation />
           {children}
