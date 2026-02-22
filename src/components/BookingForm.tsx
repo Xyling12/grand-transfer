@@ -378,8 +378,16 @@ export default function BookingForm() {
                                                         <div className={styles.tariffCardBody}>
                                                             <span className={styles.tariffName}>{t.name}</span>
                                                             <span className={styles.tariffPrice}>
-                                                                {t.id === 'delivery' ? 'от 1500 ₽' : `от ${itemPrice} ₽/км`}
+                                                                {(t.id === 'delivery' || t.id === 'soberDriver') ? 'от 1500 ₽*' : `от ${itemPrice} ₽/км`}
                                                             </span>
+                                                            {priceCalc && (
+                                                                <div className={styles.priceEstimate}>
+                                                                    <div className={styles.priceLabel}>Примерная стоимость</div>
+                                                                    <div className={styles.priceValue}>
+                                                                        {(t.id === 'delivery' || t.id === 'soberDriver') ? 'от 1500 ₽' : `~ ${priceCalc.minPrice} ₽`}
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 );
@@ -400,7 +408,7 @@ export default function BookingForm() {
                                                     <span className={styles.priceResultTariff}>{priceCalc.tariffName}</span>
                                                 </div>
                                                 <div className={styles.priceResultStats}>
-                                                    {tariff !== 'delivery' && (
+                                                    {(tariff !== 'delivery' && tariff !== 'soberDriver') && (
                                                         <div className={styles.priceStat}>
                                                             <Ruler size={15} className={styles.priceStatIcon} />
                                                             <span>{priceCalc.roadKm} км</span>
@@ -412,7 +420,7 @@ export default function BookingForm() {
                                                     </div>
                                                 </div>
                                                 <div className={styles.priceResultTotal}>
-                                                    от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
+                                                    от <strong>{(tariff === 'delivery' || tariff === 'soberDriver') ? '1 500' : priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
                                                 </div>
                                                 {(tariff === 'delivery' || tariff === 'soberDriver') && (
                                                     <div style={{
@@ -430,14 +438,14 @@ export default function BookingForm() {
                                                         * Для уточнения окончательной стоимости {tariff === 'delivery' ? 'доставки' : 'услуги'} обратитесь к диспетчеру
                                                     </div>
                                                 )}
-                                                {tariff !== 'delivery' && (
+                                                {(tariff !== 'delivery' && tariff !== 'soberDriver') && (
                                                     <div className={styles.receiptBox}>
                                                         <div className={styles.receiptTitle} style={{ color: 'var(--color-primary)' }}>Детализация стоимости</div>
                                                         {priceCalc.legPrices && priceCalc.legPrices.length === 2 ? (
                                                             <>
                                                                 <div className={styles.receiptRow}>
                                                                     <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
-                                                                    <span>{(priceCalc.legPrices[0] - (tariff === 'delivery' ? 1500 : 0)).toLocaleString('ru-RU')} ₽</span>
+                                                                    <span>{(priceCalc.legPrices[0]).toLocaleString('ru-RU')} ₽</span>
                                                                 </div>
                                                                 <div className={styles.receiptRow}>
                                                                     <span>После границы</span>
@@ -447,7 +455,7 @@ export default function BookingForm() {
                                                         ) : (
                                                             <div className={styles.receiptRow}>
                                                                 <span>Километраж ({priceCalc.roadKm} км)</span>
-                                                                <span>{(priceCalc.minPrice - (tariff === 'delivery' ? 1500 : 0)).toLocaleString('ru-RU')} ₽</span>
+                                                                <span>{(priceCalc.minPrice).toLocaleString('ru-RU')} ₽</span>
                                                             </div>
                                                         )}
                                                     </div>
