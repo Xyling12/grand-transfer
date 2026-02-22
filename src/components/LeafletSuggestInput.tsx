@@ -21,6 +21,13 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
     const [isFetching, setIsFetching] = useState(false);
     const [hasSelected, setHasSelected] = useState(false);
 
+    // Sync internal query state if external value changes (e.g. from URL params)
+    useEffect(() => {
+        if (props.value !== undefined && props.value !== query) {
+            setQuery(props.value as string);
+        }
+    }, [props.value]);
+
     useEffect(() => {
         if (!query || query.length < 1) {
             setSuggestions([]);
