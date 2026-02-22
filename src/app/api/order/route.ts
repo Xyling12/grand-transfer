@@ -30,9 +30,9 @@ export async function POST(req: Request) {
             console.warn("Could not save to SQLite DB (expected on Vercel):", dbError);
         }
 
-        // Fire and forget Telegram Notification
+        // Send Telegram Notification (must await on Vercel otherwise Lambda is killed instantly)
         body.id = orderId; // Include the DB ID (or N/A) in the notification
-        sendOrderNotification(body).catch(console.error);
+        await sendOrderNotification(body);
 
         return NextResponse.json({ success: true, orderId: orderId }, { status: 200 });
 

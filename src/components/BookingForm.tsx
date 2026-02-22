@@ -212,6 +212,12 @@ export default function BookingForm() {
 
             if (res.ok) {
                 setSubmitSuccess(true);
+                // Scroll to the top of the form so the success message is centered/visible
+                const element = document.getElementById('booking-form');
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+
                 // Trigger Yandex Metrika Goal (ensure ID matches layout)
                 if (typeof window !== 'undefined' && (window as any).ym) {
                     (window as any).ym(106952983, 'reachGoal', 'order_submitted');
