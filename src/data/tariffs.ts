@@ -6,6 +6,7 @@ export interface CityTariffs {
     business: number;
     minivan: number;
     soberDriver: number;
+    delivery?: number;
 }
 
 export const cityTariffs: Record<string, CityTariffs> = {

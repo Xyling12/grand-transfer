@@ -28,6 +28,7 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
         if (sessionCityId) {
             const found = cities.find(c => c.id === sessionCityId);
             if (found) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setCurrentCity(found);
                 return; // Use session storage if they already picked one this session
             }

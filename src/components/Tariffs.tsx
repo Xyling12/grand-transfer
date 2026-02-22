@@ -70,6 +70,35 @@ export default function Tariffs() {
 
     return (
         <section className={`${styles.section} animate-on-scroll`} id="tariffs">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "ItemList",
+                        "name": `Тарифы на межгородское такси из города ${currentCity?.name || 'Москва'}`,
+                        "itemListElement": tariffDefs.map((t, i) => ({
+                            "@type": "ListItem",
+                            "position": i + 1,
+                            "item": {
+                                "@type": "Service",
+                                "name": `Тариф ${t.name}`,
+                                "description": t.description,
+                                "provider": {
+                                    "@type": "Organization",
+                                    "name": "GrandTransfer"
+                                },
+                                "offers": {
+                                    "@type": "Offer",
+                                    "price": activeTariffs[t.id] || 25,
+                                    "priceCurrency": "RUB",
+                                    "description": t.id === 'delivery' ? 'Фиксированная цена от' : 'Цена за километр'
+                                }
+                            }
+                        }))
+                    })
+                }}
+            />
             <div className="container">
                 <div className={styles.titleWrapper}>
                     <h2 className="section-title">Наши Тарифы</h2>
@@ -87,7 +116,7 @@ export default function Tariffs() {
                                     <div className={styles.imageWrapper}>
                                         <img
                                             src={tariff.image}
-                                            alt={tariff.name}
+                                            alt={`Автомобиль класса ${tariff.name} для междугороднего такси и трансфера: ${tariff.features[0]}`}
                                             className={styles.image}
                                             style={{
                                                 '--base-scale': tariff.id === 'delivery' ? 1.4 : (tariff.id === 'soberDriver' ? 1 : 1.25),

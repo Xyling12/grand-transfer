@@ -262,7 +262,7 @@ const rawCities: CityData[] = [
 
 export const cities: City[] = rawCities.map(city => {
     // 1. Calculate distances to all other cities
-    let others = rawCities
+    const others = [...rawCities]
         .filter(c => c.id !== city.id)
         .map(c => ({
             ...c,

@@ -3,6 +3,7 @@ import { Bodoni_Moda, Jost } from "next/font/google";
 import "./globals.css";
 import { CityProvider } from "@/context/CityContext";
 import ScrollAnimation from "@/components/ScrollAnimation";
+import SchemaOrg from "@/components/SchemaOrg";
 
 const bodoni = Bodoni_Moda({
   variable: "--font-bodoni",
@@ -31,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={`${bodoni.variable} ${jost.variable} `}>
+        <SchemaOrg />
         <CityProvider>
           <ScrollAnimation />
           {children}

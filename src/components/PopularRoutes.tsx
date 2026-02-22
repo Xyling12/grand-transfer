@@ -1,18 +1,16 @@
 "use client";
+"use client";
 
 import styles from './PopularRoutes.module.css';
-import { Clock, MapPin, ArrowRight } from 'lucide-react';
 import { useCity } from '@/context/CityContext';
-import { cities } from '@/data/cities';
 
-// Helper to estimate price per km roughly or use fixed
-const getPricePerKm = (price: number, distance: number) => Math.round(price / distance);
+
 
 export default function PopularRoutes() {
     const { currentCity } = useCity();
 
     return (
-        <section className={`${styles.section} animate-on-scroll`} id="popular-routes">
+        <section className={`${styles.section} animate - on - scroll`} id="popular-routes">
             <div className="container">
                 <div className={styles.header}>
                     <h2 className={styles.title}>

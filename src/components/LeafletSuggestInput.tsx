@@ -4,28 +4,36 @@ import { useEffect, useRef, useState, InputHTMLAttributes } from 'react';
 
 interface LeafletSuggestInputProps extends InputHTMLAttributes<HTMLInputElement> {
     onSuggestSelect: (text: string, coords: [number, number]) => void;
-    cityContext?: string;
 }
 
-export default function LeafletSuggestInput({ onSuggestSelect, cityContext, className, ...props }: LeafletSuggestInputProps) {
+interface OsmSuggestion {
+    place_id?: number;
+    display_name: string;
+    lat: string;
+    lon: string;
+}
+
+export default function LeafletSuggestInput({ onSuggestSelect, className, ...props }: LeafletSuggestInputProps) {
     const wrapperRef = useRef<HTMLDivElement>(null);
     const [query, setQuery] = useState(props.value as string || '');
-    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [suggestions, setSuggestions] = useState<OsmSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setQuery(props.value as string || '');
     }, [props.value]);
 
     useEffect(() => {
         if (!query || query.length < 3) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSuggestions([]);
             return;
         }
 
         const timer = setTimeout(async () => {
             try {
-                let searchQuery = query;
+                const searchQuery = query;
 
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&addressdetails=1&limit=5&accept-language=ru`);
                 const data = await res.json();
@@ -114,7 +122,7 @@ export default function LeafletSuggestInput({ onSuggestSelect, cityContext, clas
                                 onSuggestSelect(displayName, [lat, lon]);
 
                                 if (props.onChange) {
-                                    const event = { target: { value: displayName } } as any;
+                                    const event = { target: { value: displayName } } as unknown as React.ChangeEvent<HTMLInputElement>;
                                     props.onChange(event);
                                 }
                             }}

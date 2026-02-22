@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
 // Fix for default marker icons in React-Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -27,7 +27,7 @@ function RoutingOverlay({ fromCoords, toCoords, checkpointCoords, onRouteCalcula
 
     useEffect(() => {
         if (!fromCoords && !toCoords) {
-            setRouteGeometry([]);
+            setTimeout(() => setRouteGeometry([]), 0);
             return;
         }
 
@@ -63,8 +63,8 @@ function RoutingOverlay({ fromCoords, toCoords, checkpointCoords, onRouteCalcula
                         const route = data.routes[0];
 
                         // Extract distances (meters) and durations (seconds) for each leg
-                        const distances = route.legs.map((leg: any) => leg.distance / 1000);
-                        const durations = route.legs.map((leg: any) => leg.duration);
+                        const distances = route.legs.map((leg: { distance: number }) => leg.distance / 1000);
+                        const durations = route.legs.map((leg: { duration: number }) => leg.duration);
 
                         onRouteCalculated(distances, durations);
 
@@ -91,6 +91,7 @@ function RoutingOverlay({ fromCoords, toCoords, checkpointCoords, onRouteCalcula
 
             fetchRoute();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fromCoords, toCoords, checkpointCoords, map]);
 
     return (

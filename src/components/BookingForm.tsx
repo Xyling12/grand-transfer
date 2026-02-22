@@ -1,17 +1,18 @@
 "use client";
 // @ts-nocheck
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, User, Phone, ChevronRight, ChevronLeft, CheckCircle2, Navigation, Ruler, Clock3, Loader2, Calendar, Clock, Route } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, MessageSquare, MapPin, Search, Star, Users, Route, Ruler, Clock3, Navigation, User, Phone, Calendar, Clock } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import LeafletSuggestInput from './LeafletSuggestInput';
+import { useCity } from '@/context/CityContext';
+import { useGeolocationCity } from '@/hooks/useGeolocationCity';
 
 const LeafletMapPreview = dynamic(() => import('./LeafletMapPreview'), {
     ssr: false,
     loading: () => <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--glass-border)', borderRadius: '16px' }}><Loader2 size={32} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} /></div>
 });
 import styles from './BookingForm.module.css';
-import { useCity } from '@/context/CityContext';
 import { cityTariffs, CityTariffs } from '@/data/tariffs';
 import { checkpoints, requiresCheckpoint } from '@/data/checkpoints';
 
@@ -25,29 +26,25 @@ const TARIFFS = [
     { id: 'delivery', name: 'Доставка', image: '/images/tariffs/delivery-3d.png' },
 ];
 
-function haversineDistance(coords1: [number, number], coords2: [number, number]) {
-    const R = 6371; // Earth radius in km
-    const dLat = (coords2[0] - coords1[0]) * Math.PI / 180;
-    const dLon = (coords2[1] - coords1[1]) * Math.PI / 180;
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(coords1[0] * Math.PI / 180) * Math.cos(coords2[0] * Math.PI / 180) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c * 1.3; // +30% to approximate road distance
-}
-
 export default function BookingForm() {
     const { currentCity } = useCity();
+    const defaultGeoCity = useGeolocationCity('Ижевск');
     const [step, setStep] = useState(1);
 
     // Form State
-    const [fromCity, setFromCity] = useState(currentCity?.name || '');
+    const [fromCity, setFromCity] = useState('');
+
+    // Update fromCity when geolocation resolves, but only if user hasn't typed anything yet
+    useEffect(() => {
+        if (!fromCity && defaultGeoCity) {
+            setFromCity(defaultGeoCity);
+        }
+    }, [defaultGeoCity, fromCity]);
 
     // Update form when city changes globally
     useEffect(() => {
         if (currentCity) {
-            setFromCity(currentCity.name);
+            setTimeout(() => setFromCity(currentCity.name), 0);
         }
     }, [currentCity]);
 
@@ -151,16 +148,17 @@ export default function BookingForm() {
                 legPrices = [price1, price2];
             }
 
-            setPriceCalc(prev => prev ? { ...prev, minPrice, tariffName: selectedTariff?.name || '', legPrices } : null);
+            setTimeout(() => setPriceCalc(prev => prev ? { ...prev, minPrice, tariffName: selectedTariff?.name || '', legPrices } : null), 0);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tariff, currentCity, toCity]);
 
     // Clear price if coords missing or checkpoint changes
     useEffect(() => {
         if (!fromCoords || !toCoords) {
-            setPriceCalc(null);
+            setTimeout(() => setPriceCalc(null), 0);
         } else {
-            setIsCalculatingRoute(true);
+            setTimeout(() => setIsCalculatingRoute(true), 0);
         }
     }, [fromCoords, toCoords, checkpointId]);
 
@@ -169,11 +167,47 @@ export default function BookingForm() {
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
     const [passengers, setPassengers] = useState(1);
+    const [comments, setComments] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitSuccess, setSubmitSuccess] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Here we would send data to API
-        alert(`Заявка отправлена!\nМаршрут: ${fromCity} -> ${toCity}\nТариф: ${tariff}\nИмя: ${name}\nТелефон: ${phone}`);
+
+        if (!name || (!phone && !comments)) {
+            alert('Пожалуйста, укажите имя и телефон для связи.');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const res = await fetch('/api/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fromCity,
+                    toCity,
+                    tariff,
+                    passengers,
+                    customerName: name,
+                    customerPhone: phone,
+                    comments: comments,
+                    dateTime: `${date || ''} ${time || ''}`.trim(),
+                    priceEstimate: priceCalc?.minPrice || null
+                }),
+            });
+
+            if (res.ok) {
+                setSubmitSuccess(true);
+            } else {
+                alert('Произошла ошибка при отправке заявки. Пожалуйста, попробуйте еще раз или свяжитесь с нами по телефону.');
+            }
+        } catch (error) {
+            console.error('Error submitting order', error);
+            alert('Сетевая ошибка.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -189,279 +223,334 @@ export default function BookingForm() {
                         {step === 1 ? "Рассчитать стоимость" : "Детали поездки"}
                     </h2>
 
-                    <form onSubmit={handleSubmit}>
-                        {step === 1 && (
-                            <>
-                                <div className={styles.grid}>
-                                    <div className={styles.formGroup}>
-                                        <label className={styles.label}>Откуда (Город, улица, номер дома)</label>
-                                        <div className={styles.inputWrapper}>
-                                            <MapPin size={18} className={styles.icon} />
-                                            <LeafletSuggestInput
-                                                className={styles.input}
-                                                placeholder="г. Москва, ул. Ленина, д. 1"
-                                                value={fromCity}
-                                                onChange={(e) => setFromCity(e.target.value)}
-                                                onSuggestSelect={(text, coords) => {
-                                                    setFromCity(text);
-                                                    setFromCoords(coords);
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.formGroup}>
-                                        <label className={styles.label}>Куда (Город, улица, номер дома)</label>
-                                        <div className={styles.inputWrapper}>
-                                            <MapPin size={18} className={styles.icon} />
-                                            <LeafletSuggestInput
-                                                className={styles.input}
-                                                placeholder="г. Казань, ул. Баумана, д. 2"
-                                                value={toCity}
-                                                onChange={(e) => setToCity(e.target.value)}
-                                                onSuggestSelect={(text, coords) => {
-                                                    setToCity(text);
-                                                    setToCoords(coords);
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <p className={styles.priceHint} style={{ gridColumn: '1 / -1', marginTop: '-10px', opacity: 0.8 }}>
-                                        <small>* Начните вводить точный адрес, и нажмите на подходящую подсказку из поиска.</small>
-                                    </p>
-
-                                    {(requiresCheckpoint(fromCity) || requiresCheckpoint(toCity)) && (
-                                        <div className={styles.formGroup} style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                                            <label className={styles.label}>Маршрут через КПП (Опционально)</label>
-                                            <div className={styles.inputWrapper}>
-                                                <Route size={18} className={styles.icon} />
-                                                <select
-                                                    className={styles.input}
-                                                    style={{ appearance: 'auto', paddingRight: '16px', cursor: 'pointer', backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
-                                                    value={checkpointId}
-                                                    onChange={(e) => setCheckpointId(e.target.value)}
-                                                >
-                                                    <option value="" style={{ background: '#1c1917', color: '#fff' }}>Без КПП (Прямой маршрут)</option>
-                                                    {checkpoints.map(cp => (
-                                                        <option key={cp.id} value={cp.id} style={{ background: '#1c1917', color: '#fff' }}>{cp.name}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div style={{
-                                    marginTop: '20px',
-                                    borderRadius: '16px',
-                                    overflow: 'hidden',
-                                    height: '320px',
-                                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                                    border: '1px solid var(--glass-border)',
-                                    width: '100%',
-                                    position: 'relative',
-                                    zIndex: 0
-                                }}>
-                                    <LeafletMapPreview
-                                        fromCoords={fromCoords}
-                                        toCoords={toCoords}
-                                        checkpointCoords={activeCheckpoint ? activeCheckpoint.coords : null}
-                                        onRouteCalculated={handleRouteCalculated}
-                                    />
-                                </div>
-
-                                <div className={styles.formGroup}>
-                                    <label className={styles.label}>Выберите тариф</label>
-                                    <div className={styles.tariffGrid}>
-                                        {TARIFFS.map((t) => {
-                                            const activeCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
-                                            const itemPrice = activeCityTariffs[t.id as keyof CityTariffs] || 25;
-
-                                            return (
-                                                <div
-                                                    key={t.id}
-                                                    className={`${styles.tariffCard} ${tariff === t.id ? styles.tariffActive : ''}`}
-                                                    onClick={() => setTariff(t.id)}
-                                                >
-                                                    {tariff === t.id && <CheckCircle2 size={16} className={styles.checkIcon} />}
-                                                    <div className={styles.carImageWrapper}>
-                                                        <img
-                                                            src={t.image}
-                                                            alt={t.name}
-                                                            className={styles.carImage}
-                                                            style={{
-                                                                '--base-scale': t.id === 'delivery' ? 1.3 : (t.id === 'soberDriver' ? 1 : 1.2),
-                                                                '--base-translate': t.id === 'delivery' ? '-8px' : (t.id === 'soberDriver' ? '0px' : '-4px'),
-                                                                '--hover-scale': t.id === 'delivery' ? 1.4 : (t.id === 'soberDriver' ? 1.1 : 1.3),
-                                                                '--hover-translate': t.id === 'delivery' ? '-12px' : (t.id === 'soberDriver' ? '-2px' : '-6px')
-                                                            } as React.CSSProperties}
-                                                        />
-                                                    </div>
-                                                    <div className={styles.tariffCardBody}>
-                                                        <span className={styles.tariffName}>{t.name}</span>
-                                                        <span className={styles.tariffPrice}>
-                                                            {t.id === 'delivery' ? 'от 1500 ₽' : `от ${itemPrice} ₽/км`}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                {/* Price Calculator Result */}
-                                {
-                                    isCalculatingRoute ? (
-                                        <div className={styles.priceResult} style={{ display: 'flex', justifyContent: 'center', padding: '30px' }}>
-                                            <Loader2 size={32} className={styles.spinner} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} />
-                                        </div>
-                                    ) : priceCalc && (
-                                        <div className={styles.priceResult}>
-                                            <div className={styles.priceResultHeader}>
-                                                <span className={styles.priceResultLabel}>Точный расчёт стоимости</span>
-                                                <span className={styles.priceResultTariff}>{priceCalc.tariffName}</span>
-                                            </div>
-                                            <div className={styles.priceResultStats}>
-                                                <div className={styles.priceStat}>
-                                                    <Ruler size={15} className={styles.priceStatIcon} />
-                                                    <span>{priceCalc.roadKm} км</span>
-                                                </div>
-                                                <div className={styles.priceStat}>
-                                                    <Clock3 size={15} className={styles.priceStatIcon} />
-                                                    <span>~{priceCalc.duration}</span>
-                                                </div>
-                                            </div>
-                                            <div className={styles.priceResultTotal}>
-                                                от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
-                                            </div>
-                                            <div className={styles.receiptBox}>
-                                                <div className={styles.receiptTitle} style={{ color: 'var(--color-primary)' }}>Детализация стоимости</div>
-                                                <div className={styles.receiptRow}>
-                                                    <span>Подача машины</span>
-                                                    <span>{tariff === 'delivery' ? 1500 : 500} ₽</span>
-                                                </div>
-                                                {priceCalc.legPrices && priceCalc.legPrices.length === 2 ? (
-                                                    <>
-                                                        <div className={styles.receiptRow}>
-                                                            <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
-                                                            <span>{(priceCalc.legPrices[0] - (tariff === 'delivery' ? 1500 : 500)).toLocaleString('ru-RU')} ₽</span>
-                                                        </div>
-                                                        <div className={styles.receiptRow}>
-                                                            <span>После границы</span>
-                                                            <span>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</span>
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <div className={styles.receiptRow}>
-                                                        <span>Километраж ({priceCalc.roadKm} км)</span>
-                                                        <span>{(priceCalc.minPrice - (tariff === 'delivery' ? 1500 : 500)).toLocaleString('ru-RU')} ₽</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )
-                                }
-
-                                {
-                                    !priceCalc && fromCity && toCity && (
-                                        <div className={styles.priceHint}>
-                                            <Navigation size={14} />
-                                            Укажите города из списка для предварительного расчёта цены
-                                        </div>
-                                    )
-                                }
-
-                                <div className={styles.actions}>
-                                    <button type="button" className={styles.nextBtn} onClick={() => setStep(2)}>
-                                        Далее <ChevronRight size={18} style={{ display: 'inline', verticalAlign: 'middle' }} />
-                                    </button>
-                                </div>
-                            </>
-                        )}
-
-                        {
-                            step === 2 && (
+                    {submitSuccess ? (
+                        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                            <CheckCircle2 size={64} style={{ color: 'var(--color-primary)', margin: '0 auto 20px', display: 'block' }} />
+                            <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Заявка отправлена!</h3>
+                            <p style={{ color: 'var(--color-text-muted)' }}>Спасибо, {name}. Мы скоро свяжемся с вами для подтверждения заказа.</p>
+                            <button
+                                type="button"
+                                className={styles.nextBtn}
+                                style={{ marginTop: '30px', margin: '30px auto 0', display: 'block', maxWidth: '300px' }}
+                                onClick={() => {
+                                    setSubmitSuccess(false);
+                                    setStep(1);
+                                    setName('');
+                                    setPhone('');
+                                    setComments('');
+                                }}
+                            >
+                                Сделать новый заказ
+                            </button>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit}>
+                            {step === 1 && (
                                 <>
                                     <div className={styles.grid}>
                                         <div className={styles.formGroup}>
-                                            <label className={styles.label}>Ваше Имя</label>
+                                            <label className={styles.label}>Откуда (Город, улица, номер дома)</label>
                                             <div className={styles.inputWrapper}>
-                                                <User size={18} className={styles.icon} />
-                                                <input
-                                                    type="text"
+                                                <MapPin size={18} className={styles.icon} />
+                                                <LeafletSuggestInput
                                                     className={styles.input}
-                                                    placeholder="Как к вам обращаться?"
-                                                    value={name}
-                                                    onChange={(e) => setName(e.target.value)}
+                                                    placeholder="г. Москва, ул. Ленина, д. 1"
+                                                    value={fromCity}
+                                                    onChange={(e) => setFromCity(e.target.value)}
+                                                    onSuggestSelect={(text, coords) => {
+                                                        setFromCity(text);
+                                                        setFromCoords(coords);
+                                                    }}
                                                 />
                                             </div>
                                         </div>
 
                                         <div className={styles.formGroup}>
-                                            <label className={styles.label}>Телефон</label>
+                                            <label className={styles.label}>Куда (Город, улица, номер дома)</label>
                                             <div className={styles.inputWrapper}>
-                                                <Phone size={18} className={styles.icon} />
-                                                <input
-                                                    type="tel"
+                                                <MapPin size={18} className={styles.icon} />
+                                                <LeafletSuggestInput
                                                     className={styles.input}
-                                                    placeholder="+7 (999) 000-00-00"
-                                                    value={phone}
-                                                    onChange={(e) => setPhone(e.target.value)}
+                                                    placeholder="г. Казань, ул. Баумана, д. 2"
+                                                    value={toCity}
+                                                    onChange={(e) => setToCity(e.target.value)}
+                                                    onSuggestSelect={(text, coords) => {
+                                                        setToCity(text);
+                                                        setToCoords(coords);
+                                                    }}
                                                 />
                                             </div>
                                         </div>
+                                        <p className={styles.priceHint} style={{ gridColumn: '1 / -1', marginTop: '-10px', opacity: 0.8 }}>
+                                            <small>* Начните вводить точный адрес, и нажмите на подходящую подсказку из поиска.</small>
+                                        </p>
 
-                                        <div className={styles.formGroup}>
-                                            <label className={styles.label}>Дата</label>
-                                            <div className={styles.inputWrapper}>
-                                                <Calendar size={18} className={styles.icon} />
-                                                <input
-                                                    type="date"
-                                                    className={styles.input}
-                                                    value={date}
-                                                    onChange={(e) => setDate(e.target.value)}
-                                                />
+                                        {(requiresCheckpoint(fromCity) || requiresCheckpoint(toCity)) && (
+                                            <div className={styles.formGroup} style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                                                <label className={styles.label}>Маршрут через КПП (Опционально)</label>
+                                                <div className={styles.inputWrapper}>
+                                                    <Route size={18} className={styles.icon} />
+                                                    <select
+                                                        className={styles.input}
+                                                        style={{ appearance: 'auto', paddingRight: '16px', cursor: 'pointer', backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
+                                                        value={checkpointId}
+                                                        onChange={(e) => setCheckpointId(e.target.value)}
+                                                    >
+                                                        <option value="" style={{ background: '#1c1917', color: '#fff' }}>Без КПП (Прямой маршрут)</option>
+                                                        {checkpoints.map(cp => (
+                                                            <option key={cp.id} value={cp.id} style={{ background: '#1c1917', color: '#fff' }}>{cp.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
+                                    </div>
 
-                                        <div className={styles.formGroup}>
-                                            <label className={styles.label}>Время</label>
-                                            <div className={styles.inputWrapper}>
-                                                <Clock size={18} className={styles.icon} />
-                                                <input
-                                                    type="time"
-                                                    className={styles.input}
-                                                    value={time}
-                                                    onChange={(e) => setTime(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
+                                    <div style={{
+                                        marginTop: '20px',
+                                        borderRadius: '16px',
+                                        overflow: 'hidden',
+                                        height: '320px',
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                                        border: '1px solid var(--glass-border)',
+                                        width: '100%',
+                                        position: 'relative',
+                                        zIndex: 0
+                                    }}>
+                                        <LeafletMapPreview
+                                            fromCoords={fromCoords}
+                                            toCoords={toCoords}
+                                            checkpointCoords={activeCheckpoint ? activeCheckpoint.coords : null}
+                                            onRouteCalculated={handleRouteCalculated}
+                                        />
+                                    </div>
 
-                                        <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-                                            <label className={styles.label}>Количество пассажиров: {passengers}</label>
-                                            <input
-                                                type="range"
-                                                min="1"
-                                                max="8"
-                                                value={passengers}
-                                                onChange={(e) => setPassengers(parseInt(e.target.value))}
-                                                style={{ width: '100%', accentColor: 'var(--color-primary)' }}
-                                            />
+                                    <div className={styles.formGroup}>
+                                        <label className={styles.label}>Выберите тариф</label>
+                                        <div className={styles.tariffGrid}>
+                                            {TARIFFS.map((t) => {
+                                                const activeCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
+                                                const itemPrice = activeCityTariffs[t.id as keyof CityTariffs] || 25;
+
+                                                return (
+                                                    <div
+                                                        key={t.id}
+                                                        className={`${styles.tariffCard} ${tariff === t.id ? styles.tariffActive : ''}`}
+                                                        onClick={() => setTariff(t.id)}
+                                                    >
+                                                        {tariff === t.id && <CheckCircle2 size={16} className={styles.checkIcon} />}
+                                                        <div className={styles.carImageWrapper}>
+                                                            <img
+                                                                src={t.image}
+                                                                alt={t.name}
+                                                                className={styles.carImage}
+                                                                style={{
+                                                                    '--base-scale': t.id === 'delivery' ? 1.3 : (t.id === 'soberDriver' ? 1 : 1.2),
+                                                                    '--base-translate': t.id === 'delivery' ? '-8px' : (t.id === 'soberDriver' ? '0px' : '-4px'),
+                                                                    '--hover-scale': t.id === 'delivery' ? 1.4 : (t.id === 'soberDriver' ? 1.1 : 1.3),
+                                                                    '--hover-translate': t.id === 'delivery' ? '-12px' : (t.id === 'soberDriver' ? '-2px' : '-6px')
+                                                                } as React.CSSProperties}
+                                                            />
+                                                        </div>
+                                                        <div className={styles.tariffCardBody}>
+                                                            <span className={styles.tariffName}>{t.name}</span>
+                                                            <span className={styles.tariffPrice}>
+                                                                {t.id === 'delivery' ? 'от 1500 ₽' : `от ${itemPrice} ₽/км`}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
 
+                                    {/* Price Calculator Result */}
+                                    {
+                                        isCalculatingRoute ? (
+                                            <div className={styles.priceResult} style={{ display: 'flex', justifyContent: 'center', padding: '30px' }}>
+                                                <Loader2 size={32} className={styles.spinner} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} />
+                                            </div>
+                                        ) : priceCalc && (
+                                            <div className={styles.priceResult}>
+                                                <div className={styles.priceResultHeader}>
+                                                    <span className={styles.priceResultLabel}>Точный расчёт стоимости</span>
+                                                    <span className={styles.priceResultTariff}>{priceCalc.tariffName}</span>
+                                                </div>
+                                                <div className={styles.priceResultStats}>
+                                                    <div className={styles.priceStat}>
+                                                        <Ruler size={15} className={styles.priceStatIcon} />
+                                                        <span>{priceCalc.roadKm} км</span>
+                                                    </div>
+                                                    <div className={styles.priceStat}>
+                                                        <Clock3 size={15} className={styles.priceStatIcon} />
+                                                        <span>~{priceCalc.duration}</span>
+                                                    </div>
+                                                </div>
+                                                <div className={styles.priceResultTotal}>
+                                                    от <strong>{priceCalc.minPrice.toLocaleString('ru-RU')} ₽</strong>
+                                                </div>
+                                                <div className={styles.receiptBox}>
+                                                    <div className={styles.receiptTitle} style={{ color: 'var(--color-primary)' }}>Детализация стоимости</div>
+                                                    <div className={styles.receiptRow}>
+                                                        <span>Подача машины</span>
+                                                        <span>{tariff === 'delivery' ? 1500 : 500} ₽</span>
+                                                    </div>
+                                                    {priceCalc.legPrices && priceCalc.legPrices.length === 2 ? (
+                                                        <>
+                                                            <div className={styles.receiptRow}>
+                                                                <span>До границы ({activeCheckpoint?.name?.replace('КПП ', '') || 'КПП'})</span>
+                                                                <span>{(priceCalc.legPrices[0] - (tariff === 'delivery' ? 1500 : 500)).toLocaleString('ru-RU')} ₽</span>
+                                                            </div>
+                                                            <div className={styles.receiptRow}>
+                                                                <span>После границы</span>
+                                                                <span>{priceCalc.legPrices[1].toLocaleString('ru-RU')} ₽</span>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className={styles.receiptRow}>
+                                                            <span>Километраж ({priceCalc.roadKm} км)</span>
+                                                            <span>{(priceCalc.minPrice - (tariff === 'delivery' ? 1500 : 500)).toLocaleString('ru-RU')} ₽</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )
+                                    }
+
+                                    {
+                                        !priceCalc && fromCity && toCity && (
+                                            <div className={styles.priceHint}>
+                                                <Navigation size={14} />
+                                                Укажите города из списка для предварительного расчёта цены
+                                            </div>
+                                        )
+                                    }
+
                                     <div className={styles.actions}>
-                                        <button type="button" className={styles.backBtn} onClick={() => setStep(1)}>
-                                            <ChevronLeft size={18} style={{ display: 'inline', verticalAlign: 'middle' }} /> Назад
-                                        </button>
-                                        <button type="submit" className={styles.nextBtn}>
-                                            Заказать Трансфер
+                                        <button type="button" className={styles.nextBtn} onClick={() => setStep(2)}>
+                                            Далее <ChevronRight size={18} style={{ display: 'inline', verticalAlign: 'middle' }} />
                                         </button>
                                     </div>
                                 </>
-                            )
-                        }
-                    </form >
+                            )}
+
+                            {
+                                step === 2 && (
+                                    <>
+                                        <div className={styles.grid}>
+                                            <div className={styles.formGroup}>
+                                                <label className={styles.label}>Ваше Имя</label>
+                                                <div className={styles.inputWrapper}>
+                                                    <User size={18} className={styles.icon} />
+                                                    <input
+                                                        type="text"
+                                                        className={styles.input}
+                                                        placeholder="Как к вам обращаться?"
+                                                        value={name}
+                                                        onChange={(e) => setName(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className={styles.formGroup}>
+                                                <label className={styles.label}>Телефон</label>
+                                                <div className={styles.inputWrapper}>
+                                                    <Phone size={18} className={styles.icon} />
+                                                    <input
+                                                        type="tel"
+                                                        className={styles.input}
+                                                        placeholder="+7 (999) 000-00-00"
+                                                        value={phone}
+                                                        onChange={(e) => setPhone(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className={styles.formGroup}>
+                                                <label className={styles.label}>Дата</label>
+                                                <div className={styles.inputWrapper}>
+                                                    <Calendar size={18} className={styles.icon} />
+                                                    <input
+                                                        type="date"
+                                                        className={styles.input}
+                                                        value={date}
+                                                        onChange={(e) => setDate(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className={styles.formGroup}>
+                                                <label className={styles.label}>Время</label>
+                                                <div className={styles.inputWrapper}>
+                                                    <Clock size={18} className={styles.icon} />
+                                                    <input
+                                                        type="time"
+                                                        className={styles.input}
+                                                        value={time}
+                                                        onChange={(e) => setTime(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className={styles.formGroup}>
+                                                <label className={styles.label}>Дополнительная информация (комментарий)</label>
+                                                <div className={styles.inputWrapper}>
+                                                    <MessageSquare size={18} className={styles.icon} style={{ alignSelf: 'flex-start', marginTop: '12px' }} />
+                                                    <textarea
+                                                        className={styles.input}
+                                                        placeholder="Детское кресло, много багажа, рейс СУ-1234..."
+                                                        value={comments}
+                                                        onChange={(e) => setComments(e.target.value)}
+                                                        rows={3}
+                                                        style={{ height: 'auto', paddingTop: '12px', resize: 'vertical' }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className={styles.formGroup}>
+                                                <label className={styles.label}>Количество пассажиров: {passengers}</label>
+                                                <div style={{ display: 'flex', gap: '15px' }}>
+                                                    {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                                                        <button
+                                                            key={num}
+                                                            type="button"
+                                                            onClick={() => setPassengers(num)}
+                                                            style={{
+                                                                flex: 1,
+                                                                height: '48px',
+                                                                borderRadius: '12px',
+                                                                background: passengers === num ? 'var(--color-primary)' : 'var(--glass-bg)',
+                                                                color: passengers === num ? '#fff' : 'var(--color-foreground)',
+                                                                border: `1px solid ${passengers === num ? 'var(--color-primary)' : 'var(--glass-border)'}`,
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s ease',
+                                                                fontWeight: passengers === num ? 'bold' : 'normal',
+                                                            }}
+                                                        >
+                                                            {num}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <p className={styles.priceHint} style={{ marginTop: '10px' }}>
+                                                    <Users size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                                                    Для компаний больше 4 человек рекомендуем выбрать класс Минивэн
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.actions}>
+                                            <button type="button" className={styles.backBtn} onClick={() => setStep(1)} disabled={isSubmitting}>
+                                                <ChevronLeft size={18} style={{ display: 'inline', verticalAlign: 'middle' }} /> Назад
+                                            </button>
+                                            <button type="submit" className={styles.nextBtn} disabled={isSubmitting}>
+                                                {isSubmitting ? <Loader2 size={24} style={{ animation: 'spin 2s linear infinite', margin: '0 auto' }} /> : 'Заказать Трансфер'}
+                                            </button>
+                                        </div>
+                                    </>
+                                )
+                            }
+                        </form >
+                    )}
                 </div >
             </div >
         </section >

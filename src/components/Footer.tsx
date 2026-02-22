@@ -2,7 +2,7 @@
 
 import styles from './Footer.module.css';
 import Link from 'next/link';
-import { Phone, Mail, MapPin, Car } from 'lucide-react';
+import { Phone, Mail, Car } from 'lucide-react';
 import { VKIcon, TelegramIcon, WhatsAppIcon, MaxIcon } from './SocialIcons';
 import { useCity } from '@/context/CityContext';
 
@@ -69,7 +69,7 @@ export default function Footer() {
                 <div className={styles.bottom}>
                     <p>© {new Date().getFullYear()} GrandTransfer. Все права защищены.</p>
                     <div style={{ display: 'flex', gap: 20 }}>
-                        <Link href="#" className={styles.link}>Политика конфиденциальности</Link>
+                        <Link href="/privacy" className={styles.link}>Политика конфиденциальности</Link>
                     </div>
                 </div>
                 <div className={styles.disclaimer}>

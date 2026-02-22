@@ -24,15 +24,77 @@
 }
 
 .header {
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
     margin-bottom: 60px;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 30px;
+.headerTitle {
+    text-align: left;
+}
+
+.navButtons {
+    display: flex;
+    gap: 12px;
+}
+
+.navBtn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--color-foreground);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: var(--glass-blur);
+}
+
+.navBtn:hover {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--color-primary-glow);
+}
+
+.navBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    background: var(--glass-bg);
+    color: var(--color-text-muted);
+    border-color: var(--glass-border);
+    box-shadow: none;
+}
+
+.carouselContainer {
+    position: relative;
     margin-bottom: 60px;
+    margin: 0 -20px 60px -20px;
+    padding: 0 20px;
+}
+
+.grid {
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-bottom: 20px;
+    /* Space for shadow */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.grid::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari and Opera */
 }
 
 .card {
@@ -47,6 +109,9 @@
     position: relative;
     cursor: default;
     box-shadow: var(--shadow-card);
+    min-width: 320px;
+    max-width: 400px;
+    flex: 0 0 auto;
 }
 
 .card:hover {

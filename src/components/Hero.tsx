@@ -1,6 +1,6 @@
 "use client";
 
-import Link from 'next/link';
+
 import { ArrowRight, Phone } from 'lucide-react';
 import styles from './Hero.module.css';
 // Image removed
@@ -8,9 +8,6 @@ import { useCity } from '@/context/CityContext';
 
 export default function Hero() {
     const { currentCity } = useCity();
-
-    // Universal background image (using Moscow as default/fallback)
-    const heroImage = "/images/cities/moscow.jpg";
 
     const scrollToBooking = () => {
         const element = document.getElementById('booking-form');
