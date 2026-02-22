@@ -41,7 +41,7 @@ export function useGeolocationCity(defaultCity: string = 'Ижевск') {
 
                     setCity(dictionary[rawCity] || rawCity);
                 }
-            } catch (error) {
+            } catch {
                 // Intentionally swallowing the error so it doesn't crash the Next.js dev server or client
                 // console.error("Failed to fetch geolocation city", error);
             }

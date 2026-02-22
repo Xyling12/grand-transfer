@@ -7,7 +7,7 @@ const chatId = process.env.TELEGRAM_CHAT_ID;
 
 const prisma = new PrismaClient();
 
-export async function sendOrderNotification(orderData: any) {
+export async function sendOrderNotification(orderData: Record<string, string | number | null | undefined>) {
     if (!bot || !chatId) {
         console.warn('Telegram bot is not configured properly (missing token or chat ID)');
         return;

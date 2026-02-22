@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 import { useState, useEffect, useCallback } from 'react';
-import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, MessageSquare, MapPin, Search, Star, Users, Route, Ruler, Clock3, Navigation, User, Phone, Calendar, Clock } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, MessageSquare, MapPin, Users, Route, Ruler, Clock3, Navigation, User, Phone, Calendar, Clock } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import LeafletSuggestInput from './LeafletSuggestInput';
 import { useCity } from '@/context/CityContext';
