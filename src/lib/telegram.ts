@@ -76,7 +76,8 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
                 try {
                     const sentMsg = await botInstance.telegram.sendMessage(driver.telegramId.toString(), message, {
                         parse_mode: 'HTML',
-                        reply_markup: keyboard?.reply_markup
+                        reply_markup: keyboard?.reply_markup,
+                        protect_content: true
                     });
 
                     if (!isNaN(orderIdNum)) {
@@ -97,7 +98,8 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
             if (chatId) {
                 const sentMsg = await botInstance.telegram.sendMessage(chatId, message, {
                     parse_mode: 'HTML',
-                    reply_markup: keyboard?.reply_markup
+                    reply_markup: keyboard?.reply_markup,
+                    protect_content: true
                 });
                 if (!isNaN(orderIdNum)) {
                     await prisma.broadcastMessage.create({

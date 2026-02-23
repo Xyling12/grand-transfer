@@ -24,6 +24,7 @@ const getMainMenu = (chatId: string, role: string) => {
     if (role === 'ADMIN' || chatId === adminId) {
         buttons.push(['👀 Активные заявки', '🌐 Панель на сайте']);
         buttons.push(['👥 Пользователи', '📥 Выгрузить EXCEL']);
+        buttons.push(['📢 Рассылка', '🗑 Очистить БД']);
     }
 
     return Markup.keyboard(buttons).resize();
@@ -53,9 +54,9 @@ bot.start(async (ctx) => {
             });
 
             if (isInitialAdmin) {
-                return ctx.reply('Добро пожаловать, Главный Администратор! Вы автоматически одобрены.', getMainMenu(telegramIdStr, 'ADMIN'));
+                return ctx.reply('Добро пожаловать, Главный Администратор! Вы автоматически одобрены.', { ...getMainMenu(telegramIdStr, 'ADMIN'), protect_content: true });
             } else {
-                return ctx.reply('Здравствуйте! Ваша заявка в систему GrandTransfer отправлена администратору. Дождитесь одобрения доступа.', Markup.removeKeyboard());
+                return ctx.reply('Здравствуйте! Ваша заявка в систему GrandTransfer отправлена администратору. Дождитесь одобрения доступа.', { reply_markup: { remove_keyboard: true }, protect_content: true });
             }
         } else if (isInitialAdmin && (driver.status !== 'APPROVED' || driver.role !== 'ADMIN')) {
             // Rescue admin if they logged in before the fix
@@ -63,15 +64,15 @@ bot.start(async (ctx) => {
                 where: { telegramId: telegramIdBigInt },
                 data: { status: 'APPROVED', role: 'ADMIN' }
             });
-            return ctx.reply('Добро пожаловать, Главный Администратор! Ваши права восстановлены.', getMainMenu(telegramIdStr, 'ADMIN'));
+            return ctx.reply('Добро пожаловать, Главный Администратор! Ваши права восстановлены.', { ...getMainMenu(telegramIdStr, 'ADMIN'), protect_content: true });
         }
 
         if (driver.status === 'PENDING') {
-            return ctx.reply('Ваша заявка все еще находится на рассмотрении у администратора.', Markup.removeKeyboard());
+            return ctx.reply('Ваша заявка все еще находится на рассмотрении у администратора.', { reply_markup: { remove_keyboard: true }, protect_content: true });
         } else if (driver.status === 'BANNED') {
-            return ctx.reply('Доступ в систему заблокирован.', Markup.removeKeyboard());
+            return ctx.reply('Доступ в систему заблокирован.', { reply_markup: { remove_keyboard: true }, protect_content: true });
         } else if (driver.status === 'APPROVED') {
-            return ctx.reply('Добро пожаловать в рабочую панель водителя GrandTransfer! Ожидайте новых заказов.', getMainMenu(telegramIdStr, driver.role));
+            return ctx.reply('Добро пожаловать в рабочую панель водителя GrandTransfer! Ожидайте новых заказов.', { ...getMainMenu(telegramIdStr, driver.role), protect_content: true });
         }
     } catch (e) {
         console.error('Error in /start:', e);
@@ -125,7 +126,7 @@ bot.hears('📊 Статистика', async (ctx) => {
 ${tariffStatsStr}`.trim();
         await ctx.replyWithHTML(msg, getMainMenu(ctx.chat.id.toString(), role));
     } catch (e) {
-        ctx.reply('❌ Ошибка при получении статистики.');
+        ctx.reply('❌ Ошибка при получении статистики.', { protect_content: true });
     }
 });
 
@@ -141,7 +142,7 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
         });
 
         if (myOrders.length === 0) {
-            return ctx.reply('У вас пока нет активных взятых заявок.');
+            return ctx.reply('У вас пока нет активных взятых заявок.', { protect_content: true });
         }
 
         let msg = '🚗 <b>Ваши активные заявки:</b>\n\n';
@@ -169,9 +170,9 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
         });
 
 
-        ctx.replyWithHTML(msg);
+        ctx.replyWithHTML(msg, { protect_content: true });
     } catch (err) {
-        ctx.reply('❌ Ошибка при получении ваших заказов.');
+        ctx.reply('❌ Ошибка при получении ваших заказов.', { protect_content: true });
     }
 });
 
@@ -187,7 +188,7 @@ bot.hears('👀 Активные заявки', async (ctx) => {
         });
 
         if (activeOrders.length === 0) {
-            return ctx.reply('Сейчас нет активных заявок.');
+            return ctx.reply('Сейчас нет активных заявок.', { protect_content: true });
         }
 
         const allDrivers = await prisma.driver.findMany();
@@ -209,9 +210,9 @@ bot.hears('👀 Активные заявки', async (ctx) => {
                 `━━━━━━━━━━━━━━━━━━\n\n`;
         });
 
-        ctx.replyWithHTML(msg);
+        ctx.replyWithHTML(msg, { protect_content: true });
     } catch (err) {
-        ctx.reply('❌ Ошибка при получении активных заявок.');
+        ctx.reply('❌ Ошибка при получении активных заявок.', { protect_content: true });
     }
 });
 
@@ -219,7 +220,7 @@ bot.hears('👀 Активные заявки', async (ctx) => {
 bot.hears('🌐 Панель на сайте', async (ctx) => {
     const { auth, role } = await checkAuth(ctx);
     if (!auth || role !== 'ADMIN') return;
-    ctx.reply('Панель управления доступна по ссылке: https://межгород.com/admin/drivers\n\nPIN-код: 7878');
+    ctx.reply('Панель управления доступна по ссылке: https://межгород.com/admin/drivers\n\nPIN-код: 7878', { protect_content: true });
 });
 
 bot.hears('🗑 Очистить БД', async (ctx) => {
@@ -227,9 +228,49 @@ bot.hears('🗑 Очистить БД', async (ctx) => {
     if (!auth || role !== 'ADMIN') return;
     try {
         await prisma.order.deleteMany({});
-        ctx.reply('🗑 Статистика (все заявки) была успешно удалена из базы данных.');
+        ctx.reply('🗑 Статистика (все заявки) была успешно удалена из базы данных.', { protect_content: true });
     } catch (e) {
-        ctx.reply('❌ Ошибка удаления данных.');
+        ctx.reply('❌ Ошибка удаления данных.', { protect_content: true });
+    }
+});
+
+bot.hears('📢 Рассылка', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+    ctx.reply('Для того чтобы отправить сообщение ВСЕМ пользователям бота (включая водителей), напишите команду <b>/send</b> и ваш текст через пробел.\n\nНапример:\n<code>/send Вышло обновление! Чтобы появились новые функции, напишите /start</code>', { parse_mode: 'HTML', protect_content: true });
+});
+
+bot.command('send', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    const text = ctx.message.text.replace('/send', '').trim();
+    if (!text) {
+        return ctx.reply('⚠️ Пожалуйста, напишите текст после команды /send.\nПример: /send Всем привет!', { protect_content: true });
+    }
+
+    try {
+        const users = await prisma.driver.findMany();
+        let successCount = 0;
+
+        await ctx.reply(`⏳ Начинаю рассылку для ${users.length} пользователей...`);
+
+        for (const u of users) {
+            try {
+                await bot.telegram.sendMessage(
+                    Number(u.telegramId),
+                    `📢 <b>Уведомление от администрации:</b>\n\n${text}`,
+                    { parse_mode: 'HTML', protect_content: true }
+                );
+                successCount++;
+            } catch (e) {
+                // user might have blocked the bot, skip
+            }
+        }
+
+        ctx.reply(`✅ Рассылка завершена!\nУспешно доставлено: ${successCount} из ${users.length} пользователей.`, { protect_content: true });
+    } catch (e) {
+        ctx.reply('❌ Ошибка при рассылке.', { protect_content: true });
     }
 });
 
@@ -248,10 +289,10 @@ bot.hears('📥 Выгрузить EXCEL', async (ctx) => {
         const buffer = Buffer.from(csv, 'utf8');
         await ctx.replyWithDocument(
             { source: buffer, filename: `orders_${new Date().toISOString().split('T')[0]}.csv` },
-            { caption: '📄 Выгрузка БД' }
+            { caption: '📄 Выгрузка БД', protect_content: true }
         );
     } catch (e) {
-        ctx.reply('❌ Ошибка экспорта.');
+        ctx.reply('❌ Ошибка экспорта.', { protect_content: true });
     }
 });
 
@@ -262,7 +303,7 @@ bot.hears('👥 Пользователи', async (ctx) => {
 
     try {
         const drivers = await prisma.driver.findMany({ orderBy: { createdAt: 'desc' } });
-        if (drivers.length === 0) return ctx.reply("В базе нет пользователей.");
+        if (drivers.length === 0) return ctx.reply("В базе нет пользователей.", { protect_content: true });
 
         for (const d of drivers) {
             const name = d.username ? `@${d.username}` : (d.firstName || `ID: ${d.telegramId}`);
@@ -282,7 +323,7 @@ bot.hears('👥 Пользователи', async (ctx) => {
                 buttons.push(Markup.button.callback('🔄 Восстановить', `approve_${d.telegramId}`));
             }
 
-            await ctx.replyWithHTML(text, Markup.inlineKeyboard(buttons));
+            await ctx.replyWithHTML(text, { ...Markup.inlineKeyboard(buttons), protect_content: true });
         }
     } catch (err) {
         ctx.reply('❌ Ошибка получения пользователей.');
@@ -297,7 +338,7 @@ bot.action(/^approve_(\d+)$/, async (ctx) => {
         await ctx.answerCbQuery('Пользователь одобрен');
         await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n✅ СТАТУС ИЗМЕНЕН НА: APPROVED');
         try {
-            await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Теперь вам доступно меню водителя.', getMainMenu(telegramId.toString(), updatedDriver.role));
+            await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Теперь вам доступно меню водителя.', { ...getMainMenu(telegramId.toString(), updatedDriver.role), protect_content: true });
         } catch (e) { }
     } catch {
         await ctx.answerCbQuery('Ошибка обновления');
@@ -320,7 +361,7 @@ bot.action(/^makeadmin_(\d+)$/, async (ctx) => {
         await ctx.answerCbQuery('Права администратора выданы');
         await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n👑 РОЛЬ ИЗМЕНЕНА НА: ADMIN');
         try {
-            await bot.telegram.sendMessage(Number(telegramId), '👑 Вам выданы права администратора! Полноценное меню обновлено.', getMainMenu(telegramId.toString(), 'ADMIN'));
+            await bot.telegram.sendMessage(Number(telegramId), '👑 Вам выданы права администратора! Полноценное меню обновлено.', { ...getMainMenu(telegramId.toString(), 'ADMIN'), protect_content: true });
         } catch (e) { }
     } catch {
         await ctx.answerCbQuery('Ошибка обновления');
