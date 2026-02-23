@@ -2,8 +2,8 @@ services:
   web:
     build: .
     restart: always
-    ports:
-      - "3001:3000"
+    networks:
+      - dokploy-network
     volumes:
       - app_data:/app/prisma
     environment:
@@ -11,6 +11,15 @@ services:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
       - DATABASE_URL=file:./dev.db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grandtransfer-web.rule=Host(`межгород.com`) || Host(`www.межгород.com`)"
+      - "traefik.http.services.grandtransfer-web.loadbalancer.server.port=3000"
 
 volumes:
   app_data:
+
+
+networks:
+  dokploy-network:
+    external: true
