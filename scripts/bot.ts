@@ -290,8 +290,33 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
         });
 
         const txt = ctx.callbackQuery.message?.text || "Заявка";
-        await ctx.editMessageText(txt + '\n\n✅ <b>ВЫ ВЗЯЛИ ЭТУ ЗАЯВКУ В РАБОТУ</b>', { parse_mode: 'HTML' });
+
+        const customerInfo = `\n\n✅ <b>ВЫ ВЗЯЛИ ЭТУ ЗАЯВКУ В РАБОТУ</b>\n\n👤 <b>Клиент:</b> ${order.customerName}\n📞 <b>Телефон:</b> ${order.customerPhone}`;
+
+        await ctx.editMessageText(txt + customerInfo, { parse_mode: 'HTML' });
         await ctx.answerCbQuery('Вы успешно взяли заявку!', { show_alert: true });
+
+        // Retrieve and delete messages for other drivers
+        try {
+            const bms = await (prisma as any).broadcastMessage.findMany({ where: { orderId } });
+            for (const bm of bms) {
+                // Do not delete for the driver who took the order
+                if (bm.telegramId === BigInt(ctx.chat.id)) continue;
+
+                // Do not delete for ADMINs
+                const bmDriver = await prisma.driver.findUnique({ where: { telegramId: bm.telegramId } });
+                if (bmDriver?.role === 'ADMIN' || bm.telegramId.toString() === adminId) continue;
+
+                // Delete message
+                try {
+                    await bot.telegram.deleteMessage(Number(bm.telegramId), bm.messageId);
+                } catch (delErr) {
+                    console.error(`Failed to delete message for ${bm.telegramId}:`, delErr);
+                }
+            }
+        } catch (dbErr) {
+            console.error('Failed to cleanup broadcast messages:', dbErr);
+        }
 
     } catch (err) {
         console.error('Take_order error:', err);

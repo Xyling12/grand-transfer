@@ -32,9 +32,6 @@ export async function sendOrderNotification(orderData: Record<string, string | n
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
 
-👤 <b>Клиент:</b> ${orderData.customerName}
-📞 <b>Телефон:</b> ${orderData.customerPhone}
-
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
 ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тариф:</b> ${orderData.tariff}
@@ -65,14 +62,26 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
             ])
             : undefined;
 
+        const orderIdNum = Number(orderData.id);
+
         // Send to all approved drivers
         if (approvedDrivers.length > 0) {
             for (const driver of approvedDrivers) {
                 try {
-                    await botInstance.telegram.sendMessage(driver.telegramId.toString(), message, {
+                    const sentMsg = await botInstance.telegram.sendMessage(driver.telegramId.toString(), message, {
                         parse_mode: 'HTML',
                         reply_markup: keyboard?.reply_markup
                     });
+
+                    if (!isNaN(orderIdNum)) {
+                        await prisma.broadcastMessage.create({
+                            data: {
+                                orderId: orderIdNum,
+                                telegramId: BigInt(driver.telegramId.toString()),
+                                messageId: sentMsg.message_id
+                            }
+                        });
+                    }
                 } catch (err) {
                     console.error(`Failed to send to driver ${driver.telegramId}:`, err);
                 }
@@ -80,10 +89,19 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
         } else {
             // Fallback to admin/chat ID if nobody is approved yet or DB failed
             if (chatId) {
-                await botInstance.telegram.sendMessage(chatId, message, {
+                const sentMsg = await botInstance.telegram.sendMessage(chatId, message, {
                     parse_mode: 'HTML',
                     reply_markup: keyboard?.reply_markup
                 });
+                if (!isNaN(orderIdNum)) {
+                    await prisma.broadcastMessage.create({
+                        data: {
+                            orderId: orderIdNum,
+                            telegramId: BigInt(chatId),
+                            messageId: sentMsg.message_id
+                        }
+                    });
+                }
             }
         }
     } catch (e) {

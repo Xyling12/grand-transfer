@@ -62,8 +62,6 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
             if (matchedCity) {
                 setFromCoords([matchedCity.lat, matchedCity.lon]);
             }
-        } else if (!fromCity && defaultGeoCity) {
-            setFromCity(defaultGeoCity);
         }
     }, [defaultGeoCity, fromCity, urlFrom, defaultFromCity]);
 
@@ -71,12 +69,8 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     useEffect(() => {
         if (urlFrom) {
             setTimeout(() => setFromCity(urlFrom), 0);
-        } else if (currentCity && !fromCity) {
-            setTimeout(() => {
-                setFromCity(currentCity.name);
-                setFromCoords([currentCity.lat, currentCity.lon]);
-            }, 0);
         }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentCity, urlFrom]);
 

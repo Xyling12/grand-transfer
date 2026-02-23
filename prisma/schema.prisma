@@ -33,3 +33,13 @@ model Driver {
   subExpiresAt   DateTime? 
   createdAt      DateTime  @default(now())
 }
+
+model BroadcastMessage {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  telegramId BigInt
+  messageId  Int
+  createdAt  DateTime @default(now())
+
+  @@index([orderId])
+}
