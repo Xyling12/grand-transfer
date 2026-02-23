@@ -146,13 +146,18 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
         let msg = '🚗 <b>Ваши активные заявки:</b>\n\n';
         myOrders.forEach(o => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
+            const pt1 = encodeURIComponent(o.fromCity);
+            const pt2 = encodeURIComponent(o.toCity);
+            const mapLink = encodeURI(`https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`);
+
             msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
                 `📍 <b>Откуда:</b> ${o.fromCity}\n` +
                 `🏁 <b>Куда:</b> ${o.toCity}\n` +
                 `🚕 <b>Тариф:</b> ${o.tariff}\n` +
                 `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
                 `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
-                `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n\n` +
+                `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
+                `🗺 <a href="${mapLink}">📍 Открыть маршрут в Яндекс Картах</a>\n\n` +
                 `👤 <b>Клиент:</b> ${o.customerName}\n` +
                 `📞 <b>Телефон:</b> ${o.customerPhone}\n` +
                 `━━━━━━━━━━━━━━━━━━\n\n`;
