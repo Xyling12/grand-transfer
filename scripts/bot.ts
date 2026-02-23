@@ -322,8 +322,14 @@ bot.hears('👥 Пользователи', async (ctx) => {
             if (d.status === 'BANNED') {
                 buttons.push(Markup.button.callback('🔄 Восстановить', `approve_${d.telegramId}`));
             }
+            buttons.push(Markup.button.callback('📦 Заказы', `view_orders_${d.telegramId}`));
 
-            await ctx.replyWithHTML(text, { ...Markup.inlineKeyboard(buttons), protect_content: true });
+            const keyboardRows = [];
+            for (let i = 0; i < buttons.length; i += 2) {
+                keyboardRows.push(buttons.slice(i, i + 2));
+            }
+
+            await ctx.replyWithHTML(text, { ...Markup.inlineKeyboard(keyboardRows), protect_content: true });
         }
     } catch (err) {
         ctx.reply('❌ Ошибка получения пользователей.');
@@ -365,6 +371,44 @@ bot.action(/^makeadmin_(\d+)$/, async (ctx) => {
         } catch (e) { }
     } catch {
         await ctx.answerCbQuery('Ошибка обновления');
+    }
+});
+
+bot.action(/^view_orders_(\d+)$/, async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') {
+        return ctx.answerCbQuery('Нет прав доступа', { show_alert: true });
+    }
+
+    const telegramId = BigInt(ctx.match[1]);
+    try {
+        const targetDriver = await prisma.driver.findUnique({ where: { telegramId } });
+        if (!targetDriver) return ctx.answerCbQuery('Водитель не найден.');
+
+        const orders = await prisma.order.findMany({
+            where: { driverId: targetDriver.id },
+            orderBy: { createdAt: 'desc' },
+            take: 20
+        });
+
+        if (orders.length === 0) {
+            return ctx.answerCbQuery('У пользователя нет взятых заявок.', { show_alert: true });
+        }
+
+        let msg = `📦 <b>Заявки водителя ${targetDriver.firstName || 'Без имени'}:</b>\n\n`;
+        orders.forEach(o => {
+            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
+            msg += `📋 <b>Заявка № ${o.id}</b> (${dateStr})\n` +
+                `📍 <b>Маршрут:</b> ${o.fromCity} — ${o.toCity}\n` +
+                `Текущий статус: <b>${o.status}</b>\n` +
+                `💰 Сумма: ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n` +
+                `━━━━━━━━━━━━━━━━━━\n\n`;
+        });
+
+        await ctx.answerCbQuery('Загружаем заявки...');
+        await ctx.replyWithHTML(msg, { protect_content: true });
+    } catch (err) {
+        ctx.answerCbQuery('Ошибка получения заявок.');
     }
 });
 
