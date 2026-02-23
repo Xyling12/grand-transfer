@@ -8,7 +8,7 @@ services:
     volumes:
       - app_data:/app/prisma
     environment:
-      - DATABASE_URL=file:./dev.db
+      - DATABASE_URL=file:/app/prisma/dev.db
       - TELEGRAM_BOT_TOKEN=8410817305:AAE6vTlmSuBBWA2Wbwf9_p5wy3QzqF6INz8
       - TELEGRAM_CHAT_ID=376060133
     labels:
@@ -26,7 +26,7 @@ services:
     volumes:
       - app_data:/app/prisma
     environment:
-      - DATABASE_URL=file:./dev.db
+      - DATABASE_URL=file:/app/prisma/dev.db
       - TELEGRAM_BOT_TOKEN=8410817305:AAE6vTlmSuBBWA2Wbwf9_p5wy3QzqF6INz8
       - TELEGRAM_CHAT_ID=376060133
 
