@@ -1,6 +1,9 @@
 import { MetadataRoute } from 'next';
 import { cities } from '@/data/cities';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 86400; // Cache for 24 hours so it's not generated every single click
+
 // Required by Next.js to know which dynamic sitemaps to generate
 export async function generateSitemaps() {
     return cities.map((city) => ({ id: city.id }));
