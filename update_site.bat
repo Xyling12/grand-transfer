@@ -1,36 +1,39 @@
 @echo off
 chcp 65001 > nul
 echo ====================================================
-echo    Обновление сайта на сервере 155.212.216.227
+echo    Обновление сайта через GitHub для Dokploy
 echo ====================================================
 echo.
 
-echo [1/4] Упаковка новых файлов проекта (это займет пару секунд)...
 cd %~dp0
-tar.exe -czf grand-transfer.tar.gz --exclude="node_modules" --exclude=".next" --exclude=".git" .
+
+echo [1/3] Добавление измененных файлов...
+git add .
 if %errorlevel% neq 0 (
-    echo Ошибка при архивации.
+    echo Ошибка при добавлении файлов в git.
     pause
     exit /b %errorlevel%
 )
 
 echo.
-echo [2/4] Отправка файлов на сервер...
-echo Пожалуйста, введите пароль от сервера (nQ%%RJGoHF7kZ)
-scp -o StrictHostKeyChecking=no grand-transfer.tar.gz root@155.212.216.227:/root/
+echo [2/3] Создание сохранения (коммита)...
+git commit -m "Автоматическое обновление сайта"
+:: Не проверяем ошибку тут, так как может просто не быть изменений
+
+echo.
+echo [3/3] Отправка изменений на сервер (GitHub)...
+echo.
+git push -u origin main
 if %errorlevel% neq 0 (
-    echo Ошибка при отправке файлов.
+    echo Ошибка при отправке на GitHub!
     pause
     exit /b %errorlevel%
 )
-
-echo.
-echo [3/4] Распаковка новых файлов и сборка на сервере...
-echo Пожалуйста, введите пароль от сервера еще раз:
-ssh -o StrictHostKeyChecking=no root@155.212.216.227 "tar -xzf /root/grand-transfer.tar.gz -C /var/www/grand-transfer && cd /var/www/grand-transfer && npm install && npm run build && pm2 reload all"
 
 echo.
 echo ====================================================
-echo    Готово! Сайт успешно обновлен! 
+echo    Готово! Изменения успешно отправлены! 
+echo    Dokploy сейчас автоматически начнет сборку новой 
+echo    версии сайта. Это займет около 2-3 минут.
 echo ====================================================
 pause
