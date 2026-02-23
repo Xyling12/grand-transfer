@@ -5,12 +5,16 @@ import { cities } from '../src/data/cities';
 dotenv.config();
 
 const token = (process.env.TELEGRAM_BOT_TOKEN || '').replace(/['"]/g, '').trim();
+
 if (!token) {
-    console.error('Missing TELEGRAM_BOT_TOKEN');
-    process.exit(1);
+    console.error('❌ TELEGRAM_BOT_TOKEN is missing or invalid! Telegram Bot will NOT start, but the website will continue to run.');
+    // We don't exit the process here so Next.js can still run
+} else {
+    // Proceed with initialization if we have *some* token
+    // (Actual verification happens when we call bot.launch)
 }
 
-const bot = new Telegraf(token);
+const bot = new Telegraf(token || 'dummy:123456'); // Telegraf needs some token format to initialize the class
 const prisma = new PrismaClient();
 const adminId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim();
 
