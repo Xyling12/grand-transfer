@@ -255,7 +255,10 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                     comments: comments,
                     dateTime: `${date || ''} ${time || ''}`.trim(),
                     priceEstimate: priceCalc?.minPrice || null,
-                    checkpointName: activeCheckpoint ? activeCheckpoint.name : null
+                    checkpointName: activeCheckpoint ? activeCheckpoint.name : null,
+                    fromCoords: fromCoords ? `${fromCoords[0]},${fromCoords[1]}` : null,
+                    toCoords: toCoords ? `${toCoords[0]},${toCoords[1]}` : null,
+                    checkpointCoords: activeCheckpoint && activeCheckpoint.coords ? `${activeCheckpoint.coords[0]},${activeCheckpoint.coords[1]}` : null
                 }),
             });
 

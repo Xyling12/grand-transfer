@@ -19,11 +19,15 @@ export async function sendOrderNotification(orderData: Record<string, string | n
     const toCity = String(orderData.toCity || '');
     const checkpointName = orderData.checkpointName ? String(orderData.checkpointName) : '';
 
-    let rtext = `${encodeURIComponent(fromCity)}~${encodeURIComponent(toCity)}`;
-    if (checkpointName) {
-        rtext = `${encodeURIComponent(fromCity)}~${encodeURIComponent(checkpointName)}~${encodeURIComponent(toCity)}`;
+    const pt1 = orderData.fromCoords ? String(orderData.fromCoords) : encodeURIComponent(fromCity);
+    const pt2 = orderData.toCoords ? String(orderData.toCoords) : encodeURIComponent(toCity);
+    const ptCp = orderData.checkpointCoords ? String(orderData.checkpointCoords) : (checkpointName ? encodeURIComponent(checkpointName) : '');
+
+    let rtext = `${pt1}~${pt2}`;
+    if (checkpointName || ptCp) {
+        rtext = `${pt1}~${ptCp}~${pt2}`;
     }
-    const mapLink = `https://yandex.ru/maps/?mode=routes&amp;rtext=${rtext}`;
+    const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${rtext}`;
 
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>

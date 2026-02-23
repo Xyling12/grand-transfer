@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "tsx scripts/generate-sitemap-index.ts && next build",
-    "start": "next start",
+    "start": "tsx scripts/bot.ts & next start",
     "lint": "eslint",
     "bot": "tsx scripts/bot.ts",
     "postinstall": "prisma generate"

@@ -125,7 +125,7 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
 
 bot.hears('🌐 Панель управления на сайте', (ctx) => {
     if (ctx.chat.id.toString() !== adminId) return;
-    ctx.reply('Панель управления доступна по ссылке: https://grand-transfer.ru/admin/drivers\n\nPIN-код: 7878');
+    ctx.reply('Панель управления доступна по ссылке: https://межгород.com/admin/drivers\n\nPIN-код: 7878');
 });
 
 bot.hears('🗑 Очистить БД', async (ctx) => {
