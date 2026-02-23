@@ -7,6 +7,7 @@ RUN apk add --no-cache openssl
 
 # Install dependencies
 COPY package.json package-lock.json ./
+COPY prisma ./prisma
 RUN npm ci
 
 # Copy all source files
