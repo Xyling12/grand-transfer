@@ -1,6 +1,7 @@
 import { Telegraf, Markup } from 'telegraf';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
+import { cities } from '../src/data/cities';
 dotenv.config();
 
 const token = (process.env.TELEGRAM_BOT_TOKEN || '').replace(/['"]/g, '').trim();
@@ -146,9 +147,13 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
         let msg = '🚗 <b>Ваши активные заявки:</b>\n\n';
         myOrders.forEach(o => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
-            const pt1 = encodeURIComponent(o.fromCity);
-            const pt2 = encodeURIComponent(o.toCity);
-            const mapLink = `https://межгород.com/route?rtext=${pt1}~${pt2}`;
+
+            const fromCityObj = cities.find(c => c.name.toLowerCase() === o.fromCity.toLowerCase());
+            const toCityObj = cities.find(c => c.name.toLowerCase() === o.toCity.toLowerCase());
+
+            const pt1 = fromCityObj ? `${fromCityObj.lat},${fromCityObj.lon}` : encodeURIComponent(o.fromCity);
+            const pt2 = toCityObj ? `${toCityObj.lat},${toCityObj.lon}` : encodeURIComponent(o.toCity);
+            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
 
             msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
                 `📍 <b>Откуда:</b> ${o.fromCity}\n` +
@@ -157,7 +162,7 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
                 `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
                 `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
                 `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
-                `🗺 <a href="${mapLink}">📍 Открыть маршрут в Навигаторе / Картах</a>\n\n` +
+                `🗺 <a href="${mapLink}">📍 Открыть маршрут в Яндекс Картах</a>\n\n` +
                 `👤 <b>Клиент:</b> ${o.customerName}\n` +
                 `📞 <b>Телефон:</b> ${o.customerPhone}\n` +
                 `━━━━━━━━━━━━━━━━━━\n\n`;
