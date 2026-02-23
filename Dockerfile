@@ -5,8 +5,9 @@ RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/
 
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package files and prisma schema before install
 COPY package.json package-lock.json* ./
+COPY prisma ./prisma
 RUN npm ci
 
 # Copy the rest of the application
