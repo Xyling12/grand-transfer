@@ -9,8 +9,8 @@ services:
       - app_data:/app/prisma
     environment:
       - DATABASE_URL=file:./dev.db
-      - TELEGRAM_BOT_TOKEN=7744837380:AAGrOmsx5_D6gqM7O4QOFkI4tO-bH5H3w44
-      - TELEGRAM_CHAT_ID=-1002353386695
+      - TELEGRAM_BOT_TOKEN=8410817305:AAE6vTlmSuBBWA2Wbwf9_p5wy3QzqF6INz8
+      - TELEGRAM_CHAT_ID=376060133
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.site-router.rule=Host(`xn--c1acbe2apap.com`) || Host(`www.xn--c1acbe2apap.com`)"
@@ -27,8 +27,8 @@ services:
       - app_data:/app/prisma
     environment:
       - DATABASE_URL=file:./dev.db
-      - TELEGRAM_BOT_TOKEN=7744837380:AAGrOmsx5_D6gqM7O4QOFkI4tO-bH5H3w44
-      - TELEGRAM_CHAT_ID=-1002353386695
+      - TELEGRAM_BOT_TOKEN=8410817305:AAE6vTlmSuBBWA2Wbwf9_p5wy3QzqF6INz8
+      - TELEGRAM_CHAT_ID=376060133
 
 networks:
   dokploy-network:
