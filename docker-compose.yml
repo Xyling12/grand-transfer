@@ -1,26 +1,38 @@
+version: '3.8'
 services:
   web:
     build: .
-    restart: always
+    restart: unless-stopped
     networks:
       - dokploy-network
     volumes:
       - app_data:/app/prisma
     environment:
-      - NODE_ENV=production
+      - DATABASE_URL=file:./dev.db
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-      - DATABASE_URL=file:./dev.db
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grandtransfer-web.rule=Host(`xn--c1acbe2apap.com`) || Host(`www.xn--c1acbe2apap.com`)"
-      - "traefik.http.services.grandtransfer-web.loadbalancer.server.port=3000"
+      - "traefik.http.routers.site-router.rule=Host(`xn--c1acbe2apap.com`) || Host(`www.xn--c1acbe2apap.com`)"
+      - "traefik.http.services.site-router.loadbalancer.server.port=3000"
       - "traefik.docker.network=dokploy-network"
 
-volumes:
-  app_data:
-
+  bot:
+    build: .
+    command: npm run bot
+    restart: unless-stopped
+    networks:
+      - dokploy-network
+    volumes:
+      - app_data:/app/prisma
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
 
 networks:
   dokploy-network:
     external: true
+
+volumes:
+  app_data:
