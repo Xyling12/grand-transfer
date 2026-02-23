@@ -29,8 +29,11 @@ export default function ScrollAnimation() {
             });
         };
 
-        // Initial check
-        observeNewElements();
+        // Initial check - wrap in timeout to ensure React hydration has fully completed
+        // otherwise modifying the DOM (adding data-observed) will trigger a React Hydration Mismatch
+        setTimeout(() => {
+            observeNewElements();
+        }, 100);
 
         // Watch for DOM changes (React updates)
         const mutationObserver = new MutationObserver((mutations) => {
