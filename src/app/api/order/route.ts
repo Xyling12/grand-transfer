@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { sendOrderNotification } from '@/lib/telegram';
+import { sendEmailNotification } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,9 @@ export async function POST(req: Request) {
         // Send Telegram Notification (must await on Vercel otherwise Lambda is killed instantly)
         body.id = orderId; // Include the DB ID (or N/A) in the notification
         await sendOrderNotification(body);
+
+        // Send Email Notification as backup
+        await sendEmailNotification(body);
 
         return NextResponse.json({ success: true, orderId: orderId }, { status: 200 });
 
