@@ -8,7 +8,7 @@ import styles from './Hero.module.css';
 import { useCity } from '@/context/CityContext';
 import { Suspense } from 'react';
 
-function HeroContent() {
+function HeroContent({ defaultToCity }: { defaultToCity?: string }) {
     const { currentCity } = useCity();
     const searchParams = useSearchParams();
     const utmCampaign = searchParams.get('utm_campaign');
@@ -23,7 +23,12 @@ function HeroContent() {
     let subTitle = `из г. ${currentCity.name}`;
     let descriptionText = <>Комфортные поездки в любой город. Фиксированная цена.<br />Безопасно, надежно, вовремя.</>;
 
-    if (utmCampaign === 'search_border') {
+    if (defaultToCity) {
+        mainTitle = `Такси ${currentCity.name} — ${defaultToCity}`;
+        middleTitle = <></>;
+        subTitle = '';
+        descriptionText = <>Прямой рейс без пересадок. Фиксированная цена.<br />Выгодный трансфер от двери до двери.</>;
+    } else if (utmCampaign === 'search_border') {
         mainTitle = 'Трансфер до границы';
         middleTitle = <>Такси<br />до КПП</>;
         descriptionText = <>Поездки до границы и контрольно-пропускных пунктов.<br />Помощь с багажом. Точный расчет.</>;
@@ -34,9 +39,7 @@ function HeroContent() {
 
     return (
         <section className={styles.heroSection}>
-            {/* Gradient Background (No Image) */}
             <div className={styles.bgImage}>
-                {/* CSS gradient is applied via .bgImage/overlay or .heroSection background */}
                 <div className={styles.overlay}></div>
             </div>
 
@@ -44,8 +47,8 @@ function HeroContent() {
                 <div className={styles.content}>
                     <h1 className={`${styles.title} animate-on-scroll`}>
                         <span className={styles.titleTop}>{mainTitle}</span>
-                        <span className={styles.titleMiddle}>{middleTitle}</span>
-                        <span className={styles.titleBottom}>{subTitle}</span>
+                        {middleTitle && <span className={styles.titleMiddle}>{middleTitle}</span>}
+                        {subTitle && <span className={styles.titleBottom}>{subTitle}</span>}
                     </h1>
 
                     <p className={`${styles.subtitle} animate-on-scroll delay-100`}>
@@ -66,10 +69,10 @@ function HeroContent() {
     );
 }
 
-export default function Hero() {
+export default function Hero({ defaultToCity }: { defaultToCity?: string }) {
     return (
         <Suspense fallback={<div className={styles.heroSection}></div>}>
-            <HeroContent />
+            <HeroContent defaultToCity={defaultToCity} />
         </Suspense>
     );
 }

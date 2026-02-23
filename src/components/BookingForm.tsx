@@ -29,7 +29,7 @@ const TARIFFS = [
     { id: 'delivery', name: 'Доставка', image: '/images/tariffs/delivery-3d.webp' },
 ];
 
-function BookingFormContent() {
+function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCity?: string, defaultToCity?: string }) {
     const { currentCity } = useCity();
     const defaultGeoCity = useGeolocationCity('Ижевск');
     const [step, setStep] = useState(1);
@@ -49,7 +49,13 @@ function BookingFormContent() {
 
     // Update fromCity when geolocation resolves, but only if user hasn't typed anything yet
     useEffect(() => {
-        if (urlFrom) {
+        if (defaultFromCity) {
+            setFromCity(defaultFromCity);
+            const matchedCity = cities.find(c => c.name.toLowerCase() === defaultFromCity.toLowerCase() || c.namePrepositional.toLowerCase() === defaultFromCity.toLowerCase());
+            if (matchedCity) {
+                setFromCoords([matchedCity.lat, matchedCity.lon]);
+            }
+        } else if (urlFrom) {
             setFromCity(urlFrom);
             // Auto-find coords for fromCity from our DB
             const matchedCity = cities.find(c => c.name.toLowerCase() === urlFrom.toLowerCase() || c.namePrepositional.toLowerCase() === urlFrom.toLowerCase());
@@ -59,7 +65,7 @@ function BookingFormContent() {
         } else if (!fromCity && defaultGeoCity) {
             setFromCity(defaultGeoCity);
         }
-    }, [defaultGeoCity, fromCity, urlFrom]);
+    }, [defaultGeoCity, fromCity, urlFrom, defaultFromCity]);
 
     // Update form when city changes globally
     useEffect(() => {
@@ -74,14 +80,20 @@ function BookingFormContent() {
     }, [currentCity, urlFrom]);
 
     useEffect(() => {
-        if (urlTo) {
+        if (defaultToCity) {
+            setToCity(defaultToCity);
+            const matchedCity = cities.find(c => c.name.toLowerCase() === defaultToCity.toLowerCase() || c.namePrepositional.toLowerCase() === defaultToCity.toLowerCase());
+            if (matchedCity) {
+                setToCoords([matchedCity.lat, matchedCity.lon]);
+            }
+        } else if (urlTo) {
             setToCity(urlTo);
             const matchedCity = cities.find(c => c.name.toLowerCase() === urlTo.toLowerCase() || c.namePrepositional.toLowerCase() === urlTo.toLowerCase());
             if (matchedCity) {
                 setToCoords([matchedCity.lat, matchedCity.lon]);
             }
         }
-    }, [urlTo]);
+    }, [urlTo, defaultToCity]);
 
     const { selectedTariff, setSelectedTariff } = useCity();
     const tariff = selectedTariff;
@@ -686,14 +698,14 @@ function BookingFormContent() {
     );
 }
 
-export default function BookingForm() {
+export default function BookingForm({ defaultFromCity, defaultToCity }: { defaultFromCity?: string, defaultToCity?: string }) {
     return (
         <Suspense fallback={
             <div style={{ minHeight: '600px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <Loader2 size={32} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} />
             </div>
         }>
-            <BookingFormContent />
+            <BookingFormContent defaultFromCity={defaultFromCity} defaultToCity={defaultToCity} />
         </Suspense>
     );
 }

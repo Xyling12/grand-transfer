@@ -1,6 +1,5 @@
 "use client";
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation'; import React, { createContext, useContext, useState, useEffect } from 'react';
 import { cities, City, getClosestCity } from '@/data/cities';
 
 interface CityContextType {
@@ -21,7 +20,22 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
 
     const [selectedTariff, setSelectedTariff] = useState<string>('standart');
 
+    const pathname = usePathname();
+
     useEffect(() => {
+        // Skip geolocation if we are on a specific route page
+        if (pathname && pathname.startsWith('/routes/')) {
+            const parts = pathname.split('/');
+            if (parts.length >= 3) {
+                const fromId = parts[2];
+                const fromCity = cities.find(c => c.id === fromId);
+                if (fromCity) {
+                    setCurrentCity(fromCity);
+                    return;
+                }
+            }
+        }
+
         // Always try to detect city via IP Geolocation on mount
         const fetchCityByIP = async () => {
             try {
@@ -40,7 +54,7 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
         };
 
         fetchCityByIP();
-    }, []);
+    }, [pathname]);
 
     const handleSetCity = (city: City) => {
         setCurrentCity(city);
