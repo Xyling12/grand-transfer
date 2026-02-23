@@ -28,6 +28,15 @@ export const NEW_TERRITORY_CITIES = [
 
 export const requiresCheckpoint = (cityName: string): boolean => {
     if (!cityName) return false;
-    const lower = cityName.toLowerCase();
-    return NEW_TERRITORY_CITIES.some(city => lower.includes(city));
+    let lower = cityName.toLowerCase();
+
+    // Ignore false positives
+    lower = lower.replace(/свердловск(?:ая|ой)\s+област[иь]/g, '');
+    lower = lower.replace(/северное\s+(?:шоссе|бутово|измайлово|тушино|чертаново)/g, '');
+
+    return NEW_TERRITORY_CITIES.some(city => {
+        // Use regex for word boundaries supporting Cyrillic
+        const regex = new RegExp(`(^|[^а-яё])${city}([^а-яё]|$)`);
+        return regex.test(lower);
+    });
 };

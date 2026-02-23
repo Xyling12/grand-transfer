@@ -253,7 +253,8 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                     customerPhone: phone,
                     comments: comments,
                     dateTime: `${date || ''} ${time || ''}`.trim(),
-                    priceEstimate: priceCalc?.minPrice || null
+                    priceEstimate: priceCalc?.minPrice || null,
+                    checkpointName: activeCheckpoint ? activeCheckpoint.name : null
                 }),
             });
 

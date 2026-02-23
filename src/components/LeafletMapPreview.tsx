@@ -115,6 +115,7 @@ export default function LeafletMapPreview({ fromCoords, toCoords, checkpointCoor
             center={center}
             zoom={9}
             scrollWheelZoom={true}
+            attributionControl={false}
             style={{ width: '100%', height: '100%', zIndex: 0 }}
         >
             <TileLayer

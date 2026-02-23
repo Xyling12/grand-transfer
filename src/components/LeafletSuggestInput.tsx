@@ -42,9 +42,19 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
         setIsFetching(true);
         const timer = setTimeout(async () => {
             try {
-                // Add countrycodes to vastly improve relevance for CIS region
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&accept-language=ru&countrycodes=ru,by,kz,ua`);
-                const data = await res.json();
+                // Clean query to improve Nominatim matching (it struggles with incomplete prefixes like "ул ба" or "г казань")
+                const cleanQuery = query.replace(/(^|\s)(ул\.?|г\.?|д\.?|пер\.?|пр-кт|просп\.?)\s+/gi, '$1').trim();
+
+                // First attempt: standard clean query
+                let res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanQuery)}&format=json&addressdetails=1&limit=5&accept-language=ru&countrycodes=ru,by,kz,ua`);
+                let data = await res.json();
+
+                // Second attempt: if no results and query has commas, try without commas (Nominatim is very strict about comma placement)
+                if ((!data || data.length === 0) && cleanQuery.includes(',')) {
+                    const commaLessQuery = cleanQuery.replace(/,/g, ' ');
+                    res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(commaLessQuery)}&format=json&addressdetails=1&limit=5&accept-language=ru&countrycodes=ru,by,kz,ua`);
+                    data = await res.json();
+                }
 
                 if (data && Array.isArray(data)) {
                     setSuggestions(data);

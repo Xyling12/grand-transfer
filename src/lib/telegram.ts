@@ -15,6 +15,16 @@ export async function sendOrderNotification(orderData: Record<string, string | n
         return;
     }
 
+    const fromCity = String(orderData.fromCity || '');
+    const toCity = String(orderData.toCity || '');
+    const checkpointName = orderData.checkpointName ? String(orderData.checkpointName) : '';
+
+    let rtext = `${encodeURIComponent(fromCity)}~${encodeURIComponent(toCity)}`;
+    if (checkpointName) {
+        rtext = `${encodeURIComponent(fromCity)}~${encodeURIComponent(checkpointName)}~${encodeURIComponent(toCity)}`;
+    }
+    const mapLink = `https://yandex.ru/maps/?mode=routes&amp;rtext=${rtext}`;
+
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
 
@@ -23,12 +33,14 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
-🚕 <b>Тариф:</b> ${orderData.tariff}
+${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тариф:</b> ${orderData.tariff}
 👥 <b>Пассажиров:</b> ${orderData.passengers}
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
 
 📝 <b>Комментарий:</b> ${orderData.comments || 'Нет'}
 📅 <b>Дата/Время:</b> ${orderData.dateTime || 'Сразу'}
+
+🗺 <a href="${mapLink}"><b>📍 Открыть маршрут в Яндекс Картах</b></a>
 
 <i>№ заказа: ${orderData.id}</i>
 `;

@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { cities } from '@/data/cities';
+import { cities, getDistanceFromLatLonInKm } from '@/data/cities';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 86400; // Cache for 24 hours so it's not generated every single click
@@ -34,15 +34,18 @@ export default async function sitemap({ id }: { id: string }): Promise<MetadataR
         });
     }
 
-    // Generate dynamic routes only for this specific departure city
+    // Generate dynamic routes only for this specific departure city (limit to < 1500 km)
     cities.forEach(toCity => {
         if (fromCity.id !== toCity.id) {
-            routes.push({
-                url: `${baseUrl}/routes/${fromCity.id}/${toCity.id}`,
-                lastModified: new Date(),
-                changeFrequency: 'monthly',
-                priority: 0.6,
-            });
+            const dist = getDistanceFromLatLonInKm(fromCity.lat, fromCity.lon, toCity.lat, toCity.lon);
+            if (dist < 600) {
+                routes.push({
+                    url: `${baseUrl}/routes/${fromCity.id}/${toCity.id}`,
+                    lastModified: new Date(),
+                    changeFrequency: 'monthly',
+                    priority: 0.6,
+                });
+            }
         }
     });
 
