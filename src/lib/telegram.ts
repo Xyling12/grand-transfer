@@ -1,4 +1,4 @@
-import { Telegraf } from 'telegraf';
+import { Telegraf, Markup } from 'telegraf';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -59,11 +59,20 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
             console.warn("Could not query SQLite DB for drivers (expected on read-only environments):", dbError);
         }
 
+        const keyboard = orderData.id && orderData.id !== 'N/A'
+            ? Markup.inlineKeyboard([
+                Markup.button.callback('✅ Забрать заявку', `take_order_${orderData.id}`)
+            ])
+            : undefined;
+
         // Send to all approved drivers
         if (approvedDrivers.length > 0) {
             for (const driver of approvedDrivers) {
                 try {
-                    await botInstance.telegram.sendMessage(driver.telegramId.toString(), message, { parse_mode: 'HTML' });
+                    await botInstance.telegram.sendMessage(driver.telegramId.toString(), message, {
+                        parse_mode: 'HTML',
+                        reply_markup: keyboard?.reply_markup
+                    });
                 } catch (err) {
                     console.error(`Failed to send to driver ${driver.telegramId}:`, err);
                 }
@@ -71,7 +80,10 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
         } else {
             // Fallback to admin/chat ID if nobody is approved yet or DB failed
             if (chatId) {
-                await botInstance.telegram.sendMessage(chatId, message, { parse_mode: 'HTML' });
+                await botInstance.telegram.sendMessage(chatId, message, {
+                    parse_mode: 'HTML',
+                    reply_markup: keyboard?.reply_markup
+                });
             }
         }
     } catch (e) {

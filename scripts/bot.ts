@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
+const token = (process.env.TELEGRAM_BOT_TOKEN || '').replace(/['"]/g, '').trim();
 if (!token) {
     console.error('Missing TELEGRAM_BOT_TOKEN');
     process.exit(1);
@@ -11,18 +11,18 @@ if (!token) {
 
 const bot = new Telegraf(token);
 const prisma = new PrismaClient();
-const adminId = process.env.TELEGRAM_CHAT_ID;
+const adminId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim();
 
 // Helper to generate the main menu keyboard
-const getMainMenu = (chatId: string) => {
+const getMainMenu = (chatId: string, role: string) => {
     const buttons = [
         ['📊 Статистика', '🚗 Мои заказы']
     ];
 
     // Admin gets extra buttons
-    if (chatId === adminId) {
+    if (role === 'ADMIN' || chatId === adminId) {
+        buttons.push(['👥 Пользователи', '🌐 Панель на сайте']);
         buttons.push(['📥 Выгрузить EXCEL', '🗑 Очистить БД']);
-        buttons.push(['🌐 Панель управления на сайте']);
     }
 
     return Markup.keyboard(buttons).resize();
@@ -37,23 +37,32 @@ bot.start(async (ctx) => {
             where: { telegramId: telegramIdBigInt }
         });
 
+        const isInitialAdmin = (telegramIdStr === adminId);
+
         if (!driver) {
             // Auto-approve the admin, others are PENDING
-            const isInitialAdmin = (telegramIdStr === adminId);
             driver = await prisma.driver.create({
                 data: {
                     telegramId: telegramIdBigInt,
                     username: ctx.from.username,
                     firstName: ctx.from.first_name,
-                    status: isInitialAdmin ? 'APPROVED' : 'PENDING'
+                    status: isInitialAdmin ? 'APPROVED' : 'PENDING',
+                    role: isInitialAdmin ? 'ADMIN' : 'DRIVER'
                 }
             });
 
             if (isInitialAdmin) {
-                return ctx.reply('Добро пожаловать, Админ! Вы автоматически одобрены.', getMainMenu(telegramIdStr));
+                return ctx.reply('Добро пожаловать, Главный Администратор! Вы автоматически одобрены.', getMainMenu(telegramIdStr, 'ADMIN'));
             } else {
                 return ctx.reply('Здравствуйте! Ваша заявка в систему GrandTransfer отправлена администратору. Дождитесь одобрения доступа.', Markup.removeKeyboard());
             }
+        } else if (isInitialAdmin && (driver.status !== 'APPROVED' || driver.role !== 'ADMIN')) {
+            // Rescue admin if they logged in before the fix
+            driver = await prisma.driver.update({
+                where: { telegramId: telegramIdBigInt },
+                data: { status: 'APPROVED', role: 'ADMIN' }
+            });
+            return ctx.reply('Добро пожаловать, Главный Администратор! Ваши права восстановлены.', getMainMenu(telegramIdStr, 'ADMIN'));
         }
 
         if (driver.status === 'PENDING') {
@@ -61,7 +70,7 @@ bot.start(async (ctx) => {
         } else if (driver.status === 'BANNED') {
             return ctx.reply('Доступ в систему заблокирован.', Markup.removeKeyboard());
         } else if (driver.status === 'APPROVED') {
-            return ctx.reply('Добро пожаловать в рабочую панель водителя GrandTransfer! Ожидайте новых заказов.', getMainMenu(telegramIdStr));
+            return ctx.reply('Добро пожаловать в рабочую панель водителя GrandTransfer! Ожидайте новых заказов.', getMainMenu(telegramIdStr, driver.role));
         }
     } catch (e) {
         console.error('Error in /start:', e);
@@ -70,22 +79,23 @@ bot.start(async (ctx) => {
 });
 
 // Helper to check authorization before executing commands
-const checkAuth = async (ctx: any): Promise<boolean> => {
+const checkAuth = async (ctx: any): Promise<{ auth: boolean, role: string, dbId?: string }> => {
     try {
         const id = BigInt(ctx.chat.id);
         const driver = await prisma.driver.findUnique({ where: { telegramId: id } });
         if (!driver || driver.status !== 'APPROVED') {
             ctx.reply('У вас нет доступа (либо вы заблокированы/в ожидании).');
-            return false;
+            return { auth: false, role: 'USER' };
         }
-        return true;
+        return { auth: true, role: driver.role, dbId: driver.id };
     } catch (e) {
-        return false;
+        return { auth: false, role: 'USER' };
     }
 };
 
 bot.hears('📊 Статистика', async (ctx) => {
-    if (!(await checkAuth(ctx))) return;
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || (role !== 'ADMIN' && role !== 'DRIVER')) return;
 
     try {
         const totalOrders = await prisma.order.count();
@@ -112,24 +122,49 @@ bot.hears('📊 Статистика', async (ctx) => {
 💰 Выручка (оценочно): ~${sumResult._sum.priceEstimate || 0} ₽
 ────────────────
 ${tariffStatsStr}`.trim();
-        await ctx.replyWithHTML(msg, getMainMenu(ctx.chat.id.toString()));
+        await ctx.replyWithHTML(msg, getMainMenu(ctx.chat.id.toString(), role));
     } catch (e) {
         ctx.reply('❌ Ошибка при получении статистики.');
     }
 });
 
 bot.hears('🚗 Мои заказы', async (ctx) => {
-    if (!(await checkAuth(ctx))) return;
-    ctx.reply('Раздел "Мои заказы" в разработке. Сейчас вы будете получать уведомления в общий чат.');
+    const { auth, dbId } = await checkAuth(ctx);
+    if (!auth || !dbId) return;
+
+    try {
+        const myOrders = await prisma.order.findMany({
+            where: { driverId: dbId, status: 'TAKEN' },
+            orderBy: { createdAt: 'desc' },
+            take: 20
+        });
+
+        if (myOrders.length === 0) {
+            return ctx.reply('У вас пока нет активных взятых заявок.');
+        }
+
+        let msg = '🚗 <b>Ваши активные заявки:</b>\n\n';
+        myOrders.forEach(o => {
+            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
+            msg += `<b>№ ${o.id}</b> от ${dateStr}\n📍 ${o.fromCity} ➔ ${o.toCity}\n👤 ${o.customerName} (${o.customerPhone})\n💰 ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не указана'}\n\n`;
+        });
+
+        ctx.replyWithHTML(msg);
+    } catch (err) {
+        ctx.reply('❌ Ошибка при получении ваших заказов.');
+    }
 });
 
-bot.hears('🌐 Панель управления на сайте', (ctx) => {
-    if (ctx.chat.id.toString() !== adminId) return;
+// Admin commands
+bot.hears('🌐 Панель на сайте', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
     ctx.reply('Панель управления доступна по ссылке: https://межгород.com/admin/drivers\n\nPIN-код: 7878');
 });
 
 bot.hears('🗑 Очистить БД', async (ctx) => {
-    if (ctx.chat.id.toString() !== adminId) return;
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
     try {
         await prisma.order.deleteMany({});
         ctx.reply('🗑 Статистика (все заявки) была успешно удалена из базы данных.');
@@ -139,15 +174,16 @@ bot.hears('🗑 Очистить БД', async (ctx) => {
 });
 
 bot.hears('📥 Выгрузить EXCEL', async (ctx) => {
-    if (ctx.chat.id.toString() !== adminId) return;
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
     try {
         const orders = await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
         let csv = '\uFEFF';
-        csv += "ID;Дата;Откуда;Куда;Тариф;Пассажиров;Сумма;Имя;Телефон;Комментарий\n";
+        csv += "ID;Дата;Откуда;Куда;Тариф;Пассажиров;Сумма;Имя;Телефон;Комментарий;Водитель\n";
         orders.forEach((o: any) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
             const safeComment = (o.comments || '').replace(/;/g, ',').replace(/\n/g, ' ');
-            csv += `${o.id};${dateStr};${o.fromCity};${o.toCity};${o.tariff};${o.passengers};${o.priceEstimate || ''};${o.customerName};${o.customerPhone};${safeComment}\n`;
+            csv += `${o.id};${dateStr};${o.fromCity};${o.toCity};${o.tariff};${o.passengers};${o.priceEstimate || ''};${o.customerName};${o.customerPhone};${safeComment};${o.driverId || ''}\n`;
         });
         const buffer = Buffer.from(csv, 'utf8');
         await ctx.replyWithDocument(
@@ -158,6 +194,111 @@ bot.hears('📥 Выгрузить EXCEL', async (ctx) => {
         ctx.reply('❌ Ошибка экспорта.');
     }
 });
+
+// Admin Panel for Users inside Bot
+bot.hears('👥 Пользователи', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    try {
+        const drivers = await prisma.driver.findMany({ orderBy: { createdAt: 'desc' } });
+        if (drivers.length === 0) return ctx.reply("В базе нет пользователей.");
+
+        for (const d of drivers) {
+            const name = d.username ? `@${d.username}` : (d.firstName || `ID: ${d.telegramId}`);
+            let text = `👤 <b>${name}</b>\nРоль: <b>${d.role}</b>\nСтатус: <b>${d.status}</b>`;
+
+            const buttons = [];
+            if (d.status === 'PENDING') {
+                buttons.push(Markup.button.callback('✅ Одобрить', `approve_${d.telegramId}`));
+            }
+            if (d.status !== 'BANNED') {
+                buttons.push(Markup.button.callback('🚫 Забанить', `ban_${d.telegramId}`));
+            }
+            if (d.role !== 'ADMIN') {
+                buttons.push(Markup.button.callback('👑 Дать Админа', `makeadmin_${d.telegramId}`));
+            }
+            if (d.status === 'BANNED') {
+                buttons.push(Markup.button.callback('🔄 Восстановить', `approve_${d.telegramId}`));
+            }
+
+            await ctx.replyWithHTML(text, Markup.inlineKeyboard(buttons));
+        }
+    } catch (err) {
+        ctx.reply('❌ Ошибка получения пользователей.');
+    }
+});
+
+// Admin Panel Callbacks
+bot.action(/^approve_(\d+)$/, async (ctx) => {
+    const telegramId = BigInt(ctx.match[1]);
+    try {
+        await prisma.driver.update({ where: { telegramId }, data: { status: 'APPROVED' } });
+        await ctx.answerCbQuery('Пользователь одобрен');
+        await ctx.editMessageText(ctx.callbackQuery.message?.text + '\n\n✅ СТАТУС ИЗМЕНЕН НА: APPROVED');
+    } catch {
+        await ctx.answerCbQuery('Ошибка обновления');
+    }
+});
+bot.action(/^ban_(\d+)$/, async (ctx) => {
+    const telegramId = BigInt(ctx.match[1]);
+    try {
+        await prisma.driver.update({ where: { telegramId }, data: { status: 'BANNED' } });
+        await ctx.answerCbQuery('Пользователь забанен');
+        await ctx.editMessageText(ctx.callbackQuery.message?.text + '\n\n🚫 СТАТУС ИЗМЕНЕН НА: BANNED');
+    } catch {
+        await ctx.answerCbQuery('Ошибка обновления');
+    }
+});
+bot.action(/^makeadmin_(\d+)$/, async (ctx) => {
+    const telegramId = BigInt(ctx.match[1]);
+    try {
+        await prisma.driver.update({ where: { telegramId }, data: { role: 'ADMIN' } });
+        await ctx.answerCbQuery('Права администратора выданы');
+        await ctx.editMessageText(ctx.callbackQuery.message?.text + '\n\n👑 РОЛЬ ИЗМЕНЕНА НА: ADMIN');
+    } catch {
+        await ctx.answerCbQuery('Ошибка обновления');
+    }
+});
+
+// Take Order Action
+bot.action(/^take_order_(\d+)$/, async (ctx) => {
+    const { auth, dbId } = await checkAuth(ctx);
+    if (!auth || !dbId) {
+        return ctx.answerCbQuery('У вас нет прав для взятия заявки.', { show_alert: true });
+    }
+
+    const orderId = parseInt(ctx.match[1], 10);
+    try {
+        const order = await prisma.order.findUnique({ where: { id: orderId } });
+
+        if (!order) {
+            return ctx.answerCbQuery('Заявка не найдена в базе.', { show_alert: true });
+        }
+
+        if (order.status !== 'NEW') {
+            // Order is already taken or completed
+            const txt = ctx.callbackQuery.message?.text || "Заявка";
+            await ctx.editMessageText(txt + '\n\n❌ <i>Заявка уже взята в работу другим водителем.</i>', { parse_mode: 'HTML' });
+            return ctx.answerCbQuery('Заявка уже взята!', { show_alert: true });
+        }
+
+        // Lock the order
+        await prisma.order.update({
+            where: { id: orderId },
+            data: { status: 'TAKEN', driverId: dbId }
+        });
+
+        const txt = ctx.callbackQuery.message?.text || "Заявка";
+        await ctx.editMessageText(txt + '\n\n✅ <b>ВЫ ВЗЯЛИ ЭТУ ЗАЯВКУ В РАБОТУ</b>', { parse_mode: 'HTML' });
+        await ctx.answerCbQuery('Вы успешно взяли заявку!', { show_alert: true });
+
+    } catch (err) {
+        console.error('Take_order error:', err);
+        ctx.answerCbQuery('Произошла ошибка при попытке взять заявку.');
+    }
+});
+
 
 bot.launch().then(() => {
     console.log('🤖 Telegram bot is polling for commands...');
