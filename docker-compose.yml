@@ -19,7 +19,7 @@ services:
 
   bot:
     build: .
-    command: npm run bot
+    command: sh -c "npx prisma db push --accept-data-loss && npm run bot"
     restart: unless-stopped
     networks:
       - dokploy-network
