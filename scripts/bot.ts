@@ -146,8 +146,18 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
         let msg = '🚗 <b>Ваши активные заявки:</b>\n\n';
         myOrders.forEach(o => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
-            msg += `<b>№ ${o.id}</b> от ${dateStr}\n📍 ${o.fromCity} ➔ ${o.toCity}\n👤 ${o.customerName} (${o.customerPhone})\n💰 ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не указана'}\n\n`;
+            msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
+                `📍 <b>Откуда:</b> ${o.fromCity}\n` +
+                `🏁 <b>Куда:</b> ${o.toCity}\n` +
+                `🚕 <b>Тариф:</b> ${o.tariff}\n` +
+                `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
+                `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
+                `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n\n` +
+                `👤 <b>Клиент:</b> ${o.customerName}\n` +
+                `📞 <b>Телефон:</b> ${o.customerPhone}\n` +
+                `━━━━━━━━━━━━━━━━━━\n\n`;
         });
+
 
         ctx.replyWithHTML(msg);
     } catch (err) {
@@ -324,10 +334,23 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
     }
 });
 
+let isShuttingDown = false;
 
-bot.launch().then(() => {
-    console.log('🤖 Telegram bot is polling for commands...');
-});
+async function startBot() {
+    while (!isShuttingDown) {
+        try {
+            console.log('🤖 Telegram bot is starting...');
+            await bot.launch({ dropPendingUpdates: true });
+            console.log('🤖 Telegram bot stopped normally.');
+            break;
+        } catch (error) {
+            console.error('Bot crashed, restarting in 5s...', error);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+    }
+}
 
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+startBot();
+
+process.once('SIGINT', () => { isShuttingDown = true; bot.stop('SIGINT'); });
+process.once('SIGTERM', () => { isShuttingDown = true; bot.stop('SIGTERM'); });
