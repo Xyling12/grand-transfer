@@ -40,14 +40,8 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/src ./src
 
-# Install pm2
-RUN npm install -g pm2
-
-# Copy ecosystem config
-COPY --from=builder /app/ecosystem.config.js ./
-
 # Expose port
 EXPOSE 3000
 
-# Start app using pm2
-CMD npx prisma db push --accept-data-loss && pm2-runtime ecosystem.config.js
+# Start app using next
+CMD npx prisma db push --accept-data-loss && npm start
