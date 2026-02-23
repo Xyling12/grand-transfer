@@ -67,16 +67,17 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
         }
     }, [defaultGeoCity, fromCity, urlFrom, defaultFromCity]);
 
-    // Update form when city changes globally
+    // Update form when city changes globally, but only if user hasn't typed something else
     useEffect(() => {
         if (urlFrom) {
             setTimeout(() => setFromCity(urlFrom), 0);
-        } else if (currentCity) {
+        } else if (currentCity && !fromCity) {
             setTimeout(() => {
                 setFromCity(currentCity.name);
                 setFromCoords([currentCity.lat, currentCity.lon]);
             }, 0);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentCity, urlFrom]);
 
     useEffect(() => {

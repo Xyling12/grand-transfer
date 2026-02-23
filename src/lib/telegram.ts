@@ -1,16 +1,16 @@
 import { Telegraf } from 'telegraf';
 import { PrismaClient } from '@prisma/client';
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
-export const bot = token ? new Telegraf(token) : null;
-const chatId = process.env.TELEGRAM_CHAT_ID;
-
 const prisma = new PrismaClient();
 
 import { cities } from '@/data/cities';
 
 export async function sendOrderNotification(orderData: Record<string, string | number | null | undefined>) {
-    if (!bot || !chatId) {
+    const token = (process.env.TELEGRAM_BOT_TOKEN || '').replace(/['"]/g, '').trim();
+    const chatId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim();
+    const botInstance = token ? new Telegraf(token) : null;
+
+    if (!botInstance || !chatId) {
         console.warn('Telegram bot is not configured properly (missing token or chat ID)');
         return;
     }
@@ -46,23 +46,28 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
 `;
 
     try {
-        const approvedDrivers = await prisma.driver.findMany({
-            where: { status: 'APPROVED' }
-        });
+        let approvedDrivers: { telegramId: string | bigint }[] = [];
+        try {
+            approvedDrivers = await prisma.driver.findMany({
+                where: { status: 'APPROVED' }
+            });
+        } catch (dbError) {
+            console.warn("Could not query SQLite DB for drivers (expected on read-only environments):", dbError);
+        }
 
         // Send to all approved drivers
         if (approvedDrivers.length > 0) {
             for (const driver of approvedDrivers) {
                 try {
-                    await bot.telegram.sendMessage(driver.telegramId.toString(), message, { parse_mode: 'HTML' });
+                    await botInstance.telegram.sendMessage(driver.telegramId.toString(), message, { parse_mode: 'HTML' });
                 } catch (err) {
                     console.error(`Failed to send to driver ${driver.telegramId}:`, err);
                 }
             }
         } else {
-            // Fallback to admin/chat ID if nobody is approved yet
+            // Fallback to admin/chat ID if nobody is approved yet or DB failed
             if (chatId) {
-                await bot.telegram.sendMessage(chatId, message, { parse_mode: 'HTML' });
+                await botInstance.telegram.sendMessage(chatId, message, { parse_mode: 'HTML' });
             }
         }
     } catch (e) {
