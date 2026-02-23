@@ -21,8 +21,8 @@ const getMainMenu = (chatId: string, role: string) => {
 
     // Admin gets extra buttons
     if (role === 'ADMIN' || chatId === adminId) {
-        buttons.push(['👥 Пользователи', '🌐 Панель на сайте']);
-        buttons.push(['📥 Выгрузить EXCEL', '🗑 Очистить БД']);
+        buttons.push(['👀 Активные заявки', '🌐 Панель на сайте']);
+        buttons.push(['👥 Пользователи', '📥 Выгрузить EXCEL']);
     }
 
     return Markup.keyboard(buttons).resize();
@@ -148,7 +148,7 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
             const pt1 = encodeURIComponent(o.fromCity);
             const pt2 = encodeURIComponent(o.toCity);
-            const mapLink = encodeURI(`https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`);
+            const mapLink = `https://межгород.com/route?rtext=${pt1}~${pt2}`;
 
             msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
                 `📍 <b>Откуда:</b> ${o.fromCity}\n` +
@@ -157,7 +157,7 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
                 `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
                 `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
                 `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
-                `🗺 <a href="${mapLink}">📍 Открыть маршрут в Яндекс Картах</a>\n\n` +
+                `🗺 <a href="${mapLink}">📍 Открыть маршрут в Навигаторе / Картах</a>\n\n` +
                 `👤 <b>Клиент:</b> ${o.customerName}\n` +
                 `📞 <b>Телефон:</b> ${o.customerPhone}\n` +
                 `━━━━━━━━━━━━━━━━━━\n\n`;
@@ -167,6 +167,46 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
         ctx.replyWithHTML(msg);
     } catch (err) {
         ctx.reply('❌ Ошибка при получении ваших заказов.');
+    }
+});
+
+bot.hears('👀 Активные заявки', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    try {
+        const activeOrders = await prisma.order.findMany({
+            where: { status: 'TAKEN' },
+            orderBy: { createdAt: 'desc' },
+            take: 20
+        });
+
+        if (activeOrders.length === 0) {
+            return ctx.reply('Сейчас нет активных заявок.');
+        }
+
+        const allDrivers = await prisma.driver.findMany();
+        const driverMap = new Map();
+        allDrivers.forEach(d => {
+            const name = d.username ? `@${d.username}` : (d.firstName || `ID: ${d.telegramId}`);
+            driverMap.set(d.id, name);
+        });
+
+        let msg = '👀 <b>Активные заявки (в работе):</b>\n\n';
+        activeOrders.forEach(o => {
+            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
+            const driverName = o.driverId ? driverMap.get(o.driverId) || 'Неизвестен' : 'Неизвестен';
+
+            msg += `📋 <b>Заявка № ${o.id}</b> (${dateStr})\n` +
+                `📍 <b>Маршрут:</b> ${o.fromCity} — ${o.toCity}\n` +
+                `💰 <b>Сумма:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n` +
+                `👨‍✈️ <b>Исполнитель:</b> ${driverName}\n` +
+                `━━━━━━━━━━━━━━━━━━\n\n`;
+        });
+
+        ctx.replyWithHTML(msg);
+    } catch (err) {
+        ctx.reply('❌ Ошибка при получении активных заявок.');
     }
 });
 
@@ -248,9 +288,12 @@ bot.hears('👥 Пользователи', async (ctx) => {
 bot.action(/^approve_(\d+)$/, async (ctx) => {
     const telegramId = BigInt(ctx.match[1]);
     try {
-        await prisma.driver.update({ where: { telegramId }, data: { status: 'APPROVED' } });
+        const updatedDriver = await prisma.driver.update({ where: { telegramId }, data: { status: 'APPROVED' } });
         await ctx.answerCbQuery('Пользователь одобрен');
-        await ctx.editMessageText(ctx.callbackQuery.message?.text + '\n\n✅ СТАТУС ИЗМЕНЕН НА: APPROVED');
+        await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n✅ СТАТУС ИЗМЕНЕН НА: APPROVED');
+        try {
+            await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Теперь вам доступно меню водителя.', getMainMenu(telegramId.toString(), updatedDriver.role));
+        } catch (e) { }
     } catch {
         await ctx.answerCbQuery('Ошибка обновления');
     }
@@ -260,7 +303,7 @@ bot.action(/^ban_(\d+)$/, async (ctx) => {
     try {
         await prisma.driver.update({ where: { telegramId }, data: { status: 'BANNED' } });
         await ctx.answerCbQuery('Пользователь забанен');
-        await ctx.editMessageText(ctx.callbackQuery.message?.text + '\n\n🚫 СТАТУС ИЗМЕНЕН НА: BANNED');
+        await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n🚫 СТАТУС ИЗМЕНЕН НА: BANNED');
     } catch {
         await ctx.answerCbQuery('Ошибка обновления');
     }
@@ -270,7 +313,10 @@ bot.action(/^makeadmin_(\d+)$/, async (ctx) => {
     try {
         await prisma.driver.update({ where: { telegramId }, data: { role: 'ADMIN' } });
         await ctx.answerCbQuery('Права администратора выданы');
-        await ctx.editMessageText(ctx.callbackQuery.message?.text + '\n\n👑 РОЛЬ ИЗМЕНЕНА НА: ADMIN');
+        await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n👑 РОЛЬ ИЗМЕНЕНА НА: ADMIN');
+        try {
+            await bot.telegram.sendMessage(Number(telegramId), '👑 Вам выданы права администратора! Полноценное меню обновлено.', getMainMenu(telegramId.toString(), 'ADMIN'));
+        } catch (e) { }
     } catch {
         await ctx.answerCbQuery('Ошибка обновления');
     }
@@ -293,7 +339,7 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
 
         if (order.status !== 'NEW') {
             // Order is already taken or completed
-            const txt = ctx.callbackQuery.message?.text || "Заявка";
+            const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
             await ctx.editMessageText(txt + '\n\n❌ <i>Заявка уже взята в работу другим водителем.</i>', { parse_mode: 'HTML' });
             return ctx.answerCbQuery('Заявка уже взята!', { show_alert: true });
         }
@@ -304,7 +350,7 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
             data: { status: 'TAKEN', driverId: dbId }
         });
 
-        const txt = ctx.callbackQuery.message?.text || "Заявка";
+        const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
 
         const customerInfo = `\n\n✅ <b>ВЫ ВЗЯЛИ ЭТУ ЗАЯВКУ В РАБОТУ</b>\n\n👤 <b>Клиент:</b> ${order.customerName}\n📞 <b>Телефон:</b> ${order.customerPhone}`;
 
@@ -314,19 +360,32 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
         // Retrieve and delete messages for other drivers
         try {
             const bms = await (prisma as any).broadcastMessage.findMany({ where: { orderId } });
+            const takerName = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || 'Неизвестно');
+
             for (const bm of bms) {
                 // Do not delete for the driver who took the order
-                if (bm.telegramId === BigInt(ctx.chat.id)) continue;
+                if (ctx.chat && bm.telegramId === BigInt(ctx.chat.id)) continue;
 
-                // Do not delete for ADMINs
+                // Handle ADMINs vs regular drivers
                 const bmDriver = await prisma.driver.findUnique({ where: { telegramId: bm.telegramId } });
-                if (bmDriver?.role === 'ADMIN' || bm.telegramId.toString() === adminId) continue;
+                const isAdmin = (bmDriver?.role === 'ADMIN' || bm.telegramId.toString() === adminId);
 
-                // Delete message
-                try {
-                    await bot.telegram.deleteMessage(Number(bm.telegramId), bm.messageId);
-                } catch (delErr) {
-                    console.error(`Failed to delete message for ${bm.telegramId}:`, delErr);
+                if (isAdmin) {
+                    // For admins, edit the message to explicitly say who took it, removing the button
+                    try {
+                        const originalMsg = await prisma.order.findUnique({ where: { id: orderId } });
+                        const adminTxt = `🚨 <b>Заявка № ${orderId} ВЗЯТА</b>\n\n👤 Исполнитель: <b>${takerName}</b>\n📍 Маршрут: ${originalMsg?.fromCity || 'Неизвестно'} — ${originalMsg?.toCity || 'Неизвестно'}\n💰 ${originalMsg?.priceEstimate ? originalMsg.priceEstimate + ' ₽' : 'Без оценки'}`;
+                        await bot.telegram.editMessageText(Number(bm.telegramId), bm.messageId, undefined, adminTxt, { parse_mode: 'HTML' });
+                    } catch (editErr) {
+                        console.error('Failed to edit admin msg', editErr);
+                    }
+                } else {
+                    // Delete message for other regular drivers completely
+                    try {
+                        await bot.telegram.deleteMessage(Number(bm.telegramId), bm.messageId);
+                    } catch (delErr) {
+                        console.error(`Failed to delete message for ${bm.telegramId}:`, delErr);
+                    }
                 }
             }
         } catch (dbErr) {
