@@ -270,7 +270,9 @@ bot.hears('ℹ️ Справка', async (ctx) => {
         msg += `🎧 <b>Функции Диспетчера:</b>\n`;
         msg += `• <b>Прием заказов:</b> Новые заявки с сайта приходят вам с полными данными клиента (ФИО, телефон).\n`;
         msg += `• <b>👀 Активные заявки:</b> Просмотр списка всех заявок, их статусов (в поиске / взята) и исполнителей.\n`;
-        msg += `• <b>📤 Отправить водителям:</b> Публикация заказа в общую ленту водителей без контактов.\n\n`;
+        msg += `• <b>🚗 Мои заявки:</b> Ваши взятые и курируемые заказы.\n`;
+        msg += `• <b>📤 Отправить водителям:</b> Публикация заказа в общую ленту водителей без контактов.\n`;
+        msg += `• <b>Полная заявка (кнопка):</b> Просмотр деталей заказа и быстрая ссылка на Яндекс Карты.\n\n`;
     }
 
     if (role === 'ADMIN') {
@@ -290,7 +292,13 @@ bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) 
     if (!auth || !dbId) return;
 
     try {
-        const whereClause = role === 'DISPATCHER' ? { dispatcherId: dbId } : { driverId: dbId, status: 'TAKEN' };
+        // Dispatchers should see orders where they are the driver (TAKEN) OR the dispatcher (DISPATCHED/PROCESSING)
+        const whereClause = role === 'DISPATCHER' ? {
+            OR: [
+                { dispatcherId: dbId },
+                { driverId: dbId, status: 'TAKEN' }
+            ]
+        } : { driverId: dbId, status: 'TAKEN' };
 
         const myOrders = await prisma.order.findMany({
             where: whereClause,
@@ -299,21 +307,17 @@ bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) 
         });
 
         if (myOrders.length === 0) {
-            return ctx.reply('У вас пока нет активных взятых заявок.', { protect_content: true });
+            return ctx.reply('У вас пока нет активных взятых или курируемых заявок.', { protect_content: true });
         }
 
         let msg = '🚗 <b>Ваши активные заявки:</b>\n\n';
         myOrders.forEach((o: any) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
 
-            const fromCityObj = cities.find(c => c.name.toLowerCase() === o.fromCity.toLowerCase());
-            const toCityObj = cities.find(c => c.name.toLowerCase() === o.toCity.toLowerCase());
-
-            const pt1 = fromCityObj ? `${fromCityObj.lat},${fromCityObj.lon}` : encodeURIComponent(o.fromCity);
-            const pt2 = toCityObj ? `${toCityObj.lat},${toCityObj.lon}` : encodeURIComponent(o.toCity);
-            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
+            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
 
             msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
+                `⏳ <b>Статус:</b> ${o.status}\n` +
                 `📍 <b>Откуда:</b> ${o.fromCity}\n` +
                 `🏁 <b>Куда:</b> ${o.toCity}\n` +
                 `🚕 <b>Тариф:</b> ${o.tariff}\n` +
