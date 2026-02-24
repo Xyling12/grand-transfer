@@ -22,22 +22,22 @@ const adminId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim()
 const getMainMenu = (chatId: string, role: string) => {
     let buttons = [];
 
-    // Admin and Dispatcher gets extra buttons
     if (role === 'ADMIN' || chatId === adminId) {
+        // Полный доступ для админа
         buttons.push(['👀 Активные заявки', '💬 Чат']);
         buttons.push(['👥 Пользователи', '📢 Рассылка']);
         buttons.push(['🌐 Панель на сайте', '📥 Выгрузить EXCEL']);
         buttons.push(['📊 Статистика', '🚗 Мои заказы']);
-        buttons.push(['🗑 Очистить БД', 'ℹ️ Справка']);
-        buttons.push(['⚙️ Настройки']);
-    } else if (role === 'DISPATCHER') {
-        buttons.push(['👀 Активные заявки', '💬 Чат']);
-        buttons.push(['📊 Статистика', '🚗 Мои заказы']);
+        buttons.push(['🗑 Очистить БД', '⚙️ Настройки']);
         buttons.push(['ℹ️ Справка']);
+    } else if (role === 'DISPATCHER') {
+        // Скрываем лишнее для диспетчера, добавляем Мои заявки
+        buttons.push(['👀 Активные заявки', '🚗 Мои заявки']);
+        buttons.push(['💬 Чат', 'ℹ️ Справка']);
     } else {
-        // Regular DRIVER
+        // Regular DRIVER - скрываем статистику
         buttons.push(['🚗 Мои заказы', '💬 Чат']);
-        buttons.push(['📊 Статистика', 'ℹ️ Справка']);
+        buttons.push(['ℹ️ Справка']);
     }
 
     return Markup.keyboard(buttons).resize();
@@ -285,13 +285,15 @@ bot.hears('ℹ️ Справка', async (ctx) => {
     ctx.replyWithHTML(msg, { protect_content: role !== 'ADMIN' });
 });
 
-bot.hears('🚗 Мои заказы', async (ctx) => {
-    const { auth, dbId } = await checkAuth(ctx);
+bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) => {
+    const { auth, dbId, role } = await checkAuth(ctx);
     if (!auth || !dbId) return;
 
     try {
+        const whereClause = role === 'DISPATCHER' ? { dispatcherId: dbId } : { driverId: dbId, status: 'TAKEN' };
+
         const myOrders = await prisma.order.findMany({
-            where: { driverId: dbId, status: 'TAKEN' },
+            where: whereClause,
             orderBy: { createdAt: 'desc' },
             take: 20
         });
