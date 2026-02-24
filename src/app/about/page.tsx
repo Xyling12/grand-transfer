@@ -1,5 +1,6 @@
 import styles from './page.module.css';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const metadata = {
     title: 'О компании | GrandTransfer',
@@ -32,12 +33,36 @@ export default function AboutPage() {
                 </section>
 
                 <section className={styles.contentBlock}>
+                    <h2>Наш автопарк и руководство</h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', marginTop: '30px', marginBottom: '40px' }}>
+                        <div style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.02)' }}>
+                            <div style={{ position: 'relative', width: '100%', height: '350px' }}>
+                                <Image src="/images/founder.jpg" alt="Панкратов Роман Борисович - руководитель" fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+                            </div>
+                            <div style={{ padding: '20px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)' }}>
+                                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--color-primary)' }}>Панкратов Р. Б.</h3>
+                                <p style={{ margin: '5px 0 0', fontSize: '0.95rem', color: 'var(--color-text-muted)' }}>Основатель сервиса GrandTransfer</p>
+                            </div>
+                        </div>
+                        <div style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.02)' }}>
+                            <div style={{ position: 'relative', width: '100%', height: '350px' }}>
+                                <Image src="/images/car.jpg" alt="Автомобиль такси межгород KIA" fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+                            </div>
+                            <div style={{ padding: '20px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)' }}>
+                                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--color-primary)' }}>Надежный автопарк</h3>
+                                <p style={{ margin: '5px 0 0', fontSize: '0.95rem', color: 'var(--color-text-muted)' }}>Комфортные автомобили не старше 7 лет</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className={styles.contentBlock}>
                     <h2>Юридическая информация и контакты</h2>
                     <div className={styles.contactCard}>
                         <p><strong>Правовой статус:</strong> Плательщик налога на профессиональный доход (Самозанятый)</p>
                         <p><strong>Услуги:</strong> Информационные услуги в сфере пассажирских перевозок</p>
-                        <p><strong>ФИО:</strong> Баткович Р.</p>
-                        <p><strong>ИНН:</strong> (Укажите ваш ИНН)</p>
+                        <p><strong>ФИО:</strong> Панкратов Роман Борисович</p>
+                        <p><strong>ИНН:</strong> 500107263479</p>
                         <p><strong>Регион деятельности:</strong> Вся территория РФ и страны СНГ</p>
                         <hr style={{ margin: '15px 0', borderColor: 'var(--glass-border)' }} />
                         <p><strong>Телефон:</strong> <a href="tel:+79991234567">+7 (999) 123-45-67</a></p>
