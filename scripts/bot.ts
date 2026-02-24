@@ -1183,8 +1183,8 @@ async function startBot() {
             // Force delete any existing webhook so long-polling works reliably
             await bot.telegram.deleteWebhook({ drop_pending_updates: true });
             await bot.launch({ dropPendingUpdates: true });
-            console.log('🤖 Telegram bot stopped normally.');
-            break;
+            console.log('🤖 Telegram bot stopped normally. Waiting 10s before restart to prevent Docker loop...');
+            await new Promise(resolve => setTimeout(resolve, 10000));
         } catch (error) {
             console.error('Bot crashed, restarting in 5s...', error);
             await new Promise(resolve => setTimeout(resolve, 5000));

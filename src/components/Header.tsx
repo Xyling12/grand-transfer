@@ -13,7 +13,7 @@ const NAV_LINKS = [
     { href: '/blog', label: 'Блог' },
     { href: '/#tariffs', label: 'Тарифы' },
     { href: '/#reviews', label: 'Отзывы' },
-    { href: '/#faq', label: 'FAQ' },
+    { href: '/faq', label: 'FAQ' },
 ];
 
 export default function Header() {
