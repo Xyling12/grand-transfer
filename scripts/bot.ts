@@ -124,6 +124,23 @@ bot.action('register_driver', async (ctx) => {
 
         await ctx.answerCbQuery('Заявка успешно отправлена!');
         await ctx.editMessageText('✅ Ваша заявка в систему GrandTransfer отправлена администратору. Пожалуйста, дождитесь одобрения доступа. Как только администратор проверит ваши данные, вам придет уведомление.');
+
+        // Notify admins about the new registration
+        try {
+            const admins = await prisma.driver.findMany({ where: { role: 'ADMIN', status: 'APPROVED' } });
+            const userStr = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || `ID: ${ctx.from.id}`);
+
+            for (const ad of admins) {
+                await bot.telegram.sendMessage(
+                    Number(ad.telegramId),
+                    `🚨 <b>Новая заявка на регистрацию!</b>\n\nПользователь ${userStr} ожидает одобрения.\n\nЗайдите в раздел 👥 <b>Пользователи</b>, чтобы одобрить заявку.`,
+                    { parse_mode: 'HTML', protect_content: true }
+                ).catch(() => { });
+            }
+        } catch (adminErr) {
+            console.error('Failed to notify admins of new registration:', adminErr);
+        }
+
     } catch (e) {
         console.error('Registration error:', e);
         ctx.answerCbQuery('Произошла ошибка при регистрации. Попробуйте еще раз позже.', { show_alert: true });
@@ -186,18 +203,25 @@ bot.hears('ℹ️ Справка', async (ctx) => {
 
     let msg = `🤖 <b>Справка по боту GrandTransfer</b>\n\n`;
     msg += `<b>Основные функции (для водителей):</b>\n`;
-    msg += `• <b>Получение рассылок:</b> Бот будет присылать уведомления о новых заказах с сайта с полной информацией. Нажмите «✅ Забрать заявку», чтобы взять её (кнопка пропадет у остальных).\n`;
-    msg += `• <b>🚗 Мои заказы:</b> Просмотр списка своих активных взятых заявок с контактами клиента и ссылкой на маршрут в Яндекс Картах.\n`;
-    msg += `• <b>📊 Статистика:</b> Просмотр общей выручки сервиса и количества заказов.\n\n`;
+    msg += `• <b>Получение рассылок:</b> Бот будет присылать уведомления о новых заказах с ограниченной информацией. Нажмите «✅ Забрать заявку», чтобы взять её и получить контакты клиента.\n`;
+    msg += `• <b>🚗 Мои заказы:</b> Просмотр списка своих взятых заявок с контактами клиента и ссылкой на маршрут.\n`;
+    msg += `• <b>💬 Чат:</b> Получение индивидуальной ссылки для вступления в закрытую группу водителей.\n`;
+    msg += `• <b>📊 Статистика:</b> Просмотр общей выручки сервиса и заказов по тарифам.\n\n`;
+
+    if (role === 'DISPATCHER' || role === 'ADMIN') {
+        msg += `🎧 <b>Функции Диспетчера:</b>\n`;
+        msg += `• <b>Прием заказов:</b> Новые заявки с сайта приходят вам с полными данными клиента (ФИО, телефон).\n`;
+        msg += `• <b>👀 Активные заявки:</b> Просмотр списка всех заявок, их статусов (в поиске / взята) и исполнителей.\n`;
+        msg += `• <b>📤 Отправить водителям:</b> Публикация заказа в общую ленту водителей без контактов.\n\n`;
+    }
 
     if (role === 'ADMIN') {
         msg += `👑 <b>Дополнительные функции (Администратор):</b>\n`;
-        msg += `• <b>👀 Активные заявки:</b> Просмотр подробностей *всех* взятых в работу заявок с указанием исполнителя.\n`;
-        msg += `• <b>👥 Пользователи:</b> Панель управления. Позволяет управлять водителями, смотреть их заказы, а также искать любого пользователя по его ID.\n`;
-        msg += `• <b>📢 Рассылка:</b> Команда <code>/send текст</code> позволяет отправить важное сообщение всем водителям.\n`;
-        msg += `• <b>📥 Выгрузить EXCEL:</b> Скачивание всей базы заказов в виде CSV файла.\n`;
-        msg += `• <b>🗑 Очистить БД:</b> Удаление всех заявок из базы данных.\n`;
-        msg += `• <b>🌐 Панель на сайте:</b> Получение ссылки и пин-кода для доступа к веб-интерфейсу.\n`;
+        msg += `• <b>👥 Пользователи:</b> Поиск людей по ID/@username, одобрение/бан, выдача ролей администраторов, диспетчеров и просмотр чужих заказов.\n`;
+        msg += `• <b>📢 Рассылка:</b> Команда <code>/send текст</code> отправляет важное сообщение всем пользователям.\n`;
+        msg += `• <b>📥 Выгрузить EXCEL:</b> Скачивание всей базы заявок CSV файлом.\n`;
+        msg += `• <b>🗑 Очистить БД:</b> Полное удаление всех заявок.\n`;
+        msg += `• <b>🌐 Панель на сайте:</b> Получение ссылки и пин-кода (7878) для доступа к веб-интерфейсу.\n`;
     }
 
     ctx.replyWithHTML(msg, { protect_content: role !== 'ADMIN' });
@@ -426,9 +450,30 @@ bot.hears('👥 Пользователи', async (ctx) => {
             if (d.status !== 'BANNED') {
                 buttons.push(Markup.button.callback('🚫 Забанить', `ban_${d.telegramId}`));
             }
-            if (d.role !== 'ADMIN') {
-                buttons.push(Markup.button.callback('👑 Дать Админа', `makeadmin_${d.telegramId}`));
+
+            // Only Main Admin can assign ADMIN roles or demote Admins
+            if (ctx.chat?.id.toString() === adminId) {
+                if (d.role === 'USER' || d.role === 'DRIVER') {
+                    buttons.push(Markup.button.callback('👑 Админ', `setrole_${d.telegramId}_ADMIN`));
+                    buttons.push(Markup.button.callback('🎧 Диспетчер', `setrole_${d.telegramId}_DISPATCHER`));
+                } else if (d.role === 'ADMIN' && d.telegramId.toString() !== adminId) {
+                    buttons.push(Markup.button.callback('🚗 Понизить в Водителя', `setrole_${d.telegramId}_DRIVER`));
+                    buttons.push(Markup.button.callback('🎧 Понизить в Диспетчера', `setrole_${d.telegramId}_DISPATCHER`));
+                } else if (d.role === 'DISPATCHER') {
+                    buttons.push(Markup.button.callback('🚗 Сделать Водителем', `setrole_${d.telegramId}_DRIVER`));
+                    buttons.push(Markup.button.callback('👑 Админ', `setrole_${d.telegramId}_ADMIN`));
+                }
+            } else {
+                // Other Admins can at least assign Dispachers, but not Admins, and cannot touch other Admins
+                if (d.role === 'ADMIN') {
+                    // Cannot modify another admin
+                } else if (d.role === 'USER' || d.role === 'DRIVER') {
+                    buttons.push(Markup.button.callback('🎧 Диспетчер', `setrole_${d.telegramId}_DISPATCHER`));
+                } else if (d.role === 'DISPATCHER') {
+                    buttons.push(Markup.button.callback('🚗 Сделать Водителем', `setrole_${d.telegramId}_DRIVER`));
+                }
             }
+
             if (d.status === 'BANNED') {
                 buttons.push(Markup.button.callback('🔄 Восстановить', `approve_${d.telegramId}`));
             }
@@ -494,8 +539,27 @@ bot.on('text', async (ctx, next) => {
             if (d.status !== 'BANNED') {
                 buttons.push(Markup.button.callback('🚫 Забанить', `ban_${d.telegramId}`));
             }
-            if (d.role !== 'ADMIN') {
-                buttons.push(Markup.button.callback('👑 Дать Админа', `makeadmin_${d.telegramId}`));
+            // Only Main Admin can assign ADMIN roles or demote Admins
+            if (ctx.chat?.id.toString() === adminId) {
+                if (d.role === 'USER' || d.role === 'DRIVER') {
+                    buttons.push(Markup.button.callback('👑 Админ', `setrole_${d.telegramId}_ADMIN`));
+                    buttons.push(Markup.button.callback('🎧 Диспетчер', `setrole_${d.telegramId}_DISPATCHER`));
+                } else if (d.role === 'ADMIN' && d.telegramId.toString() !== adminId) {
+                    buttons.push(Markup.button.callback('🚗 Понизить в Водителя', `setrole_${d.telegramId}_DRIVER`));
+                    buttons.push(Markup.button.callback('🎧 Понизить в Диспетчера', `setrole_${d.telegramId}_DISPATCHER`));
+                } else if (d.role === 'DISPATCHER') {
+                    buttons.push(Markup.button.callback('🚗 Сделать Водителем', `setrole_${d.telegramId}_DRIVER`));
+                    buttons.push(Markup.button.callback('👑 Админ', `setrole_${d.telegramId}_ADMIN`));
+                }
+            } else {
+                // Other Admins can at least assign Dispachers, but not Admins, and cannot touch other Admins
+                if (d.role === 'ADMIN') {
+                    // Cannot modify another admin
+                } else if (d.role === 'USER' || d.role === 'DRIVER') {
+                    buttons.push(Markup.button.callback('🎧 Диспетчер', `setrole_${d.telegramId}_DISPATCHER`));
+                } else if (d.role === 'DISPATCHER') {
+                    buttons.push(Markup.button.callback('🚗 Сделать Водителем', `setrole_${d.telegramId}_DRIVER`));
+                }
             }
             if (d.status === 'BANNED') {
                 buttons.push(Markup.button.callback('🔄 Восстановить', `approve_${d.telegramId}`));
@@ -869,7 +933,7 @@ bot.command('invite', async (ctx) => {
 
 // Bot version command
 bot.command('version', async (ctx) => {
-    ctx.reply('🤖 GrandTransfer Bot v1.2.0\n\nОбновление:\n- Добавлена система Диспетчеров\n- Добавлена авто-модерация в чате водителей (мат, ссылки, политика)', { protect_content: true });
+    ctx.reply('🤖 GrandTransfer Bot v1.2.3\n\nОбновление:\n- Администраторы теперь получают уведомления о новых регистрациях в боте\n- Добавлена возможность снимать права (понижать Админов и Диспетчеров)\n- Улучшена изоляция прав между Главным Администратором и обычными', { protect_content: true });
 });
 
 let isShuttingDown = false;
