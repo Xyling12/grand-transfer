@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<yml_catalog date="2026-02-24 12:36">
+  <shop>
+    <name>Grand Transfer</name>
+    <company>Grand Transfer</company>
+    <url>https://xn--c1acbe2apap.com/</url>
+    <currencies>
+      <currency id="RUR" rate="1"/>
+    </currencies>
+    <categories>
+      <category id="1">Междугороднее такси</category>
+      <category id="2">Дополнительные услуги</category>
+    </categories>
+    <offers>
+      <offer id="1" available="true">
+        <name>Тариф "Эконом" (Межгород)</name>
+        <price>25</price>
+        <currencyId>RUR</currencyId>
+        <categoryId>1</categoryId>
+        <picture>https://xn--c1acbe2apap.com/images/tariffs/economy-feed.webp</picture>
+        <description>Поездки на расстояния до 300 км. Автомобили уровня Hyundai Solaris, VW Polo. До 4 посадочных мест. Идеально для быстрых индивидуальных трансферов. Багажник вмещает до 2 стандартных чемоданов.</description>
+      </offer>
+      <offer id="2" available="true">
+        <name>Тариф "Стандарт"</name>
+        <price>27</price>
+        <currencyId>RUR</currencyId>
+        <categoryId>1</categoryId>
+        <picture>https://xn--c1acbe2apap.com/images/tariffs/standard-feed.webp</picture>
+        <description>Золотая середина для междугородних поездок. Более вместительные авто (Skoda Rapid, VW Polo Liftback) с достаточным местом для ног и багажа. Отлично подходит для поездок до 500 км.</description>
+      </offer>
+      <offer id="3" available="true">
+        <name>Тариф "Комфорт / Бизнес" (Межгород)</name>
+        <price>30</price>
+        <currencyId>RUR</currencyId>
+        <categoryId>1</categoryId>
+        <picture>https://xn--c1acbe2apap.com/images/tariffs/comfort-feed.webp</picture>
+        <description>Просторные седаны для дальних рейсов: Toyota Camry, Kia K5, Skoda Octavia. Более просторный салон, улучшенная шумоизоляция и многозонный климат-контроль. Идеально для деловых командировок от 3 часов дороги.</description>
+      </offer>
+      <offer id="4" available="true">
+        <name>Тариф "Бизнес" (Премиум Межгород)</name>
+        <price>45</price>
+        <currencyId>RUR</currencyId>
+        <categoryId>1</categoryId>
+        <picture>https://xn--c1acbe2apap.com/images/tariffs/business-feed.webp</picture>
+        <description>Поездки уровня премиум для VIP-персон. Удлиненная колесная база для комфорта ног, идеальная тишина, кожаный салон. Автомобили уровня Toyota Camry V70, Mercedes E-class, BMW 5. Строгий дресс-код водителя и вода в салоне.</description>
+      </offer>
+      <offer id="5" available="true">
+        <name>Тариф "Минивэн / Микроавтобус"</name>
+        <price>35</price>
+        <currencyId>RUR</currencyId>
+        <categoryId>1</categoryId>
+        <picture>https://xn--c1acbe2apap.com/images/tariffs/minivan-feed.webp</picture>
+        <description>Уникальное предложение для больших компаний (до 6-8 человек) и объемного багажа. Семейные переезды, провоз снаряжения, групповые путевки. Выгоднее и комфортнее, чем заказ двух легковых авто на межгород.</description>
+      </offer>
+      <offer id="6" available="true">
+        <name>Перегон автомобиля (Трезвый водитель межгород)</name>
+        <price>40</price>
+        <currencyId>RUR</currencyId>
+        <categoryId>2</categoryId>
+        <picture>https://xn--c1acbe2apap.com/images/tariffs/sober-feed.webp</picture>
+        <description>Вам нужно перегнать купленный автомобиль из другого региона? Или вы не можете сесть за руль своей машины в дальней дороге? Наш профессиональный водитель аккуратно доставит ваш автомобиль в любую точку России.</description>
+      </offer>
+      <offer id="7" available="true">
+        <name>Курьерская доставка межгород (от двери до двери)</name>
+        <price>20</price>
+        <currencyId>RUR</currencyId>
+        <categoryId>2</categoryId>
+        <picture>https://xn--c1acbe2apap.com/images/tariffs/delivery-feed.webp</picture>
+        <description>Срочная доставка документов, посылок, малогабаритных грузов и запчастей в другие города. Не нужно ждать транспортную компанию несколько дней — водитель заберет груз у вас и передаст лично в руки получателю в другом городе в день заказа.</description>
+      </offer>
+    </offers>
+  </shop>
+</yml_catalog>
