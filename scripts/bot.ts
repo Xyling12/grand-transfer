@@ -116,7 +116,7 @@ bot.hears('📊 Статистика', async (ctx) => {
 
         let tariffStatsStr = "";
         if (tariffGroups.length > 0) {
-            tariffStatsStr = "<b>Заказов по тарифам:</b>\n" + tariffGroups.map(t => {
+            tariffStatsStr = "<b>Заказов по тарифам:</b>\n" + tariffGroups.map((t: any) => {
                 const capitalizedName = t.tariff ? t.tariff.charAt(0).toUpperCase() + t.tariff.slice(1) : 'Не указан';
                 return `- ${capitalizedName}: ${t._count.tariff} шт.`;
             }).join('\n') + "\n────────────────";
@@ -174,7 +174,7 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
         }
 
         let msg = '🚗 <b>Ваши активные заявки:</b>\n\n';
-        myOrders.forEach(o => {
+        myOrders.forEach((o: any) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
 
             const fromCityObj = cities.find(c => c.name.toLowerCase() === o.fromCity.toLowerCase());
@@ -221,13 +221,13 @@ bot.hears('👀 Активные заявки', async (ctx) => {
 
         const allDrivers = await prisma.driver.findMany();
         const driverMap = new Map();
-        allDrivers.forEach(d => {
+        allDrivers.forEach((d: any) => {
             const name = d.username ? `@${d.username}` : (d.firstName || `ID: ${d.telegramId}`);
             driverMap.set(d.id, name);
         });
 
         let msg = '👀 <b>Активные заявки (в работе):</b>\n\n';
-        activeOrders.forEach(o => {
+        activeOrders.forEach((o: any) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
             const driverName = o.driverId ? driverMap.get(o.driverId) || 'Неизвестен' : 'Неизвестен';
 
@@ -330,12 +330,21 @@ bot.hears('👥 Пользователи', async (ctx) => {
     if (!auth || role !== 'ADMIN') return;
 
     try {
-        const drivers = await prisma.driver.findMany({ orderBy: { createdAt: 'desc' } });
+        const drivers = await prisma.driver.findMany({ orderBy: { createdAt: 'desc' }, take: 5 });
         if (drivers.length === 0) return ctx.reply("В базе нет пользователей.", { protect_content: true });
+
+        // Add a "Search by ID" button at the very top of the user list
+        await ctx.reply('🔍 <b>Панель пользователей</b>\nНажмите кнопку ниже, чтобы найти конкретного человека по ID Телеграма или внутреннему ID базы:', {
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [[{ text: '🔍 Поиск по ID', callback_data: 'search_user' }]]
+            },
+            protect_content: true
+        });
 
         for (const d of drivers) {
             const name = d.username ? `@${d.username}` : (d.firstName || `ID: ${d.telegramId}`);
-            let text = `👤 <b>${name}</b>\nРоль: <b>${d.role}</b>\nСтатус: <b>${d.status}</b>`;
+            let text = `👤 <b>${name}</b>\nРоль: <b>${d.role}</b>\nСтатус: <b>${d.status}</b>\nTG ID: <code>${d.telegramId}</code>`;
 
             const buttons = [];
             if (d.status === 'PENDING') {
@@ -365,6 +374,68 @@ bot.hears('👥 Пользователи', async (ctx) => {
 });
 
 // Admin Panel Callbacks
+bot.action('search_user', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    await ctx.reply('Введите Telegram ID пользователя для поиска (только цифры):', {
+        reply_markup: { force_reply: true },
+        protect_content: true
+    });
+    await ctx.answerCbQuery();
+});
+
+// Listen for the text reply containing the ID
+bot.on('text', async (ctx, next) => {
+    const replyToMsg = ctx.message.reply_to_message as any;
+    if (replyToMsg && replyToMsg.text && replyToMsg.text.includes('Введите Telegram ID пользователя')) {
+        const { auth, role } = await checkAuth(ctx);
+        if (!auth || role !== 'ADMIN') return;
+
+        const searchIdStr = ctx.message.text.trim();
+        if (!/^\d+$/.test(searchIdStr)) {
+            return ctx.reply('Ошибка: необходимо ввести только числовой ID.', { protect_content: true });
+        }
+
+        try {
+            const searchId = BigInt(searchIdStr);
+            const d = await prisma.driver.findUnique({ where: { telegramId: searchId } });
+
+            if (!d) {
+                return ctx.reply('Пользователь с таким ID не найден.', { protect_content: true });
+            }
+
+            const name = d.username ? `@${d.username}` : (d.firstName || `ID: ${d.telegramId}`);
+            let text = `🔍 <b>Найден Пользователь</b>\n\n👤 <b>${name}</b>\nРоль: <b>${d.role}</b>\nСтатус: <b>${d.status}</b>\nTG ID: <code>${d.telegramId}</code>`;
+
+            const buttons = [];
+            if (d.status === 'PENDING') {
+                buttons.push(Markup.button.callback('✅ Одобрить', `approve_${d.telegramId}`));
+            }
+            if (d.status !== 'BANNED') {
+                buttons.push(Markup.button.callback('🚫 Забанить', `ban_${d.telegramId}`));
+            }
+            if (d.role !== 'ADMIN') {
+                buttons.push(Markup.button.callback('👑 Дать Админа', `makeadmin_${d.telegramId}`));
+            }
+            if (d.status === 'BANNED') {
+                buttons.push(Markup.button.callback('🔄 Восстановить', `approve_${d.telegramId}`));
+            }
+            buttons.push(Markup.button.callback('📦 Заказы', `view_orders_${d.telegramId}`));
+
+            const keyboardRows = [];
+            for (let i = 0; i < buttons.length; i += 2) {
+                keyboardRows.push(buttons.slice(i, i + 2));
+            }
+
+            return ctx.replyWithHTML(text, { ...Markup.inlineKeyboard(keyboardRows), protect_content: true });
+        } catch (err) {
+            return ctx.reply('❌ Произошла ошибка при поиске.', { protect_content: true });
+        }
+    }
+    return next();
+});
+
 bot.action(/^approve_(\d+)$/, async (ctx) => {
     const telegramId = BigInt(ctx.match[1]);
     try {
@@ -424,7 +495,7 @@ bot.action(/^view_orders_(\d+)$/, async (ctx) => {
         }
 
         let msg = `📦 <b>Заявки водителя ${targetDriver.firstName || 'Без имени'}:</b>\n\n`;
-        orders.forEach(o => {
+        orders.forEach((o: any) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
             msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
                 `📍 <b>Откуда:</b> ${o.fromCity}\n` +

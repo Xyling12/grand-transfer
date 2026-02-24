@@ -46,8 +46,6 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
 📝 <b>Комментарий:</b> ${orderData.comments || 'Нет'}
 📅 <b>Дата/Время:</b> ${orderData.dateTime || 'Сразу'}
 
-🗺 <a href="${mapLink}">📍 Открыть маршрут в Яндекс Картах</a>
-
 <i>№ заказа: ${orderData.id}</i>
 `;
 
@@ -56,7 +54,8 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
         const body: any = {
             chat_id: targetChatId,
             text: text,
-            parse_mode: 'HTML'
+            parse_mode: 'HTML',
+            protect_content: true
         };
         if (replyMarkup) {
             body.reply_markup = replyMarkup;
@@ -86,9 +85,13 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
             console.warn("Could not query SQLite DB for drivers (expected on read-only environments):", dbError);
         }
 
-        const keyboard = orderData.id && orderData.id !== 'N/A'
-            ? { inline_keyboard: [[{ text: '✅ Забрать заявку', callback_data: `take_order_${orderData.id}` }]] }
-            : undefined;
+        const keyboardButtons = [];
+        if (orderData.id && orderData.id !== 'N/A') {
+            keyboardButtons.push([{ text: '✅ Забрать заявку', callback_data: `take_order_${orderData.id}` }]);
+        }
+        keyboardButtons.push([{ text: '🗺 Открыть Яндекс Карты', url: mapLink }]);
+
+        const keyboard = { inline_keyboard: keyboardButtons };
 
         const orderIdNum = Number(orderData.id);
 
