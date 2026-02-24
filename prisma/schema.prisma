@@ -18,8 +18,9 @@ model Order {
   customerName  String
   customerPhone String
   comments      String?
-  status        String   @default("NEW") // NEW, TAKEN, COMPLETED, CANCELLED
+  status        String   @default("NEW") // NEW, DISPATCHED, TAKEN, COMPLETED, CANCELLED
   driverId      String?  // ID of the driver who took the order
+  dispatcherId  String?  // ID of the dispatcher who released the order
 }
 
 model Driver {
@@ -28,7 +29,7 @@ model Driver {
   username       String?
   firstName      String?
   status         String    @default("PENDING") // PENDING, APPROVED, BANNED
-  role           String    @default("DRIVER")  // USER, DRIVER, ADMIN
+  role           String    @default("DRIVER")  // USER, DRIVER, DISPATCHER, ADMIN
   // Future subscription
   subExpiresAt   DateTime? 
   createdAt      DateTime  @default(now())

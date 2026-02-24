@@ -24,11 +24,14 @@ const getMainMenu = (chatId: string, role: string) => {
         ['📊 Статистика', '🚗 Мои заказы']
     ];
 
-    // Admin gets extra buttons
-    if (role === 'ADMIN' || chatId === adminId) {
-        buttons.push(['👀 Активные заявки', '🌐 Панель на сайте']);
-        buttons.push(['👥 Пользователи', '📥 Выгрузить EXCEL']);
-        buttons.push(['📢 Рассылка', '🗑 Очистить БД']);
+    // Admin and Dispatcher gets extra buttons
+    if (role === 'ADMIN' || role === 'DISPATCHER' || chatId === adminId) {
+        buttons.push(['👀 Активные заявки']);
+        if (role === 'ADMIN' || chatId === adminId) {
+            buttons.push(['🌐 Панель на сайте']);
+            buttons.push(['👥 Пользователи', '📥 Выгрузить EXCEL']);
+            buttons.push(['📢 Рассылка', '🗑 Очистить БД']);
+        }
     }
 
     buttons.push(['ℹ️ Справка']); // Always at the bottom
@@ -245,11 +248,11 @@ bot.hears('🚗 Мои заказы', async (ctx) => {
 
 bot.hears('👀 Активные заявки', async (ctx) => {
     const { auth, role } = await checkAuth(ctx);
-    if (!auth || role !== 'ADMIN') return;
+    if (!auth || (role !== 'ADMIN' && role !== 'DISPATCHER')) return;
 
     try {
         const activeOrders = await prisma.order.findMany({
-            where: { status: 'TAKEN' },
+            where: { status: { in: ['TAKEN', 'NEW', 'DISPATCHED'] } },
             orderBy: { createdAt: 'desc' },
             take: 20
         });
@@ -270,10 +273,13 @@ bot.hears('👀 Активные заявки', async (ctx) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
             const driverName = o.driverId ? driverMap.get(o.driverId) || 'Неизвестен' : 'Неизвестен';
 
-            msg += `📋 <b>Заявка № ${o.id}</b> (${dateStr})\n` +
+            let statusEmoji = o.status === 'NEW' ? '🔵' : (o.status === 'DISPATCHED' ? '🟡' : '🟢');
+            let driverInfo = o.status === 'TAKEN' ? `\n👨‍✈️ <b>Исполнитель:</b> ${driverName}` : `\n📌 <b>Статус:</b> В поиске`;
+
+            msg += `${statusEmoji} <b>Заявка № ${o.id}</b> (${dateStr})\n` +
                 `📍 <b>Маршрут:</b> ${o.fromCity} — ${o.toCity}\n` +
-                `💰 <b>Сумма:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n` +
-                `👨‍✈️ <b>Исполнитель:</b> ${driverName}\n` +
+                `💰 <b>Сумма:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}` +
+                `${driverInfo}\n` +
                 `━━━━━━━━━━━━━━━━━━\n\n`;
         });
 
@@ -505,14 +511,15 @@ bot.action(/^ban_(\d+)$/, async (ctx) => {
         await ctx.answerCbQuery('Ошибка обновления');
     }
 });
-bot.action(/^makeadmin_(\d+)$/, async (ctx) => {
+bot.action(/^setrole_(\d+)_([A-Z]+)$/, async (ctx) => {
     const telegramId = BigInt(ctx.match[1]);
+    const newRole = ctx.match[2];
     try {
-        await prisma.driver.update({ where: { telegramId }, data: { role: 'ADMIN' } });
-        await ctx.answerCbQuery('Права администратора выданы');
-        await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n👑 РОЛЬ ИЗМЕНЕНА НА: ADMIN');
+        await prisma.driver.update({ where: { telegramId }, data: { role: newRole } });
+        await ctx.answerCbQuery(`Роль изменена на ${newRole}`);
+        await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + `\n\n👑 РОЛЬ ИЗМЕНЕНА НА: ${newRole}`);
         try {
-            await bot.telegram.sendMessage(Number(telegramId), '👑 Вам выданы права администратора! Полноценное меню обновлено.', { ...getMainMenu(telegramId.toString(), 'ADMIN'), protect_content: true });
+            await bot.telegram.sendMessage(Number(telegramId), `Вам присвоена роль: ${newRole}! Меню обновлено.`, { ...getMainMenu(telegramId.toString(), newRole), protect_content: true });
         } catch (e) { }
     } catch {
         await ctx.answerCbQuery('Ошибка обновления');
@@ -564,7 +571,101 @@ bot.action(/^view_orders_(\d+)$/, async (ctx) => {
     }
 });
 
-// Take Order Action
+// Dispatch Order Action (For Admins and Dispatchers)
+bot.action(/^dispatch_order_(\d+)$/, async (ctx) => {
+    const { auth, role, dbId } = await checkAuth(ctx);
+    if (!auth || !dbId || (role !== 'ADMIN' && role !== 'DISPATCHER')) {
+        return ctx.answerCbQuery('У вас нет прав для отправки заявки водителям.', { show_alert: true });
+    }
+
+    const orderId = parseInt(ctx.match[1], 10);
+    try {
+        const order = await prisma.order.findUnique({ where: { id: orderId } });
+
+        if (!order) {
+            return ctx.answerCbQuery('Заявка не найдена в базе.', { show_alert: true });
+        }
+
+        if (order.status !== 'NEW') {
+            const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
+            await ctx.editMessageText(txt + '\n\n❌ <i>Эта заявка уже обработана.</i>', { parse_mode: 'HTML' });
+            return ctx.answerCbQuery('Уже обработано!', { show_alert: true });
+        }
+
+        // Lock the order as DISPATCHED
+        await prisma.order.update({
+            where: { id: orderId },
+            data: { status: 'DISPATCHED', dispatcherId: dbId }
+        });
+
+        const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
+        const dispatcherInfo = `\n\n✅ <b>ВЫ ОТПРАВИЛИ ЭТУ ЗАЯВКУ ВОДИТЕЛЯМ</b>`;
+        await ctx.editMessageText(txt + dispatcherInfo, { parse_mode: 'HTML' });
+        await ctx.answerCbQuery('Заявка отправлена водителям!', { show_alert: true });
+
+        // Build the restricted message for Drivers (No Name, No Phone)
+        const fromCityObj = cities.find(c => c.name.toLowerCase() === order.fromCity.toLowerCase());
+        const toCityObj = cities.find(c => c.name.toLowerCase() === order.toCity.toLowerCase());
+        const pt1 = fromCityObj ? `${fromCityObj.lat},${fromCityObj.lon}` : encodeURIComponent(order.fromCity);
+        const pt2 = toCityObj ? `${toCityObj.lat},${toCityObj.lon}` : encodeURIComponent(order.toCity);
+        const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
+
+        const driverMessage = `
+🚕 <b>Новый заказ для водителей!</b>
+
+📍 <b>Откуда:</b> ${order.fromCity}
+🏁 <b>Куда:</b> ${order.toCity}
+🚕 <b>Тариф:</b> ${order.tariff}
+👥 <b>Пассажиров:</b> ${order.passengers}
+💰 <b>Стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
+
+📝 <b>Комментарий:</b> ${order.comments || 'Нет'}
+<i>(Остальные контакты будут доступны после принятия заявки)</i>
+
+<i>№ заказа: ${order.id}</i>
+        `.trim();
+
+        const keyboard = {
+            inline_keyboard: [
+                [{ text: '✅ Забрать заявку', callback_data: `take_order_${order.id}` }],
+                [{ text: '🗺 Открыть маршрут', url: mapLink }]
+            ]
+        };
+
+        // Find all approved DRIVERS and send it
+        const drivers = await prisma.driver.findMany({
+            where: { status: 'APPROVED', role: { in: ['DRIVER', 'ADMIN'] } }
+            // Send to admins as well so they can test/see what drivers see
+        });
+
+        for (const drv of drivers) {
+            try {
+                const sentMsg = await bot.telegram.sendMessage(
+                    Number(drv.telegramId),
+                    driverMessage,
+                    { parse_mode: 'HTML', reply_markup: keyboard, protect_content: drv.role !== 'ADMIN' }
+                );
+
+                // Track driver message so we can delete it when someone takes it
+                await prisma.broadcastMessage.create({
+                    data: {
+                        orderId: order.id,
+                        telegramId: BigInt(drv.telegramId),
+                        messageId: sentMsg.message_id
+                    }
+                });
+            } catch (err) {
+                console.error(`Failed to send driver dispatch to ${drv.telegramId}:`, err);
+            }
+        }
+
+    } catch (err) {
+        console.error('Dispatch error:', err);
+        ctx.answerCbQuery('Произошла ошибка базы данных.');
+    }
+});
+
+// Take Order Action (For Drivers)
 bot.action(/^take_order_(\d+)$/, async (ctx) => {
     const { auth, dbId } = await checkAuth(ctx);
     if (!auth || !dbId) {
@@ -579,7 +680,7 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
             return ctx.answerCbQuery('Заявка не найдена в базе.', { show_alert: true });
         }
 
-        if (order.status !== 'NEW') {
+        if (order.status !== 'DISPATCHED' && order.status !== 'NEW') {
             // Order is already taken or completed
             const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
             await ctx.editMessageText(txt + '\n\n❌ <i>Заявка уже взята в работу другим водителем.</i>', { parse_mode: 'HTML' });
@@ -594,45 +695,44 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
 
         const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
 
+        // Provide full info to the driver via editing the notification
         const customerInfo = `\n\n✅ <b>ВЫ ВЗЯЛИ ЭТУ ЗАЯВКУ В РАБОТУ</b>\n\n👤 <b>Клиент:</b> ${order.customerName}\n📞 <b>Телефон:</b> ${order.customerPhone}`;
 
-        await ctx.editMessageText(txt + customerInfo, { parse_mode: 'HTML' });
+        await ctx.editMessageText(txt + customerInfo, { parse_mode: 'HTML', reply_markup: undefined });
         await ctx.answerCbQuery('Вы успешно взяли заявку!', { show_alert: true });
 
-        // Retrieve and delete messages for other drivers
+        // Retrieve and delete messages for other drivers/admins
         try {
-            const bms = await (prisma as any).broadcastMessage.findMany({ where: { orderId } });
+            const bms = await prisma.broadcastMessage.findMany({ where: { orderId } });
             const takerName = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || 'Неизвестно');
 
+            // Notify dispatcher and global admins
+            const staffToNotify = await prisma.driver.findMany({
+                where: {
+                    status: 'APPROVED',
+                    role: { in: ['ADMIN', 'DISPATCHER'] }
+                }
+            });
+
+            const notifyPromises = staffToNotify.map(async (staff: any) => {
+                // If the staff member is the one who just took the driver order, skip
+                if (staff.telegramId === BigInt(ctx.chat?.id || 0)) return;
+
+                const adminTxt = `🚨 <b>Заявка № ${orderId} ВЗЯТА В РАБОТУ</b>\n\n👨‍✈️ Водитель: <b>${takerName}</b>\n📍 Маршрут: ${order.fromCity} — ${order.toCity}\n💰 ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Без оценки'}`;
+                return bot.telegram.sendMessage(Number(staff.telegramId), adminTxt, { parse_mode: 'HTML' }).catch(() => { });
+            });
+            await Promise.all(notifyPromises);
+
             for (const bm of bms) {
-                // Do not delete for the driver who took the order
+                // Do not delete for the driver who took the order (their message was edited above)
                 if (ctx.chat && bm.telegramId === BigInt(ctx.chat.id)) continue;
 
-                // Handle ADMINs vs regular drivers
-                const bmDriver = await prisma.driver.findUnique({ where: { telegramId: bm.telegramId } });
-                const isAdmin = (bmDriver?.role === 'ADMIN' || bm.telegramId.toString() === adminId);
-
-                if (isAdmin) {
-                    // For admins, delete the original broadcast and send a NEW explicit notification
-                    try {
-                        const originalMsg = await prisma.order.findUnique({ where: { id: orderId } });
-                        const adminTxt = `🚨 <b>Заявка № ${orderId} ВЗЯТА</b>\n\n👤 Исполнитель: <b>${takerName}</b>\n📍 Маршрут: ${originalMsg?.fromCity || 'Неизвестно'} — ${originalMsg?.toCity || 'Неизвестно'}\n💰 ${originalMsg?.priceEstimate ? originalMsg.priceEstimate + ' ₽' : 'Без оценки'}`;
-
-                        // Delete the old broadcast ping
-                        await bot.telegram.deleteMessage(Number(bm.telegramId), bm.messageId).catch(() => { });
-
-                        // Send new explicit alert
-                        await bot.telegram.sendMessage(Number(bm.telegramId), adminTxt, { parse_mode: 'HTML', protect_content: false });
-                    } catch (editErr) {
-                        console.error('Failed to notify admin msg', editErr);
-                    }
-                } else {
-                    // Delete message for other regular drivers completely
-                    try {
-                        await bot.telegram.deleteMessage(Number(bm.telegramId), bm.messageId);
-                    } catch (delErr) {
-                        console.error(`Failed to delete message for ${bm.telegramId}:`, delErr);
-                    }
+                // Strip the "take order" button for everyone else by deleting the message
+                // This cleans up the chat for drivers who didn't take it
+                try {
+                    await bot.telegram.deleteMessage(Number(bm.telegramId), bm.messageId);
+                } catch (delErr) {
+                    console.error(`Failed to delete message for ${bm.telegramId}:`, delErr);
                 }
             }
         } catch (dbErr) {
@@ -643,6 +743,97 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
         console.error('Take_order error:', err);
         ctx.answerCbQuery('Произошла ошибка при попытке взять заявку.');
     }
+});
+
+// Moderation Settings
+const BANNED_WORDS = ['хуй', 'пизда', 'ебать', 'сука', 'блядь', 'блять', 'пидор', 'гандон', 'шлюха'];
+const POLITICAL_WORDS = ['путин', 'зеленский', 'навальный', 'байден', 'сво', 'война', 'украина', 'россия', 'политика', 'митинг', 'выборы'];
+const URL_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)|(t\.me\/[^\s]+)/gi;
+
+// Chat Group Moderation Listener
+bot.on('message', async (ctx, next) => {
+    // Only moderate messages in group chats (supergroups or regular groups)
+    if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
+        const messageText = (ctx.message as any)?.text || (ctx.message as any)?.caption || '';
+
+        if (!messageText) return next();
+
+        const lowerText = messageText.toLowerCase();
+        let shouldDelete = false;
+        let reason = '';
+
+        // 1. Check for URLs / Links
+        if (URL_REGEX.test(messageText)) {
+            shouldDelete = true;
+            reason = 'Ссылки запрещены';
+        }
+
+        // 2. Check for Profanity
+        if (!shouldDelete && BANNED_WORDS.some(word => lowerText.includes(word))) {
+            shouldDelete = true;
+            reason = 'Ненормативная лексика';
+        }
+
+        // 3. Check for Political keywords
+        if (!shouldDelete && POLITICAL_WORDS.some(word => lowerText.includes(word))) {
+            shouldDelete = true;
+            reason = 'Политические обсуждения правилами запрещены';
+        }
+
+        if (shouldDelete) {
+            try {
+                await ctx.deleteMessage();
+                // Optionally warn the user silently or briefly
+                const warning = await ctx.reply(`⚠️ @${ctx.from.username || ctx.from.first_name}, ваше сообщение удалено. Причина: ${reason}.`);
+                // Delete the warning after 5 seconds to keep the chat clean
+                setTimeout(() => {
+                    ctx.telegram.deleteMessage(ctx.chat.id, warning.message_id).catch(() => { });
+                }, 5000);
+            } catch (err) {
+                console.error('Failed to moderate / delete message:', err);
+            }
+            // Stop processing this message further
+            return;
+        }
+    }
+
+    // Continue processing if no violation or not a group chat
+    return next();
+});
+
+// Generate Group Invite Link (Admins Only)
+bot.command('invite', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    // The chat ID of the group must be provided, or bot needs to know it.
+    // For now, prompt the admin to add bot to group and use the command there,
+    // OR if the admin passes a group ID.
+    const groupId = process.env.TELEGRAM_GROUP_ID;
+
+    if (!groupId) {
+        return ctx.reply('⚠️ ID группы не настроен (TELEGRAM_GROUP_ID). Добавьте бота в группу и выдайте ему права администратора, затем я смогу генерировать ссылки.', { protect_content: true });
+    }
+
+    try {
+        // Generate a link that expires in 1 day and allows 1 use
+        const expireDate = Math.floor(Date.now() / 1000) + (24 * 60 * 60); // 24 hours
+        const inviteLink = await ctx.telegram.createChatInviteLink(groupId, {
+            expire_date: expireDate,
+            member_limit: 1,
+            name: `Invite for ${ctx.from.first_name}`
+        });
+
+        await ctx.reply(`🔗 <b>Одноразовая ссылка в закрытый чат водителей:</b>\n\n${inviteLink.invite_link}\n\n<i>Ссылка действительна 24 часа для одного(1) человека.</i>`, { parse_mode: 'HTML', protect_content: true });
+    } catch (err) {
+        console.error('Fail generate link', err);
+        ctx.reply('❌ Ошибка генерации ссылки. Проверьте, что бот является Администратором в нужной группе.', { protect_content: true });
+    }
+});
+
+// Bot version command
+bot.command('version', async (ctx) => {
+    ctx.reply('🤖 GrandTransfer Bot v1.2.0\n\nОбновление:\n- Добавлена система Диспетчеров\n- Добавлена авто-модерация в чате водителей (мат, ссылки, политика)', { protect_content: true });
 });
 
 let isShuttingDown = false;

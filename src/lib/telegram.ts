@@ -80,11 +80,13 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
     let anySuccess = false;
 
     try {
-        let approvedDrivers: { telegramId: string | bigint, role: string }[] = [];
+        let authorizedStaff: { telegramId: string | bigint, role: string }[] = [];
         try {
-            approvedDrivers = await prisma.driver.findMany({
-                where: { status: 'APPROVED' },
-                // Select role to determine if they need content protection
+            authorizedStaff = await prisma.driver.findMany({
+                where: {
+                    status: 'APPROVED',
+                    role: { in: ['ADMIN', 'DISPATCHER'] }
+                },
                 select: { telegramId: true, role: true }
             });
         } catch (dbError) {
@@ -93,7 +95,7 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
 
         const keyboardButtons = [];
         if (orderData.id && orderData.id !== 'N/A') {
-            keyboardButtons.push([{ text: '✅ Забрать заявку', callback_data: `take_order_${orderData.id}` }]);
+            keyboardButtons.push([{ text: '📤 Отправить водителям', callback_data: `dispatch_order_${orderData.id}` }]);
         }
         keyboardButtons.push([{ text: '🗺 Открыть Яндекс Карты', url: mapLink }]);
 
@@ -101,26 +103,26 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
 
         const orderIdNum = Number(orderData.id);
 
-        // Send to all approved drivers
-        if (approvedDrivers.length > 0) {
-            for (const driver of approvedDrivers) {
+        // Send to all Admins and Dispatchers
+        if (authorizedStaff.length > 0) {
+            for (const staff of authorizedStaff) {
                 try {
-                    const isAdmin = (driver.role === 'ADMIN' || driver.telegramId.toString() === chatId);
+                    const isAdmin = (staff.role === 'ADMIN' || staff.telegramId.toString() === chatId);
                     const protect = !isAdmin; // Protect content if they are NOT an admin
-                    const sentMsg = await sendTelegramMessage(driver.telegramId.toString(), message, keyboard, protect);
+                    const sentMsg = await sendTelegramMessage(staff.telegramId.toString(), message, keyboard, protect);
                     if (sentMsg) anySuccess = true;
 
                     if (!isNaN(orderIdNum) && sentMsg?.message_id) {
                         await prisma.broadcastMessage.create({
                             data: {
                                 orderId: orderIdNum,
-                                telegramId: BigInt(driver.telegramId.toString()),
+                                telegramId: BigInt(staff.telegramId.toString()),
                                 messageId: sentMsg.message_id
                             }
                         });
                     }
                 } catch (err) {
-                    console.error(`Failed to send to driver ${driver.telegramId}:`, err);
+                    console.error(`Failed to send to staff ${staff.telegramId}:`, err);
                 }
             }
         } else {
@@ -145,7 +147,7 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
             }
         }
     } catch (e) {
-        console.error('Failed to notify drivers:', e);
+        console.error('Failed to notify staff:', e);
     }
 
     return anySuccess;
