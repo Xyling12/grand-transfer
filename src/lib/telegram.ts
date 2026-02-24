@@ -8,9 +8,8 @@ import { cities } from '@/data/cities';
 export async function sendOrderNotification(orderData: Record<string, string | number | null | undefined>) {
     const token = (process.env.TELEGRAM_BOT_TOKEN || '').replace(/['"]/g, '').trim();
     const chatId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim();
-    const botInstance = token ? new Telegraf(token) : null;
 
-    if (!botInstance || !chatId) {
+    if (!token || !chatId) {
         console.warn('Telegram bot is not configured properly (missing token or chat ID)');
         return;
     }
@@ -52,6 +51,31 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
 <i>№ заказа: ${orderData.id}</i>
 `;
 
+    const sendTelegramMessage = async (targetChatId: string, text: string, replyMarkup?: any) => {
+        const url = `https://api.telegram.org/bot${token}/sendMessage`;
+        const body: any = {
+            chat_id: targetChatId,
+            text: text,
+            parse_mode: 'HTML'
+        };
+        if (replyMarkup) {
+            body.reply_markup = replyMarkup;
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Telegram API Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.result;
+    };
+
     try {
         let approvedDrivers: { telegramId: string | bigint }[] = [];
         try {
@@ -63,9 +87,7 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
         }
 
         const keyboard = orderData.id && orderData.id !== 'N/A'
-            ? Markup.inlineKeyboard([
-                Markup.button.callback('✅ Забрать заявку', `take_order_${orderData.id}`)
-            ])
+            ? { inline_keyboard: [[{ text: '✅ Забрать заявку', callback_data: `take_order_${orderData.id}` }]] }
             : undefined;
 
         const orderIdNum = Number(orderData.id);
@@ -74,13 +96,9 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
         if (approvedDrivers.length > 0) {
             for (const driver of approvedDrivers) {
                 try {
-                    const sentMsg = await botInstance.telegram.sendMessage(driver.telegramId.toString(), message, {
-                        parse_mode: 'HTML',
-                        reply_markup: keyboard?.reply_markup,
-                        protect_content: true
-                    });
+                    const sentMsg = await sendTelegramMessage(driver.telegramId.toString(), message, keyboard);
 
-                    if (!isNaN(orderIdNum)) {
+                    if (!isNaN(orderIdNum) && sentMsg?.message_id) {
                         await prisma.broadcastMessage.create({
                             data: {
                                 orderId: orderIdNum,
@@ -96,19 +114,19 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
         } else {
             // Fallback to admin/chat ID if nobody is approved yet or DB failed
             if (chatId) {
-                const sentMsg = await botInstance.telegram.sendMessage(chatId, message, {
-                    parse_mode: 'HTML',
-                    reply_markup: keyboard?.reply_markup,
-                    protect_content: true
-                });
-                if (!isNaN(orderIdNum)) {
-                    await prisma.broadcastMessage.create({
-                        data: {
-                            orderId: orderIdNum,
-                            telegramId: BigInt(chatId),
-                            messageId: sentMsg.message_id
-                        }
-                    });
+                try {
+                    const sentMsg = await sendTelegramMessage(chatId, message, keyboard);
+                    if (!isNaN(orderIdNum) && sentMsg?.message_id) {
+                        await prisma.broadcastMessage.create({
+                            data: {
+                                orderId: orderIdNum,
+                                telegramId: BigInt(chatId),
+                                messageId: sentMsg.message_id
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error('Failed to notify fallback admin:', e);
                 }
             }
         }
@@ -134,7 +152,7 @@ export async function getStatsMessage() {
     });
 
     let recentRevenue = 0;
-    recentOrders.forEach(o => recentRevenue += (o.priceEstimate || 0));
+    recentOrders.forEach((o: any) => recentRevenue += (o.priceEstimate || 0));
 
     return `
 📊 <b>Статистика GrandTransfer</b>
