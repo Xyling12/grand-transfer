@@ -297,7 +297,7 @@ bot.hears('💬 Чат', async (ctx) => {
     const { auth, role } = await checkAuth(ctx);
     if (!auth) return;
 
-    const groupId = process.env.TELEGRAM_GROUP_ID;
+    const groupId = process.env.TELEGRAM_GROUP_ID || '-1003744157897';
 
     if (!groupId) {
         return ctx.reply('⚠️ Ссылка на общий чат пока не настроена.', { protect_content: true });
@@ -782,6 +782,15 @@ const URL_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.[a-zA-Z]{2,
 bot.on('message', async (ctx, next) => {
     // Only moderate messages in group chats (supergroups or regular groups)
     if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
+
+        // 1. System messages cleanup (Join/Leave/Pin)
+        if ('new_chat_members' in ctx.message || 'left_chat_member' in ctx.message || 'pinned_message' in ctx.message) {
+            try {
+                await ctx.deleteMessage();
+            } catch (err) { }
+            return; // Stop processing this message
+        }
+
         const messageText = (ctx.message as any)?.text || (ctx.message as any)?.caption || '';
 
         if (!messageText) return next();
@@ -836,9 +845,7 @@ bot.command('invite', async (ctx) => {
     if (!auth || ctx.chat.id.toString() !== adminId) return;
 
     // The chat ID of the group must be provided, or bot needs to know it.
-    // For now, prompt the admin to add bot to group and use the command there,
-    // OR if the admin passes a group ID.
-    const groupId = process.env.TELEGRAM_GROUP_ID;
+    const groupId = process.env.TELEGRAM_GROUP_ID || '-1003744157897';
 
     if (!groupId) {
         return ctx.reply('⚠️ ID группы не настроен (TELEGRAM_GROUP_ID). Добавьте бота в группу и выдайте ему права администратора, затем я смогу генерировать ссылки.', { protect_content: true });
