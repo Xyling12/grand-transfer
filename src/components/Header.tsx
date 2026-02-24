@@ -60,7 +60,7 @@ export default function Header() {
                         }}
                     >
                         <div style={{ transform: "scaleX(-1)", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "-2px" }}>
-                            <Car size={28} />
+                            <Car size={28} strokeWidth={1.5} />
                         </div>
                         <span className={styles.logoText}>GrandTransfer</span>
                     </Link>
