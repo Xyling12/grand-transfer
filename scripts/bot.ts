@@ -529,6 +529,8 @@ async function startBot() {
     while (!isShuttingDown) {
         try {
             console.log('🤖 Telegram bot is starting...');
+            // Force delete any existing webhook so long-polling works reliably
+            await bot.telegram.deleteWebhook({ drop_pending_updates: true });
             await bot.launch({ dropPendingUpdates: true });
             console.log('🤖 Telegram bot stopped normally.');
             break;
