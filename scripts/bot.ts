@@ -311,8 +311,8 @@ bot.hears('👀 Активные заявки', async (ctx) => {
         });
 
         ctx.replyWithHTML(msg, { protect_content: true });
-    } catch (err) {
-        ctx.reply('❌ Ошибка при получении активных заявок.', { protect_content: true });
+    } catch (err: any) {
+        ctx.reply(`❌ Ошибка при получении активных заявок.\nТех. информация: ${err.message}`, { protect_content: true });
     }
 });
 
@@ -445,11 +445,13 @@ bot.hears('👥 Пользователи', async (ctx) => {
 
             const buttons = [];
             if (d.status === 'PENDING') {
-                buttons.push(Markup.button.callback('✅ Одобрить', `approve_${d.telegramId}`));
+                buttons.push(Markup.button.callback('✅ Принять (Водитель)', `approve_${d.telegramId}`));
+                buttons.push(Markup.button.callback('🎧 Принять (Диспетчер)', `approve_disp_${d.telegramId}`));
             }
             if (d.status !== 'BANNED') {
                 buttons.push(Markup.button.callback('🚫 Забанить', `ban_${d.telegramId}`));
             }
+            buttons.push(Markup.button.callback('🗑 Выгнать', `delete_${d.telegramId}`));
 
             // Only Main Admin can assign ADMIN roles or demote Admins
             if (ctx.chat?.id.toString() === adminId) {
@@ -534,11 +536,13 @@ bot.on('text', async (ctx, next) => {
 
             const buttons = [];
             if (d.status === 'PENDING') {
-                buttons.push(Markup.button.callback('✅ Одобрить', `approve_${d.telegramId}`));
+                buttons.push(Markup.button.callback('✅ Принять (Водитель)', `approve_${d.telegramId}`));
+                buttons.push(Markup.button.callback('🎧 Принять (Диспетчер)', `approve_disp_${d.telegramId}`));
             }
             if (d.status !== 'BANNED') {
                 buttons.push(Markup.button.callback('🚫 Забанить', `ban_${d.telegramId}`));
             }
+            buttons.push(Markup.button.callback('🗑 Выгнать', `delete_${d.telegramId}`));
             // Only Main Admin can assign ADMIN roles or demote Admins
             if (ctx.chat?.id.toString() === adminId) {
                 if (d.role === 'USER' || d.role === 'DRIVER') {
@@ -583,9 +587,9 @@ bot.on('text', async (ctx, next) => {
 bot.action(/^approve_(\d+)$/, async (ctx) => {
     const telegramId = BigInt(ctx.match[1]);
     try {
-        const updatedDriver = await prisma.driver.update({ where: { telegramId }, data: { status: 'APPROVED' } });
-        await ctx.answerCbQuery('Пользователь одобрен');
-        await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n✅ СТАТУС ИЗМЕНЕН НА: APPROVED');
+        const updatedDriver = await prisma.driver.update({ where: { telegramId }, data: { status: 'APPROVED', role: 'DRIVER' } });
+        await ctx.answerCbQuery('Одобрен как Водитель');
+        await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n✅ ОДОБРЕН КАК ВОДИТЕЛЬ');
         try {
             await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Теперь вам доступно меню водителя.', { ...getMainMenu(telegramId.toString(), updatedDriver.role), protect_content: true });
         } catch (e) { }
@@ -593,6 +597,21 @@ bot.action(/^approve_(\d+)$/, async (ctx) => {
         await ctx.answerCbQuery('Ошибка обновления');
     }
 });
+
+bot.action(/^approve_disp_(\d+)$/, async (ctx) => {
+    const telegramId = BigInt(ctx.match[1]);
+    try {
+        const updatedDriver = await prisma.driver.update({ where: { telegramId }, data: { status: 'APPROVED', role: 'DISPATCHER' } });
+        await ctx.answerCbQuery('Одобрен как Диспетчер');
+        await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n✅ ОДОБРЕН КАК ДИСПЕТЧЕР');
+        try {
+            await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Теперь вам доступно меню диспетчера.', { ...getMainMenu(telegramId.toString(), updatedDriver.role), protect_content: true });
+        } catch (e) { }
+    } catch {
+        await ctx.answerCbQuery('Ошибка обновления');
+    }
+});
+
 bot.action(/^ban_(\d+)$/, async (ctx) => {
     const telegramId = BigInt(ctx.match[1]);
     try {
@@ -603,6 +622,21 @@ bot.action(/^ban_(\d+)$/, async (ctx) => {
         await ctx.answerCbQuery('Ошибка обновления');
     }
 });
+
+bot.action(/^delete_(\d+)$/, async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return ctx.answerCbQuery('Нет прав');
+
+    const telegramId = BigInt(ctx.match[1]);
+    try {
+        await prisma.driver.delete({ where: { telegramId } });
+        await ctx.answerCbQuery('Пользователь удален из базы');
+        await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n🗑 ПОЛЬЗОВАТЕЛЬ УДАЛЕН');
+    } catch {
+        await ctx.answerCbQuery('Ошибка удаления. Возможно, за ним числятся заказы.');
+    }
+});
+
 bot.action(/^setrole_(\d+)_([A-Z]+)$/, async (ctx) => {
     const telegramId = BigInt(ctx.match[1]);
     const newRole = ctx.match[2];
@@ -630,16 +664,16 @@ bot.action(/^view_orders_(\d+)$/, async (ctx) => {
         if (!targetDriver) return ctx.answerCbQuery('Водитель не найден.');
 
         const orders = await prisma.order.findMany({
-            where: { driverId: targetDriver.id },
+            where: targetDriver.role === 'DISPATCHER' ? { dispatcherId: targetDriver.id } : { driverId: targetDriver.id },
             orderBy: { createdAt: 'desc' },
             take: 20
         });
 
         if (orders.length === 0) {
-            return ctx.answerCbQuery('У пользователя нет взятых заявок.', { show_alert: true });
+            return ctx.answerCbQuery('У пользователя нет заявок в работе.', { show_alert: true });
         }
 
-        let msg = `📦 <b>Заявки водителя ${targetDriver.firstName || 'Без имени'}:</b>\n\n`;
+        let msg = `📦 <b>Заявки (${targetDriver.role === 'DISPATCHER' ? 'Диспетчер' : 'Водитель'}) ${targetDriver.firstName || 'Без имени'}:</b>\n\n`;
         orders.forEach((o: any) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
             msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
@@ -933,7 +967,7 @@ bot.command('invite', async (ctx) => {
 
 // Bot version command
 bot.command('version', async (ctx) => {
-    ctx.reply('🤖 GrandTransfer Bot v1.2.3\n\nОбновление:\n- Администраторы теперь получают уведомления о новых регистрациях в боте\n- Добавлена возможность снимать права (понижать Админов и Диспетчеров)\n- Улучшена изоляция прав между Главным Администратором и обычными', { protect_content: true });
+    ctx.reply('🤖 GrandTransfer Bot v1.2.4\n\nОбновление:\n- Кнопки "Принять как Диспетчера / Водителя" при регистрации\n- Кнопка "Выгнать" (полное удаление) пользователя\n- Исправлен просмотр заказов Диспетчеров в меню пользователей\n- Улучшен вывод ошибок в "Активных заявках"', { protect_content: true });
 });
 
 let isShuttingDown = false;
