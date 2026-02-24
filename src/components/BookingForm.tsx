@@ -41,7 +41,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     // Coordinate state for routing
     const [fromCoords, setFromCoords] = useState<[number, number] | null>(null);
     const [toCoords, setToCoords] = useState<[number, number] | null>(null);
-    
+
     // YMaps state
     const [ymapsInstance, setYmapsInstance] = useState<any>(null);
     const [routeRenderData, setRouteRenderData] = useState<any>(null);
@@ -49,6 +49,11 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     const [debouncedTo, setDebouncedTo] = useState(toCity);
     const fromInputRef = useRef<HTMLInputElement>(null);
     const toInputRef = useRef<HTMLInputElement>(null);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -138,7 +143,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                     const wayPoint1 = route.getWayPoints().get(routePoints.length - 1);
                     if (wayPoint0) setFromCoords(wayPoint0.geometry.getCoordinates());
                     if (wayPoint1) setToCoords(wayPoint1.geometry.getCoordinates());
-                } catch(e) {}
+                } catch (e) { }
 
                 let distancesKm: number[] = [];
                 let totalDuration = 0;
@@ -412,22 +417,29 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                         height: '320px',
                                         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                                         border: '1px solid var(--glass-border)',
-                                        width: '100%'
+                                        width: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
                                     }}>
-                                        <YMaps query={{ apikey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY }}>
-                                            <Map
-                                                defaultState={{ center: [55.751574, 37.573856], zoom: 9 }}
-                                                width="100%"
-                                                height="100%"
-                                                onLoad={(ymaps: any) => setYmapsInstance(ymaps)}
-                                                instanceRef={(ref: any) => {
-                                                    if (ref && routeRenderData) {
-                                                        ref.geoObjects.removeAll();
-                                                        ref.geoObjects.add(routeRenderData);
-                                                    }
-                                                }}
-                                            />
-                                        </YMaps>
+                                        {isMounted ? (
+                                            <YMaps query={{ apikey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY }}>
+                                                <Map
+                                                    defaultState={{ center: [55.751574, 37.573856], zoom: 9 }}
+                                                    width="100%"
+                                                    height="100%"
+                                                    onLoad={(ymaps: any) => setYmapsInstance(ymaps)}
+                                                    instanceRef={(ref: any) => {
+                                                        if (ref && routeRenderData) {
+                                                            ref.geoObjects.removeAll();
+                                                            ref.geoObjects.add(routeRenderData);
+                                                        }
+                                                    }}
+                                                />
+                                            </YMaps>
+                                        ) : (
+                                            <Loader2 size={32} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} />
+                                        )}
                                     </div>
 
                                     <div className={styles.formGroup}>
