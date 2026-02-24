@@ -107,6 +107,7 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         // Delay to allow click on suggestion list to register first
         setTimeout(() => {
+            setShowSuggestions(false);
             if (props.onBlur) props.onBlur(e);
         }, 200);
     };

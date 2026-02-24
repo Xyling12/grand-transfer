@@ -5,13 +5,13 @@ const prisma = new PrismaClient();
 
 import { cities } from '@/data/cities';
 
-export async function sendOrderNotification(orderData: Record<string, string | number | null | undefined>) {
+export async function sendOrderNotification(orderData: Record<string, string | number | null | undefined>): Promise<boolean> {
     const token = (process.env.TELEGRAM_BOT_TOKEN || '').replace(/['"]/g, '').trim();
     const chatId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim();
 
     if (!token || !chatId) {
         console.warn('Telegram bot is not configured properly (missing token or chat ID)');
-        return;
+        return false;
     }
 
     const fromCity = String(orderData.fromCity || '');
@@ -77,6 +77,8 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
         return data.result;
     };
 
+    let anySuccess = false;
+
     try {
         let approvedDrivers: { telegramId: string | bigint, role: string }[] = [];
         try {
@@ -106,6 +108,7 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
                     const isAdmin = (driver.role === 'ADMIN' || driver.telegramId.toString() === chatId);
                     const protect = !isAdmin; // Protect content if they are NOT an admin
                     const sentMsg = await sendTelegramMessage(driver.telegramId.toString(), message, keyboard, protect);
+                    if (sentMsg) anySuccess = true;
 
                     if (!isNaN(orderIdNum) && sentMsg?.message_id) {
                         await prisma.broadcastMessage.create({
@@ -125,6 +128,8 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
             if (chatId) {
                 try {
                     const sentMsg = await sendTelegramMessage(chatId, message, keyboard, false); // Fallback is usually admin, so no protection
+                    if (sentMsg) anySuccess = true;
+
                     if (!isNaN(orderIdNum) && sentMsg?.message_id) {
                         await prisma.broadcastMessage.create({
                             data: {
@@ -142,6 +147,8 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
     } catch (e) {
         console.error('Failed to notify drivers:', e);
     }
+
+    return anySuccess;
 }
 
 // Optional: Statistics fetcher to be used inside a polling script later

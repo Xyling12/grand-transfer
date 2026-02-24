@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 // @ts-nocheck
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
@@ -63,16 +63,9 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                 setFromCoords([matchedCity.lat, matchedCity.lon]);
             }
         }
-    }, [defaultGeoCity, fromCity, urlFrom, defaultFromCity]);
+    }, [urlFrom, defaultFromCity]);
 
-    // Update form when city changes globally, but only if user hasn't typed something else
-    useEffect(() => {
-        if (urlFrom) {
-            setTimeout(() => setFromCity(urlFrom), 0);
-        }
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentCity, urlFrom]);
+    // Removed duplicate currentCity/urlFrom watcher to prevent input override
 
     useEffect(() => {
         if (defaultToCity) {

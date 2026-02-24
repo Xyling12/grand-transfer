@@ -33,16 +33,18 @@ export async function POST(req: Request) {
 
         // Send Telegram Notification (must await on Vercel otherwise Lambda is killed instantly)
         body.id = orderId; // Include the DB ID (or N/A) in the notification
-        await sendOrderNotification(body);
+        const tgSuccess = await sendOrderNotification(body);
 
         // Send Email Notification as backup (do not crash if it fails)
-        try {
-            await sendEmailNotification(body);
-        } catch (emailError) {
-            console.error('Email notification failed but Telegram succeeded:', emailError);
+        if (!tgSuccess) {
+            try {
+                await sendEmailNotification(body);
+            } catch (emailError) {
+                console.error('Email notification failed but Telegram also failed:', emailError);
+            }
         }
 
-        return NextResponse.json({ success: true, orderId: orderId }, { status: 200 });
+        return NextResponse.json({ success: true, orderId: orderId, telegramFallback: !tgSuccess }, { status: 200 });
 
     } catch (error) {
         console.error('API Order Error:', error);

@@ -379,31 +379,37 @@ bot.action('search_user', async (ctx) => {
     const { auth, role } = await checkAuth(ctx);
     if (!auth || role !== 'ADMIN') return;
 
-    await ctx.reply('Введите Telegram ID пользователя для поиска (только цифры):', {
+    await ctx.reply('Введите Telegram ID или @username пользователя для поиска:', {
         reply_markup: { force_reply: true },
-        protect_content: true
+        protect_content: false
     });
     await ctx.answerCbQuery();
 });
 
-// Listen for the text reply containing the ID
+// Listen for the text reply containing the ID or username
 bot.on('text', async (ctx, next) => {
     const replyToMsg = ctx.message.reply_to_message as any;
-    if (replyToMsg && replyToMsg.text && replyToMsg.text.includes('Введите Telegram ID пользователя')) {
+    if (replyToMsg && replyToMsg.text && replyToMsg.text.includes('Введите Telegram ID или @username')) {
         const { auth, role } = await checkAuth(ctx);
         if (!auth || role !== 'ADMIN') return;
 
-        const searchIdStr = ctx.message.text.trim();
-        if (!/^\d+$/.test(searchIdStr)) {
-            return ctx.reply('Ошибка: необходимо ввести только числовой ID.', { protect_content: true });
-        }
+        let searchStr = ctx.message.text.trim();
+        let d = null;
 
         try {
-            const searchId = BigInt(searchIdStr);
-            const d = await prisma.driver.findUnique({ where: { telegramId: searchId } });
+            // Check if it's an ID
+            if (/^\d+$/.test(searchStr)) {
+                d = await prisma.driver.findUnique({ where: { telegramId: BigInt(searchStr) } });
+            } else {
+                // Otherwise treat as username
+                if (searchStr.startsWith('@')) {
+                    searchStr = searchStr.substring(1);
+                }
+                d = await prisma.driver.findFirst({ where: { username: searchStr } });
+            }
 
             if (!d) {
-                return ctx.reply('Пользователь с таким ID не найден.', { protect_content: true });
+                return ctx.reply('Пользователь не найден.', { protect_content: role !== 'ADMIN' });
             }
 
             const name = d.username ? `@${d.username}` : (d.firstName || `ID: ${d.telegramId}`);
@@ -429,12 +435,13 @@ bot.on('text', async (ctx, next) => {
                 keyboardRows.push(buttons.slice(i, i + 2));
             }
 
-            return ctx.replyWithHTML(text, { ...Markup.inlineKeyboard(keyboardRows), protect_content: true });
+            return ctx.replyWithHTML(text, { ...Markup.inlineKeyboard(keyboardRows), protect_content: role !== 'ADMIN' });
         } catch (err) {
-            return ctx.reply('❌ Произошла ошибка при поиске.', { protect_content: true });
+            ctx.reply('❌ Ошибка поиска.', { protect_content: role !== 'ADMIN' });
         }
+    } else {
+        return next();
     }
-    return next();
 });
 
 bot.action(/^approve_(\d+)$/, async (ctx) => {
@@ -568,13 +575,18 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
                 const isAdmin = (bmDriver?.role === 'ADMIN' || bm.telegramId.toString() === adminId);
 
                 if (isAdmin) {
-                    // For admins, edit the message to explicitly say who took it, removing the button
+                    // For admins, delete the original broadcast and send a NEW explicit notification
                     try {
                         const originalMsg = await prisma.order.findUnique({ where: { id: orderId } });
                         const adminTxt = `🚨 <b>Заявка № ${orderId} ВЗЯТА</b>\n\n👤 Исполнитель: <b>${takerName}</b>\n📍 Маршрут: ${originalMsg?.fromCity || 'Неизвестно'} — ${originalMsg?.toCity || 'Неизвестно'}\n💰 ${originalMsg?.priceEstimate ? originalMsg.priceEstimate + ' ₽' : 'Без оценки'}`;
-                        await bot.telegram.editMessageText(Number(bm.telegramId), bm.messageId, undefined, adminTxt, { parse_mode: 'HTML' });
+
+                        // Delete the old broadcast ping
+                        await bot.telegram.deleteMessage(Number(bm.telegramId), bm.messageId).catch(() => { });
+
+                        // Send new explicit alert
+                        await bot.telegram.sendMessage(Number(bm.telegramId), adminTxt, { parse_mode: 'HTML', protect_content: false });
                     } catch (editErr) {
-                        console.error('Failed to edit admin msg', editErr);
+                        console.error('Failed to notify admin msg', editErr);
                     }
                 } else {
                     // Delete message for other regular drivers completely
