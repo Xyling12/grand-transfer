@@ -34,10 +34,11 @@ export default function AboutPage() {
                 <section className={styles.contentBlock}>
                     <h2>Юридическая информация и контакты</h2>
                     <div className={styles.contactCard}>
-                        <p><strong>Реквизиты:</strong> Индивидуальный предприниматель (ИП) Баткович Р.</p>
-                        <p><strong>ОГРНИП:</strong> (Укажите ваш ОГРНИП для верификации Яндексом)</p>
+                        <p><strong>Правовой статус:</strong> Плательщик налога на профессиональный доход (Самозанятый)</p>
+                        <p><strong>Услуги:</strong> Информационные услуги в сфере пассажирских перевозок</p>
+                        <p><strong>ФИО:</strong> Баткович Р.</p>
                         <p><strong>ИНН:</strong> (Укажите ваш ИНН)</p>
-                        <p><strong>Юридический адрес:</strong> г. Москва, (Укажите полный адрес)</p>
+                        <p><strong>Регион деятельности:</strong> г. Москва и РФ</p>
                         <hr style={{ margin: '15px 0', borderColor: 'var(--glass-border)' }} />
                         <p><strong>Телефон:</strong> <a href="tel:+79991234567">+7 (999) 123-45-67</a></p>
                         <p><strong>Email:</strong> <a href="mailto:info@grand-transfer.com">info@grand-transfer.com</a></p>

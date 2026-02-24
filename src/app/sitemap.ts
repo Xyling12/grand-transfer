@@ -38,7 +38,7 @@ export default async function sitemap({ id }: { id: string }): Promise<MetadataR
     cities.forEach(toCity => {
         if (fromCity.id !== toCity.id) {
             const dist = getDistanceFromLatLonInKm(fromCity.lat, fromCity.lon, toCity.lat, toCity.lon);
-            if (dist < 600) {
+            if (dist >= 30 && dist <= 1200) {
                 routes.push({
                     url: `${baseUrl}/routes/${fromCity.id}/${toCity.id}`,
                     lastModified: new Date(),

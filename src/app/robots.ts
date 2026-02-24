@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/api/'],
         },
-        sitemap: 'https://grand-transfer.ru/sitemap.xml', // Замените на реальный домен позже
+        sitemap: 'https://xn--c1acbe2apap.com/sitemap.xml',
     };
 }
