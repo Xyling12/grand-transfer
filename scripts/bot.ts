@@ -21,8 +21,7 @@ const adminId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim()
 // Helper to generate the main menu keyboard
 const getMainMenu = (chatId: string, role: string) => {
     const buttons = [
-        ['📊 Статистика', '🚗 Мои заказы'],
-        ['ℹ️ Справка']
+        ['📊 Статистика', '🚗 Мои заказы']
     ];
 
     // Admin gets extra buttons
@@ -31,6 +30,8 @@ const getMainMenu = (chatId: string, role: string) => {
         buttons.push(['👥 Пользователи', '📥 Выгрузить EXCEL']);
         buttons.push(['📢 Рассылка', '🗑 Очистить БД']);
     }
+
+    buttons.push(['ℹ️ Справка']); // Always at the bottom
 
     return Markup.keyboard(buttons).resize();
 };
@@ -59,7 +60,7 @@ bot.start(async (ctx) => {
             });
 
             if (isInitialAdmin) {
-                return ctx.reply('Добро пожаловать, Главный Администратор! Вы автоматически одобрены.', { ...getMainMenu(telegramIdStr, 'ADMIN'), protect_content: true });
+                return ctx.reply('Добро пожаловать, Главный Администратор! Вы автоматически одобрены.', { ...getMainMenu(telegramIdStr, 'ADMIN'), protect_content: false });
             } else {
                 return ctx.reply('Здравствуйте! Ваша заявка в систему GrandTransfer отправлена администратору. Дождитесь одобрения доступа.', { reply_markup: { remove_keyboard: true }, protect_content: true });
             }
@@ -69,7 +70,7 @@ bot.start(async (ctx) => {
                 where: { telegramId: telegramIdBigInt },
                 data: { status: 'APPROVED', role: 'ADMIN' }
             });
-            return ctx.reply('Добро пожаловать, Главный Администратор! Ваши права восстановлены.', { ...getMainMenu(telegramIdStr, 'ADMIN'), protect_content: true });
+            return ctx.reply('Добро пожаловать, Главный Администратор! Ваши права восстановлены.', { ...getMainMenu(telegramIdStr, 'ADMIN'), protect_content: false });
         }
 
         if (driver.status === 'PENDING') {
@@ -77,7 +78,7 @@ bot.start(async (ctx) => {
         } else if (driver.status === 'BANNED') {
             return ctx.reply('Доступ в систему заблокирован.', { reply_markup: { remove_keyboard: true }, protect_content: true });
         } else if (driver.status === 'APPROVED') {
-            return ctx.reply('Добро пожаловать в рабочую панель водителя GrandTransfer! Ожидайте новых заказов.', { ...getMainMenu(telegramIdStr, driver.role), protect_content: true });
+            return ctx.reply('Добро пожаловать в рабочую панель водителя GrandTransfer! Ожидайте новых заказов.', { ...getMainMenu(telegramIdStr, driver.role), protect_content: driver.role !== 'ADMIN' });
         }
     } catch (e) {
         console.error('Error in /start:', e);
@@ -131,7 +132,7 @@ bot.hears('📊 Статистика', async (ctx) => {
 ${tariffStatsStr}`.trim();
         await ctx.replyWithHTML(msg, getMainMenu(ctx.chat.id.toString(), role));
     } catch (e) {
-        ctx.reply('❌ Ошибка при получении статистики.', { protect_content: true });
+        ctx.reply('❌ Ошибка при получении статистики.', { protect_content: role !== 'ADMIN' });
     }
 });
 
@@ -148,14 +149,14 @@ bot.hears('ℹ️ Справка', async (ctx) => {
     if (role === 'ADMIN') {
         msg += `👑 <b>Дополнительные функции (Администратор):</b>\n`;
         msg += `• <b>👀 Активные заявки:</b> Просмотр подробностей *всех* взятых в работу заявок с указанием исполнителя.\n`;
-        msg += `• <b>👥 Пользователи:</b> Панель управления. Позволяет одобрять новые заявки водителей, банить, выдавать права администратора, а также просматривать список заказов каждого пользователя.\n`;
+        msg += `• <b>👥 Пользователи:</b> Панель управления. Позволяет управлять водителями, смотреть их заказы, а также искать любого пользователя по его ID.\n`;
         msg += `• <b>📢 Рассылка:</b> Команда <code>/send текст</code> позволяет отправить важное сообщение всем водителям.\n`;
         msg += `• <b>📥 Выгрузить EXCEL:</b> Скачивание всей базы заказов в виде CSV файла.\n`;
         msg += `• <b>🗑 Очистить БД:</b> Удаление всех заявок из базы данных.\n`;
         msg += `• <b>🌐 Панель на сайте:</b> Получение ссылки и пин-кода для доступа к веб-интерфейсу.\n`;
     }
 
-    ctx.replyWithHTML(msg, { protect_content: true });
+    ctx.replyWithHTML(msg, { protect_content: role !== 'ADMIN' });
 });
 
 bot.hears('🚗 Мои заказы', async (ctx) => {

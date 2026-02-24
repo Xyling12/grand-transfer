@@ -49,14 +49,16 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
 <i>№ заказа: ${orderData.id}</i>
 `;
 
-    const sendTelegramMessage = async (targetChatId: string, text: string, replyMarkup?: any) => {
+    const sendTelegramMessage = async (targetChatId: string, text: string, replyMarkup?: any, protectContent: boolean = true) => {
         const url = `https://api.telegram.org/bot${token}/sendMessage`;
         const body: any = {
             chat_id: targetChatId,
             text: text,
             parse_mode: 'HTML',
-            protect_content: true
         };
+        if (protectContent) {
+            body.protect_content = true;
+        }
         if (replyMarkup) {
             body.reply_markup = replyMarkup;
         }
@@ -76,10 +78,12 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
     };
 
     try {
-        let approvedDrivers: { telegramId: string | bigint }[] = [];
+        let approvedDrivers: { telegramId: string | bigint, role: string }[] = [];
         try {
             approvedDrivers = await prisma.driver.findMany({
-                where: { status: 'APPROVED' }
+                where: { status: 'APPROVED' },
+                // Select role to determine if they need content protection
+                select: { telegramId: true, role: true }
             });
         } catch (dbError) {
             console.warn("Could not query SQLite DB for drivers (expected on read-only environments):", dbError);
@@ -99,7 +103,9 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
         if (approvedDrivers.length > 0) {
             for (const driver of approvedDrivers) {
                 try {
-                    const sentMsg = await sendTelegramMessage(driver.telegramId.toString(), message, keyboard);
+                    const isAdmin = (driver.role === 'ADMIN' || driver.telegramId.toString() === chatId);
+                    const protect = !isAdmin; // Protect content if they are NOT an admin
+                    const sentMsg = await sendTelegramMessage(driver.telegramId.toString(), message, keyboard, protect);
 
                     if (!isNaN(orderIdNum) && sentMsg?.message_id) {
                         await prisma.broadcastMessage.create({
@@ -118,7 +124,7 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
             // Fallback to admin/chat ID if nobody is approved yet or DB failed
             if (chatId) {
                 try {
-                    const sentMsg = await sendTelegramMessage(chatId, message, keyboard);
+                    const sentMsg = await sendTelegramMessage(chatId, message, keyboard, false); // Fallback is usually admin, so no protection
                     if (!isNaN(orderIdNum) && sentMsg?.message_id) {
                         await prisma.broadcastMessage.create({
                             data: {
