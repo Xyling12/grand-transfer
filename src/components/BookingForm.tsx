@@ -43,6 +43,20 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     const [fromCity, setFromCity] = useState('');
     const [toCity, setToCity] = useState('');
 
+    // Force page load reset (prevents aggressive browser back/forward caching of inputs)
+    useEffect(() => {
+        if (!urlFrom) {
+            setFromCity('');
+            setFromCoords(null);
+        }
+        if (!urlTo) {
+            setToCity('');
+            setToCoords(null);
+        }
+        setPriceCalc(null);
+        setStep(1);
+    }, []);
+
     // Coordinate state for routing
     const [fromCoords, setFromCoords] = useState<[number, number] | null>(null);
     const [toCoords, setToCoords] = useState<[number, number] | null>(null);
@@ -91,7 +105,15 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
         if (urlTariff && setTariff) {
             setTariff(urlTariff);
         }
-    }, [urlTariff, setTariff]);
+
+        // Once any URL parameters are successfully hydrated, wipe them from the address bar
+        // This prevents the page from aggressively re-hydrating stale routes on manual refresh
+        if (urlFrom || urlTo || urlTariff) {
+            setTimeout(() => {
+                window.history.replaceState(null, '', window.location.pathname);
+            }, 500); // Slight delay ensures Next Router has finished its initial push state
+        }
+    }, [urlTariff, setTariff, urlFrom, urlTo]);
 
     // Checkpoint State
     const [checkpointId, setCheckpointId] = useState<string>('');
@@ -295,11 +317,8 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                 className={styles.nextBtn}
                                 style={{ marginTop: '30px', margin: '30px auto 0', display: 'block', maxWidth: '300px' }}
                                 onClick={() => {
-                                    setSubmitSuccess(false);
-                                    setStep(1);
-                                    setName('');
-                                    setPhone('');
-                                    setComments('');
+                                    // Hard reload ensures all caches, contexts, and address states are fully purged
+                                    window.location.href = '/';
                                 }}
                             >
                                 Сделать новый заказ
