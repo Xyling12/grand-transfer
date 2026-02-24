@@ -59,7 +59,9 @@ export default function Header() {
                             }
                         }}
                     >
-                        <Car size={28} />
+                        <div style={{ transform: "scaleX(-1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Car size={28} />
+                        </div>
                         <span className={styles.logoText}>GrandTransfer</span>
                     </Link>
 
