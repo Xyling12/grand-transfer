@@ -5,7 +5,17 @@ import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, MessageSquare, MapPin, Users, Route, Ruler, Clock3, Navigation, User, Phone, Calendar, Clock } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import { YMaps, Map } from '@pbe/react-yandex-maps';
+
+// Prevent SSR for Yandex Maps entirely to avoid "Application error: a client-side exception has occurred"
+const YMaps = dynamic(
+    () => import('@pbe/react-yandex-maps').then((mod) => mod.YMaps),
+    { ssr: false }
+);
+const Map = dynamic(
+    () => import('@pbe/react-yandex-maps').then((mod) => mod.Map),
+    { ssr: false }
+);
+
 import { useCity } from '@/context/CityContext';
 import { useGeolocationCity } from '@/hooks/useGeolocationCity';
 import { cities } from '@/data/cities';
