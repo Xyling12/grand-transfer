@@ -23,10 +23,12 @@ function MetrikaPageViewTracker() {
 
 export default function YandexMetrika() {
     return (
-        <Suspense fallback={null}>
-            <MetrikaPageViewTracker />
-            <Script id="yandex-metrika" strategy="afterInteractive">
-                {`
+        <>
+            <Suspense fallback={null}>
+                <MetrikaPageViewTracker />
+            </Suspense>
+            <Script id="yandex-metrika" strategy="afterInteractive" dangerouslySetInnerHTML={{
+                __html: `
                    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
                    m[i].l=1*new Date();
                    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
@@ -39,13 +41,13 @@ export default function YandexMetrika() {
                         accurateTrackBounce:true,
                         webvisor:true
                    });
-                `}
-            </Script>
+                `
+            }} />
             <noscript>
                 <div>
                     <img src="https://mc.yandex.ru/watch/106952983" style={{ position: 'absolute', left: '-9999px' }} alt="" />
                 </div>
             </noscript>
-        </Suspense>
+        </>
     );
 }

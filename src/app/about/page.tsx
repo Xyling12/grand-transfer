@@ -1,7 +1,8 @@
 import styles from './page.module.css';
 import Link from 'next/link';
 import Image from 'next/image';
-
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 export const metadata = {
     title: 'О компании | GrandTransfer',
     description: 'Информация о сервисе междугородних перевозок GrandTransfer. Наши гарантии, автопарк, контакты и юридическая информация.',
@@ -10,6 +11,7 @@ export const metadata = {
 export default function AboutPage() {
     return (
         <main className={styles.main}>
+            <Header />
             <div className="container" style={{ paddingTop: '100px', paddingBottom: '60px' }}>
                 <h1 className={styles.title}>О компании GrandTransfer</h1>
 
@@ -77,6 +79,7 @@ export default function AboutPage() {
                     </Link>
                 </div>
             </div>
+            <Footer />
         </main>
     );
 }

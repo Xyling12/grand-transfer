@@ -19,12 +19,12 @@ import { cityTariffs, CityTariffs } from '@/data/tariffs';
 import { checkpoints, requiresCheckpoint } from '@/data/checkpoints';
 
 const TARIFFS = [
-    { id: 'econom', name: 'Эконом', image: '/images/tariffs/economy-3d.webp' },
-    { id: 'standart', name: 'Стандарт', image: '/images/tariffs/standard-3d.webp' },
-    { id: 'comfort', name: 'Комфорт', image: '/images/tariffs/comfort-3d.webp' },
+    { id: 'econom', name: 'Эконом', image: '/images/tariffs/economy-dark-new.webp?v=3' },
+    { id: 'standart', name: 'Стандарт', image: '/images/tariffs/standard-dark-new.webp?v=3' },
+    { id: 'comfort', name: 'Комфорт', image: '/images/tariffs/comfort-new.webp?v=3' },
     { id: 'comfortPlus', name: 'Комфорт+', image: '/images/tariffs/comfort-3d.webp' },
     { id: 'business', name: 'Бизнес', image: '/images/tariffs/business-3d.webp' },
-    { id: 'minivan', name: 'Минивэн', image: '/images/tariffs/minivan-3d.webp' },
+    { id: 'minivan', name: 'Минивэн', image: '/images/tariffs/minivan-v2.webp' },
     { id: 'soberDriver', name: 'Трезвый водитель', image: '/images/tariffs/sober-3d.webp' },
     { id: 'delivery', name: 'Доставка', image: '/images/tariffs/delivery-3d.webp' },
 ];
