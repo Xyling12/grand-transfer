@@ -27,7 +27,7 @@ const getMainMenu = (chatId: string, role: string) => {
         buttons.push(['👀 Активные заявки', '💬 Чат']);
         buttons.push(['👥 Пользователи', '📢 Рассылка']);
         buttons.push(['🌐 Панель на сайте', '📥 Выгрузить EXCEL']);
-        buttons.push(['📊 Статистика', '🚗 Мои заказы']);
+        buttons.push(['📊 Статистика', '🚗 Мои заявки']);
         buttons.push(['🗑 Очистить БД', '⚙️ Настройки']);
         buttons.push(['ℹ️ Справка']);
     } else if (role === 'DISPATCHER') {
@@ -985,6 +985,7 @@ bot.action(/^full_order_(\d+)$/, async (ctx) => {
 👥 <b>Пассажиров:</b> ${order.passengers}
 💰 <b>Стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
 📝 <b>Комментарий:</b> ${order.comments || 'Нет'}
+🗺 <a href="https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(order.fromCity)}~${encodeURIComponent(order.toCity)}">📍 Открыть маршрут в Яндекс Картах</a>
 
 👤 <b>Клиент:</b> ${order.customerName}
 📞 <b>Телефон:</b> ${order.customerPhone}
