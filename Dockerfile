@@ -37,6 +37,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma ./prisma_backup
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/wait-for-db.sh ./wait-for-db.sh
@@ -45,4 +46,4 @@ COPY --from=builder /app/wait-for-db.sh ./wait-for-db.sh
 EXPOSE 3000
 
 # Start app using next
-CMD npx prisma db push --accept-data-loss && npm start
+CMD cp -f /app/prisma_backup/schema.prisma /app/prisma/schema.prisma && npx prisma db push --accept-data-loss && npm start
