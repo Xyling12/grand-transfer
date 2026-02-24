@@ -8,8 +8,7 @@ while [ ! -f /app/prisma/dev.db ]; do
   sleep 2
 done
 
-echo "Database found! Running Prisma DB Push to verify schema..."
-npx prisma db push --accept-data-loss
+echo "Database found! Proceeding..."
 
 echo "Starting bot..."
 exec npm run bot
