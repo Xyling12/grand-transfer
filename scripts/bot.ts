@@ -20,21 +20,24 @@ const adminId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim()
 
 // Helper to generate the main menu keyboard
 const getMainMenu = (chatId: string, role: string) => {
-    const buttons = [
-        ['📊 Статистика', '🚗 Мои заказы']
-    ];
+    let buttons = [];
 
     // Admin and Dispatcher gets extra buttons
-    if (role === 'ADMIN' || role === 'DISPATCHER' || chatId === adminId) {
-        buttons.push(['👀 Активные заявки']);
-        if (role === 'ADMIN' || chatId === adminId) {
-            buttons.push(['🌐 Панель на сайте']);
-            buttons.push(['👥 Пользователи', '📥 Выгрузить EXCEL']);
-            buttons.push(['📢 Рассылка', '🗑 Очистить БД']);
-        }
+    if (role === 'ADMIN' || chatId === adminId) {
+        buttons.push(['👀 Активные заявки', '💬 Чат']);
+        buttons.push(['👥 Пользователи', '📢 Рассылка']);
+        buttons.push(['🌐 Панель на сайте', '📥 Выгрузить EXCEL']);
+        buttons.push(['📊 Статистика', '🚗 Мои заказы']);
+        buttons.push(['🗑 Очистить БД', 'ℹ️ Справка']);
+    } else if (role === 'DISPATCHER') {
+        buttons.push(['👀 Активные заявки', '💬 Чат']);
+        buttons.push(['📊 Статистика', '🚗 Мои заказы']);
+        buttons.push(['ℹ️ Справка']);
+    } else {
+        // Regular DRIVER
+        buttons.push(['🚗 Мои заказы', '💬 Чат']);
+        buttons.push(['📊 Статистика', 'ℹ️ Справка']);
     }
-
-    buttons.push(['ℹ️ Справка']); // Always at the bottom
 
     return Markup.keyboard(buttons).resize();
 };
@@ -290,6 +293,31 @@ bot.hears('👀 Активные заявки', async (ctx) => {
 });
 
 // Admin commands
+bot.hears('💬 Чат', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth) return;
+
+    const groupId = process.env.TELEGRAM_GROUP_ID;
+
+    if (!groupId) {
+        return ctx.reply('⚠️ Ссылка на общий чат пока не настроена.', { protect_content: true });
+    }
+
+    try {
+        const expireDate = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
+        const inviteLink = await ctx.telegram.createChatInviteLink(groupId, {
+            expire_date: expireDate,
+            member_limit: 1,
+            name: `Invite for ${ctx.from.first_name}`
+        });
+
+        await ctx.reply(`🔗 <b>Ваша индивидуальная ссылка в чат водителей:</b>\n\n${inviteLink.invite_link}\n\n<i>Ссылка действительна 24 часа и рассчитана на одно вступление. Передавать её третьим лицам бессмысленно.</i>`, { parse_mode: 'HTML', protect_content: true });
+    } catch (err) {
+        console.error('Fail generate personal chat link', err);
+        ctx.reply('❌ Не удалось получить ссылку. Возможно, бот не добавлен в группу или не имеет прав.', { protect_content: true });
+    }
+});
+
 bot.hears('🌐 Панель на сайте', async (ctx) => {
     const { auth, role } = await checkAuth(ctx);
     if (!auth || role !== 'ADMIN') return;
@@ -801,10 +829,11 @@ bot.on('message', async (ctx, next) => {
     return next();
 });
 
-// Generate Group Invite Link (Admins Only)
+// Generate Group Invite Link (Main Admins Only for direct usage, though everyone gets one via Chat button)
 bot.command('invite', async (ctx) => {
     const { auth, role } = await checkAuth(ctx);
-    if (!auth || role !== 'ADMIN') return;
+    // Only the owner can manually generate open-ended links
+    if (!auth || ctx.chat.id.toString() !== adminId) return;
 
     // The chat ID of the group must be provided, or bot needs to know it.
     // For now, prompt the admin to add bot to group and use the command there,
