@@ -48,21 +48,30 @@ bot.start(async (ctx) => {
         const isInitialAdmin = (telegramIdStr === adminId);
 
         if (!driver) {
-            // Auto-approve the admin, others are PENDING
-            driver = await prisma.driver.create({
-                data: {
-                    telegramId: telegramIdBigInt,
-                    username: ctx.from.username,
-                    firstName: ctx.from.first_name,
-                    status: isInitialAdmin ? 'APPROVED' : 'PENDING',
-                    role: isInitialAdmin ? 'ADMIN' : 'DRIVER'
-                }
-            });
-
+            // Check if this is the designated initial admin from .env
             if (isInitialAdmin) {
-                return ctx.reply('Добро пожаловать, Главный Администратор! Вы автоматически одобрены.', { ...getMainMenu(telegramIdStr, 'ADMIN'), protect_content: false });
+                driver = await prisma.driver.create({
+                    data: {
+                        telegramId: telegramIdBigInt,
+                        username: ctx.from.username,
+                        firstName: ctx.from.first_name,
+                        status: 'APPROVED',
+                        role: 'ADMIN'
+                    }
+                });
+                return ctx.reply('Добро пожаловать, Главный Администратор! Вы автоматически зарегистрированы и одобрены.', { ...getMainMenu(telegramIdStr, 'ADMIN'), protect_content: false });
             } else {
-                return ctx.reply('Здравствуйте! Ваша заявка в систему GrandTransfer отправлена администратору. Дождитесь одобрения доступа.', { reply_markup: { remove_keyboard: true }, protect_content: true });
+                // For regular users, show the registration button instead of auto-creating
+                return ctx.reply(
+                    'Здравствуйте! Добро пожаловать в Telegram-бот GrandTransfer.\n\nДля получения доступа к заказам необходимо подать заявку на регистрацию.',
+                    {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: '📝 Подать заявку на регистрацию', callback_data: 'register_driver' }]
+                            ]
+                        }
+                    }
+                );
             }
         } else if (isInitialAdmin && (driver.status !== 'APPROVED' || driver.role !== 'ADMIN')) {
             // Rescue admin if they logged in before the fix
@@ -83,6 +92,35 @@ bot.start(async (ctx) => {
     } catch (e) {
         console.error('Error in /start:', e);
         ctx.reply('Произошла ошибка базы данных.');
+    }
+});
+
+bot.action('register_driver', async (ctx) => {
+    const telegramIdBigInt = BigInt(ctx.chat?.id || 0);
+
+    try {
+        // Check if already registered
+        const existing = await prisma.driver.findUnique({ where: { telegramId: telegramIdBigInt } });
+        if (existing) {
+            return ctx.answerCbQuery('Вы уже подавали заявку.', { show_alert: true });
+        }
+
+        // Create the user
+        await prisma.driver.create({
+            data: {
+                telegramId: telegramIdBigInt,
+                username: ctx.from.username,
+                firstName: ctx.from.first_name,
+                status: 'PENDING',
+                role: 'DRIVER'
+            }
+        });
+
+        await ctx.answerCbQuery('Заявка успешно отправлена!');
+        await ctx.editMessageText('✅ Ваша заявка в систему GrandTransfer отправлена администратору. Пожалуйста, дождитесь одобрения доступа. Как только администратор проверит ваши данные, вам придет уведомление.');
+    } catch (e) {
+        console.error('Registration error:', e);
+        ctx.answerCbQuery('Произошла ошибка при регистрации. Попробуйте еще раз позже.', { show_alert: true });
     }
 });
 

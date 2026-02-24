@@ -34,9 +34,9 @@ export default function AboutPage() {
 
                 <section className={styles.contentBlock}>
                     <h2>Наш автопарк и руководство</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', marginTop: '30px', marginBottom: '40px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', marginTop: '30px', marginBottom: '40px', padding: '0 10px' }}>
                         <div style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.02)' }}>
-                            <div style={{ position: 'relative', width: '100%', height: '350px' }}>
+                            <div style={{ position: 'relative', width: '100%', height: '350px', maxHeight: '45vh' }}>
                                 <Image src="/images/founder.jpg" alt="Панкратов Роман Борисович - руководитель" fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: 'cover', objectPosition: 'center top' }} />
                             </div>
                             <div style={{ padding: '20px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)' }}>
@@ -45,7 +45,7 @@ export default function AboutPage() {
                             </div>
                         </div>
                         <div style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.02)' }}>
-                            <div style={{ position: 'relative', width: '100%', height: '350px' }}>
+                            <div style={{ position: 'relative', width: '100%', height: '350px', maxHeight: '45vh' }}>
                                 <Image src="/images/car.jpg" alt="Автомобиль такси межгород KIA" fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: 'cover', objectPosition: 'center' }} />
                             </div>
                             <div style={{ padding: '20px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)' }}>
