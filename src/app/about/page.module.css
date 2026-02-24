@@ -1,0 +1,92 @@
+.main {
+    min-height: 100vh;
+    background: var(--color-background);
+    color: var(--color-foreground);
+}
+
+.title {
+    font-family: var(--font-bodoni);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.contentBlock {
+    background: rgba(26, 26, 26, 0.4);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(10px);
+}
+
+.contentBlock h2 {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+    font-family: var(--font-bodoni);
+}
+
+.contentBlock p {
+    color: var(--color-text-muted);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.list {
+    padding-left: 1.5rem;
+    color: var(--color-text-muted);
+    list-style-type: none;
+}
+
+.list li {
+    margin-bottom: 1rem;
+    position: relative;
+    line-height: 1.6;
+}
+
+.list li::before {
+    content: '✓';
+    position: absolute;
+    left: -1.5rem;
+    color: var(--color-primary);
+    font-weight: bold;
+}
+
+.contactCard {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    color: var(--color-foreground);
+}
+
+.contactCard p {
+    margin-bottom: 0.5rem;
+    color: var(--color-foreground);
+}
+
+.contactCard a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.contactCard a:hover {
+    text-decoration: underline;
+}
+
+.backLink {
+    display: inline-block;
+    color: var(--color-foreground);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px dashed var(--color-primary);
+    padding-bottom: 2px;
+    transition: all 0.3s ease;
+}
+
+.backLink:hover {
+    color: var(--color-primary);
+    border-bottom-style: solid;
+}

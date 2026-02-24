@@ -33,10 +33,10 @@ export default function Footer() {
                     <div className={styles.column}>
                         <h3 className={styles.heading}>Компания</h3>
                         <div className={styles.links}>
-                            <Link href="#why-choose-us" className={styles.link}>О нас</Link>
-                            <Link href="#tariffs" className={styles.link}>Тарифы</Link>
-                            <Link href="#reviews" className={styles.link}>Отзывы</Link>
-                            <Link href="#popular-routes" className={styles.link}>Популярные маршруты</Link>
+                            <Link href="/about" className={styles.link}>О компании</Link>
+                            <Link href="/#tariffs" className={styles.link}>Тарифы</Link>
+                            <Link href="/#reviews" className={styles.link}>Отзывы</Link>
+                            <Link href="/#popular-routes" className={styles.link}>Популярные маршруты</Link>
                         </div>
                     </div>
 
@@ -44,7 +44,7 @@ export default function Footer() {
                         <h3 className={styles.heading}>Направления</h3>
                         <div className={styles.links}>
                             {currentCity.popularRoutes.slice(0, 5).map((route, i) => (
-                                <Link key={i} href="#popular-routes" className={styles.link}>
+                                <Link key={i} href="/#popular-routes" className={styles.link}>
                                     {currentCity.name} - {route.to}
                                 </Link>
                             ))}
@@ -68,8 +68,9 @@ export default function Footer() {
 
                 <div className={styles.bottom}>
                     <p>© {new Date().getFullYear()} GrandTransfer. Все права защищены.</p>
-                    <div style={{ display: 'flex', gap: 20 }}>
+                    <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
                         <Link href="/privacy" className={styles.link}>Политика конфиденциальности</Link>
+                        <Link href="/terms" className={styles.link}>Пользовательское соглашение</Link>
                         <span style={{ color: 'var(--color-text-muted)' }}>Разработка: <a href="https://t.me/mxivsh" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>Ившин М.С</a></span>
                     </div>
                 </div>
