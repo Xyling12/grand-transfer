@@ -32,12 +32,14 @@ export default function Footer() {
 
                     <div className={styles.column}>
                         <h3 className={styles.heading}>Компания</h3>
-                        <div className={styles.links}>
-                            <Link href="/about" className={styles.link}>О компании</Link>
-                            <Link href="/#tariffs" className={styles.link}>Тарифы</Link>
-                            <Link href="/#reviews" className={styles.link}>Отзывы</Link>
-                            <Link href="/#popular-routes" className={styles.link}>Популярные маршруты</Link>
-                        </div>
+                        <ul className={styles.links}>
+                            <li><Link href="/" className={styles.link}>Главная</Link></li>
+                            <li><Link href="/about" className={styles.link}>О компании</Link></li>
+                            <li><Link href="/blog" className={styles.link}>Блог / Статьи</Link></li>
+                            <li><Link href="/#tariffs" className={styles.link}>Тарифы</Link></li>
+                            <li><Link href="/#reviews" className={styles.link}>Отзывы</Link></li>
+                            <li><Link href="/#popular-routes" className={styles.link}>Популярные маршруты</Link></li>
+                        </ul>
                     </div>
 
                     <div className={styles.column}>

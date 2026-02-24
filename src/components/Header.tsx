@@ -9,11 +9,11 @@ import { useCity } from '@/context/CityContext';
 
 const NAV_LINKS = [
     { href: '/', label: 'Главная' },
-    { href: '/#booking-form', label: 'Калькулятор' },
     { href: '/about', label: 'О компании' },
+    { href: '/blog', label: 'Блог' },
     { href: '/#tariffs', label: 'Тарифы' },
     { href: '/#reviews', label: 'Отзывы' },
-    { href: '/#contacts', label: 'Контакты' },
+    { href: '/#faq', label: 'FAQ' },
 ];
 
 export default function Header() {
