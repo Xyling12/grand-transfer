@@ -44,3 +44,8 @@ model BroadcastMessage {
 
   @@index([orderId])
 }
+
+model BotSettings {
+  id             Int     @id @default(1)
+  protectContent Boolean @default(true)
+}

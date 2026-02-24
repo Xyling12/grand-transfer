@@ -95,6 +95,7 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
 
         const keyboardButtons = [];
         if (orderData.id && orderData.id !== 'N/A') {
+            keyboardButtons.push([{ text: '🎧 Взять в работу', callback_data: `take_work_${orderData.id}` }]);
             keyboardButtons.push([{ text: '📤 Отправить водителям', callback_data: `dispatch_order_${orderData.id}` }]);
         }
         keyboardButtons.push([{ text: '🗺 Открыть Яндекс Карты', url: mapLink }]);
@@ -103,12 +104,23 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
 
         const orderIdNum = Number(orderData.id);
 
+        // Add Global protection fetch
+        let protectContentGlobal = true;
+        try {
+            const settings = await prisma.botSettings.findUnique({ where: { id: 1 } });
+            if (settings) {
+                protectContentGlobal = settings.protectContent;
+            }
+        } catch (e) {
+            console.warn("Could not query BotSettings. Using default (true).", e);
+        }
+
         // Send to all Admins and Dispatchers
         if (authorizedStaff.length > 0) {
             for (const staff of authorizedStaff) {
                 try {
                     const isAdmin = (staff.role === 'ADMIN' || staff.telegramId.toString() === chatId);
-                    const protect = !isAdmin; // Protect content if they are NOT an admin
+                    const protect = !isAdmin && protectContentGlobal; // Protect content if they are NOT an admin AND global setting is ON
                     const sentMsg = await sendTelegramMessage(staff.telegramId.toString(), message, keyboard, protect);
                     if (sentMsg) anySuccess = true;
 

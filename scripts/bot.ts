@@ -29,6 +29,7 @@ const getMainMenu = (chatId: string, role: string) => {
         buttons.push(['🌐 Панель на сайте', '📥 Выгрузить EXCEL']);
         buttons.push(['📊 Статистика', '🚗 Мои заказы']);
         buttons.push(['🗑 Очистить БД', 'ℹ️ Справка']);
+        buttons.push(['⚙️ Настройки']);
     } else if (role === 'DISPATCHER') {
         buttons.push(['👀 Активные заявки', '💬 Чат']);
         buttons.push(['📊 Статистика', '🚗 Мои заказы']);
@@ -162,6 +163,63 @@ const checkAuth = async (ctx: any): Promise<{ auth: boolean, role: string, dbId?
     }
 };
 
+bot.hears('⚙️ Настройки', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    // Only Main Admin can change global settings
+    if (!auth || role !== 'ADMIN') return;
+
+    try {
+        let settings = await prisma.botSettings.findUnique({ where: { id: 1 } });
+        if (!settings) {
+            settings = await prisma.botSettings.create({ data: { id: 1, protectContent: true } });
+        }
+
+        const msg = `⚙️ <b>Параметры безопасности бота</b>\n\nТекущая конфигурация:\nЗащита контента (копирование/пересылка сообщений с контактами): <b>${settings.protectContent ? 'ВКЛЮЧЕНА' : 'ВЫКЛЮЧЕНА'}</b>\n\n<i>Эта настройка применяется с момента переключения ко всем новым заявкам, отправляемым водителям. Если выключить — сообщения можно будет пересылать.</i>`;
+
+        const keyboard = {
+            inline_keyboard: [
+                [{ text: `🛡 Защита контента: ${settings.protectContent ? 'ВКЛ' : 'ВЫКЛ'}`, callback_data: 'toggle_protection' }]
+            ]
+        };
+
+        await ctx.replyWithHTML(msg, { reply_markup: keyboard, protect_content: true });
+
+    } catch (e) {
+        ctx.reply('❌ Ошибка при получении настроек.', { protect_content: true });
+    }
+});
+
+bot.action('toggle_protection', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return ctx.answerCbQuery('Нет прав', { show_alert: true });
+
+    try {
+        let settings = await prisma.botSettings.findUnique({ where: { id: 1 } });
+        if (!settings) {
+            settings = await prisma.botSettings.create({ data: { id: 1, protectContent: true } });
+        }
+
+        const newValue = !settings.protectContent;
+        await prisma.botSettings.update({
+            where: { id: 1 },
+            data: { protectContent: newValue }
+        });
+
+        const msg = `⚙️ <b>Параметры безопасности бота</b>\n\nТекущая конфигурация:\nЗащита контента (копирование/пересылка сообщений с контактами): <b>${newValue ? 'ВКЛЮЧЕНА' : 'ВЫКЛЮЧЕНА'}</b>\n\n<i>Эта настройка применяется с момента переключения ко всем новым заявкам, отправляемым водителям. Если выключить — сообщения можно будет пересылать.</i>`;
+
+        const keyboard = {
+            inline_keyboard: [
+                [{ text: `🛡 Защита контента: ${newValue ? 'ВКЛ' : 'ВЫКЛ'}`, callback_data: 'toggle_protection' }]
+            ]
+        };
+
+        await ctx.editMessageText(msg, { parse_mode: 'HTML', reply_markup: keyboard });
+        await ctx.answerCbQuery(`Защита контента теперь ${newValue ? 'ВКЛЮЧЕНА' : 'ВЫКЛЮЧЕНА'}`, { show_alert: false });
+    } catch (e) {
+        await ctx.answerCbQuery('Ошибка обновления настроек');
+    }
+});
+
 bot.hears('📊 Статистика', async (ctx) => {
     const { auth, role } = await checkAuth(ctx);
     if (!auth || (role !== 'ADMIN' && role !== 'DRIVER')) return;
@@ -279,7 +337,7 @@ bot.hears('👀 Активные заявки', async (ctx) => {
 
     try {
         const activeOrders = await prisma.order.findMany({
-            where: { status: { in: ['TAKEN', 'NEW', 'DISPATCHED'] } },
+            where: { status: { in: ['TAKEN', 'NEW', 'DISPATCHED', 'PROCESSING'] } },
             orderBy: { createdAt: 'desc' },
             take: 20
         });
@@ -300,8 +358,16 @@ bot.hears('👀 Активные заявки', async (ctx) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
             const driverName = o.driverId ? driverMap.get(o.driverId) || 'Неизвестен' : 'Неизвестен';
 
-            let statusEmoji = o.status === 'NEW' ? '🔵' : (o.status === 'DISPATCHED' ? '🟡' : '🟢');
-            let driverInfo = o.status === 'TAKEN' ? `\n👨‍✈️ <b>Исполнитель:</b> ${driverName}` : `\n📌 <b>Статус:</b> В поиске`;
+            let statusEmoji = o.status === 'NEW' ? '🔵' : (o.status === 'DISPATCHED' ? '🟡' : (o.status === 'PROCESSING' ? '🟣' : '🟢'));
+            let driverInfo = '';
+
+            if (o.status === 'TAKEN') {
+                driverInfo = `\n👨‍✈️ <b>Исполнитель (Водитель):</b> ${driverName}`;
+            } else if (o.status === 'PROCESSING') {
+                driverInfo = `\n🎧 <b>Исполнитель (Диспетчер):</b> ${o.dispatcherId ? (driverMap.get(o.dispatcherId) || 'Неизвестен') : 'Неизвестен'}`;
+            } else {
+                driverInfo = `\n📌 <b>Статус:</b> В поиске`;
+            }
 
             msg += `${statusEmoji} <b>Заявка № ${o.id}</b> (${dateStr})\n` +
                 `📍 <b>Маршрут:</b> ${o.fromCity} — ${o.toCity}\n` +
@@ -712,9 +778,9 @@ bot.action(/^dispatch_order_(\d+)$/, async (ctx) => {
             return ctx.answerCbQuery('Заявка не найдена в базе.', { show_alert: true });
         }
 
-        if (order.status !== 'NEW') {
+        if (order.status !== 'NEW' && order.status !== 'PROCESSING') {
             const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
-            await ctx.editMessageText(txt + '\n\n❌ <i>Эта заявка уже обработана.</i>', { parse_mode: 'HTML' });
+            await ctx.editMessageText(txt + '\n\n❌ <i>Эта заявка уже обработана или взята водителем.</i>', { parse_mode: 'HTML' });
             return ctx.answerCbQuery('Уже обработано!', { show_alert: true });
         }
 
@@ -758,6 +824,14 @@ bot.action(/^dispatch_order_(\d+)$/, async (ctx) => {
             ]
         };
 
+        let protectContentGlobal = true;
+        try {
+            const settings = await prisma.botSettings.findUnique({ where: { id: 1 } });
+            if (settings) {
+                protectContentGlobal = settings.protectContent;
+            }
+        } catch (e) { }
+
         // Find all approved DRIVERS and send it
         const drivers = await prisma.driver.findMany({
             where: { status: 'APPROVED', role: { in: ['DRIVER', 'ADMIN'] } }
@@ -766,10 +840,14 @@ bot.action(/^dispatch_order_(\d+)$/, async (ctx) => {
 
         for (const drv of drivers) {
             try {
+                // If it's an admin, we don't protect it so they can easily manage. 
+                // If it's a driver, we follow global protect_content settings.
+                const shouldProtect = drv.role === 'ADMIN' ? false : protectContentGlobal;
+
                 const sentMsg = await bot.telegram.sendMessage(
                     Number(drv.telegramId),
                     driverMessage,
-                    { parse_mode: 'HTML', reply_markup: keyboard, protect_content: drv.role !== 'ADMIN' }
+                    { parse_mode: 'HTML', reply_markup: keyboard, protect_content: shouldProtect }
                 );
 
                 // Track driver message so we can delete it when someone takes it
@@ -788,6 +866,132 @@ bot.action(/^dispatch_order_(\d+)$/, async (ctx) => {
     } catch (err) {
         console.error('Dispatch error:', err);
         ctx.answerCbQuery('Произошла ошибка базы данных.');
+    }
+});
+
+// Take into Work Action (For Dispatchers and Admins)
+bot.action(/^take_work_(\d+)$/, async (ctx) => {
+    const { auth, role, dbId } = await checkAuth(ctx);
+    if (!auth || !dbId || (role !== 'ADMIN' && role !== 'DISPATCHER')) {
+        return ctx.answerCbQuery('У вас нет прав для взятия заявки диспетчером.', { show_alert: true });
+    }
+
+    const orderId = parseInt(ctx.match[1], 10);
+    try {
+        const order = await prisma.order.findUnique({ where: { id: orderId } });
+
+        if (!order) {
+            return ctx.answerCbQuery('Заявка не найдена в базе.', { show_alert: true });
+        }
+
+        if (order.status !== 'NEW') {
+            return ctx.answerCbQuery('Заявка уже в работе или отправлена водителям!', { show_alert: true });
+        }
+
+        // Update status to PROCESSING (meaning a dispatcher is working on it but it's not dispatched yet)
+        await prisma.order.update({
+            where: { id: orderId },
+            data: { status: 'PROCESSING', dispatcherId: dbId }
+        });
+
+        const takerName = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || 'Неизвестно');
+
+        // Update all dispatcher/admin notification messages
+        try {
+            const bms = await prisma.broadcastMessage.findMany({ where: { orderId } });
+
+            for (const bm of bms) {
+                try {
+                    const isSelf = ctx.chat && bm.telegramId === BigInt(ctx.chat.id);
+                    // Fetch original text (we just append status and change keyboard)
+                    // Note: Telegraf doesn't have an easy way to GET message text, so we assume standard text and just overwrite reply markup
+                    // Or we just send a new text to replace it - simplest approach is to construct it again or append
+
+                    const fromCityObj = cities.find(c => c.name.toLowerCase() === order.fromCity.toLowerCase());
+                    const toCityObj = cities.find(c => c.name.toLowerCase() === order.toCity.toLowerCase());
+                    const pt1 = fromCityObj ? `${fromCityObj.lat},${fromCityObj.lon}` : encodeURIComponent(order.fromCity);
+                    const pt2 = toCityObj ? `${toCityObj.lat},${toCityObj.lon}` : encodeURIComponent(order.toCity);
+                    const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
+
+                    if (isSelf) {
+                        const newText = `
+🚨 <b>Новая заявка на трансфер!</b>
+
+📍 <b>Откуда:</b> ${order.fromCity}
+🏁 <b>Куда:</b> ${order.toCity}
+🚕 <b>Тариф:</b> ${order.tariff}
+👥 <b>Пассажиров:</b> ${order.passengers}
+💰 <b>Расчетная стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
+
+📝 <b>Комментарий:</b> ${order.comments || 'Нет'}
+
+<i>№ заказа: ${order.id}</i>
+
+🎧 <b>Взял в работу:</b> ${takerName}
+`.trim();
+
+                        const newKeyboard = {
+                            inline_keyboard: [
+                                [{ text: '📋 Полная заявка', callback_data: `full_order_${order.id}` }],
+                                [{ text: '📤 Отправить водителям', callback_data: `dispatch_order_${order.id}` }],
+                                [{ text: '🗺 Открыть Яндекс Карты', url: mapLink }]
+                            ]
+                        };
+
+                        await bot.telegram.editMessageText(
+                            Number(bm.telegramId),
+                            bm.messageId,
+                            undefined,
+                            newText,
+                            { parse_mode: 'HTML', reply_markup: newKeyboard }
+                        );
+                    } else {
+                        // Delete the message for all other dispatchers/admins
+                        await bot.telegram.deleteMessage(Number(bm.telegramId), bm.messageId);
+                    }
+                } catch (editErr) {
+                    console.error(`Failed to update or delete msg for ${bm.telegramId}:`, editErr);
+                }
+            }
+        } catch (dbErr) {
+            console.error('Failed to get broadcast messages:', dbErr);
+        }
+
+        await ctx.answerCbQuery('Вы взяли заявку в работу!', { show_alert: true });
+
+    } catch (err) {
+        console.error('Take work error:', err);
+        ctx.answerCbQuery('Произошла ошибка при взятии в работу.');
+    }
+});
+
+// View Full Order (For Dispatchers holding the order)
+bot.action(/^full_order_(\d+)$/, async (ctx) => {
+    const { auth, role, dbId } = await checkAuth(ctx);
+    if (!auth || !dbId || (role !== 'ADMIN' && role !== 'DISPATCHER')) return ctx.answerCbQuery('Нет прав');
+
+    const orderId = parseInt(ctx.match[1], 10);
+    try {
+        const order = await prisma.order.findUnique({ where: { id: orderId } });
+        if (!order) return ctx.answerCbQuery('Заявка не найдена');
+
+        const msg = `
+📋 <b>Полная информация по заявке № ${order.id}</b>
+
+📍 <b>Маршрут:</b> ${order.fromCity} — ${order.toCity}
+🚕 <b>Тариф:</b> ${order.tariff}
+👥 <b>Пассажиров:</b> ${order.passengers}
+💰 <b>Стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
+📝 <b>Комментарий:</b> ${order.comments || 'Нет'}
+
+👤 <b>Клиент:</b> ${order.customerName}
+📞 <b>Телефон:</b> ${order.customerPhone}
+`.trim();
+
+        await ctx.replyWithHTML(msg, { protect_content: true });
+        await ctx.answerCbQuery();
+    } catch (e) {
+        ctx.answerCbQuery('Ошибка получения данных');
     }
 });
 
@@ -967,7 +1171,7 @@ bot.command('invite', async (ctx) => {
 
 // Bot version command
 bot.command('version', async (ctx) => {
-    ctx.reply('🤖 GrandTransfer Bot v1.2.4\n\nОбновление:\n- Кнопки "Принять как Диспетчера / Водителя" при регистрации\n- Кнопка "Выгнать" (полное удаление) пользователя\n- Исправлен просмотр заказов Диспетчеров в меню пользователей\n- Улучшен вывод ошибок в "Активных заявках"', { protect_content: true });
+    ctx.reply('🤖 GrandTransfer Bot v1.3.0\n\nОбновление:\n- Новый функционал "Взять в работу" для Диспетчеров\n- Автоматическое удаление заявок у других диспетчеров при взятии в работу\n- Кнопка "Полная заявка" для просмотра контактов клиента\n- Разделение Исполнителей (Водитель/Диспетчер) в "Активных заявках"', { protect_content: true });
 });
 
 let isShuttingDown = false;
