@@ -14,6 +14,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@pbe/react-yandex-maps": "^1.2.5",
     "@prisma/client": "^5.22.0",
     "@types/leaflet": "^1.9.21",
     "clsx": "^2.1.1",

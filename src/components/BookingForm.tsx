@@ -1,19 +1,14 @@
-"use client";
+﻿"use client";
 // @ts-nocheck
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, MessageSquare, MapPin, Users, Route, Ruler, Clock3, Navigation, User, Phone, Calendar, Clock } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import LeafletSuggestInput from './LeafletSuggestInput';
+import { YMaps, Map } from '@pbe/react-yandex-maps';
 import { useCity } from '@/context/CityContext';
 import { useGeolocationCity } from '@/hooks/useGeolocationCity';
 import { cities } from '@/data/cities';
-
-const LeafletMapPreview = dynamic(() => import('./LeafletMapPreview'), {
-    ssr: false,
-    loading: () => <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--glass-border)', borderRadius: '16px' }}><Loader2 size={32} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} /></div>
-});
 import styles from './BookingForm.module.css';
 import { cityTariffs, CityTariffs } from '@/data/tariffs';
 import { checkpoints, requiresCheckpoint } from '@/data/checkpoints';
@@ -46,24 +41,30 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     // Coordinate state for routing
     const [fromCoords, setFromCoords] = useState<[number, number] | null>(null);
     const [toCoords, setToCoords] = useState<[number, number] | null>(null);
+    
+    // YMaps state
+    const [ymapsInstance, setYmapsInstance] = useState<any>(null);
+    const [routeRenderData, setRouteRenderData] = useState<any>(null);
+    const [debouncedFrom, setDebouncedFrom] = useState(fromCity);
+    const [debouncedTo, setDebouncedTo] = useState(toCity);
+    const fromInputRef = useRef<HTMLInputElement>(null);
+    const toInputRef = useRef<HTMLInputElement>(null);
 
-    // Update fromCity when geolocation resolves, but only if user hasn't typed anything yet
     useEffect(() => {
-        if (defaultFromCity) {
+        const timer = setTimeout(() => {
+            setDebouncedFrom(fromCity);
+            setDebouncedTo(toCity);
+        }, 1500);
+        return () => clearTimeout(timer);
+    }, [fromCity, toCity]);
+
+    useEffect(() => {
+        if (defaultFromCity && !fromCity) {
             setFromCity(defaultFromCity);
-            const matchedCity = cities.find(c => c.name.toLowerCase() === defaultFromCity.toLowerCase() || c.namePrepositional.toLowerCase() === defaultFromCity.toLowerCase());
-            if (matchedCity) {
-                setFromCoords([matchedCity.lat, matchedCity.lon]);
-            }
-        } else if (urlFrom) {
+        } else if (urlFrom && !fromCity) {
             setFromCity(urlFrom);
-            // Auto-find coords for fromCity from our DB
-            const matchedCity = cities.find(c => c.name.toLowerCase() === urlFrom.toLowerCase() || c.namePrepositional.toLowerCase() === urlFrom.toLowerCase());
-            if (matchedCity) {
-                setFromCoords([matchedCity.lat, matchedCity.lon]);
-            }
         }
-    }, [defaultGeoCity, fromCity, urlFrom, defaultFromCity]);
+    }, [defaultGeoCity, urlFrom, defaultFromCity]);
 
     // Update form when city changes globally, but only if user hasn't typed something else
     useEffect(() => {
@@ -75,18 +76,10 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     }, [currentCity, urlFrom]);
 
     useEffect(() => {
-        if (defaultToCity) {
+        if (defaultToCity && !toCity) {
             setToCity(defaultToCity);
-            const matchedCity = cities.find(c => c.name.toLowerCase() === defaultToCity.toLowerCase() || c.namePrepositional.toLowerCase() === defaultToCity.toLowerCase());
-            if (matchedCity) {
-                setToCoords([matchedCity.lat, matchedCity.lon]);
-            }
-        } else if (urlTo) {
+        } else if (urlTo && !toCity) {
             setToCity(urlTo);
-            const matchedCity = cities.find(c => c.name.toLowerCase() === urlTo.toLowerCase() || c.namePrepositional.toLowerCase() === urlTo.toLowerCase());
-            if (matchedCity) {
-                setToCoords([matchedCity.lat, matchedCity.lon]);
-            }
         }
     }, [urlTo, defaultToCity]);
 
@@ -108,114 +101,152 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     const [priceCalc, setPriceCalc] = useState<{ roadKm: number; minPrice: number; duration: string; tariffName: string; rawDistances: number[]; legPrices?: number[] } | null>(null);
     const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 
-    const handleRouteCalculated = useCallback((distancesKm: number[], durationsSeconds: number[]) => {
-        let totalKm = 0;
-        let totalSec = 0;
-
-        distancesKm.forEach(d => totalKm += d);
-        durationsSeconds.forEach(d => totalSec += d);
-
-        const roadKm = Math.round(totalKm);
-        const hours = Math.floor(totalSec / 3600);
-        const mins = Math.round((totalSec % 3600) / 60);
-        const duration = hours === 0 ? `${mins} мин` : mins === 0 ? `${hours} ч` : `${hours} ч ${mins} мин`;
-
-        const selectedTariff = TARIFFS.find(t => t.id === tariff);
-
-        // Rate 1 (From)
-        const fromCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
-        const rate1 = tariff === 'delivery' ? (fromCityTariffs['econom'] || 25) : (fromCityTariffs[tariff as keyof CityTariffs] || 25);
-
-        // Rate 2 (To) - attempt to find destination city in tariffs
-        let toCityMatchedName = 'Москва';
-        for (const cityName of Object.keys(cityTariffs)) {
-            if (toCity.toLowerCase().includes(cityName.toLowerCase())) {
-                toCityMatchedName = cityName;
-                break;
-            }
-        }
-        const toCityTariffs = cityTariffs[toCityMatchedName] || cityTariffs['Москва'];
-        const rate2 = tariff === 'delivery' ? (toCityTariffs['econom'] || 25) : (toCityTariffs[tariff as keyof CityTariffs] || 25);
-
-        const baseFee = tariff === 'delivery' ? 1500 : 0;
-
-        let minPrice = 0;
-        let legPrices: number[] = [];
-
-        if (tariff === 'delivery') {
-            minPrice = 1500;
-            legPrices = [1500];
-        } else {
-            if (distancesKm.length === 1) {
-                minPrice = Math.round((baseFee + roadKm * rate1) / 100) * 100;
-                legPrices = [minPrice];
-            } else if (distancesKm.length === 2) {
-                const rd1 = Math.round(distancesKm[0]);
-                const rd2 = Math.round(distancesKm[1]);
-                const price1 = Math.round((baseFee + rd1 * rate1) / 100) * 100;
-                const price2 = Math.round((rd2 * rate2) / 100) * 100;
-                minPrice = price1 + price2;
-                legPrices = [price1, price2];
-            }
-        }
-
-        setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariff?.name || '', rawDistances: distancesKm, legPrices });
-        setIsCalculatingRoute(false);
-    }, [tariff, currentCity, toCity]);
-
-    // Update price if tariff changes while coords exist
     useEffect(() => {
-        if (fromCoords && toCoords && priceCalc) {
-            const selectedTariff = TARIFFS.find(t => t.id === tariff);
-
-            const fromCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
-            const rate1 = tariff === 'delivery' ? (fromCityTariffs['econom'] || 25) : (fromCityTariffs[tariff as keyof CityTariffs] || 25);
-
-            let toCityMatchedName = 'Москва';
-            for (const cityName of Object.keys(cityTariffs)) {
-                if (toCity.toLowerCase().includes(cityName.toLowerCase())) {
-                    toCityMatchedName = cityName;
-                    break;
-                }
+        if (!ymapsInstance || !debouncedFrom || !debouncedTo) {
+            if (!debouncedFrom || !debouncedTo) {
+                setPriceCalc(null);
+                setRouteRenderData(null);
+                setFromCoords(null);
+                setToCoords(null);
             }
-            const toCityTariffs = cityTariffs[toCityMatchedName] || cityTariffs['Москва'];
-            const rate2 = tariff === 'delivery' ? (toCityTariffs['econom'] || 25) : (toCityTariffs[tariff as keyof CityTariffs] || 25);
-
-            const baseFee = tariff === 'delivery' ? 1500 : 0;
-
-            let minPrice = 0;
-            let legPrices: number[] = [];
-
-            if (tariff === 'delivery') {
-                minPrice = 1500;
-                legPrices = [1500];
-            } else {
-                if (priceCalc.rawDistances.length === 1) {
-                    minPrice = Math.round((baseFee + priceCalc.roadKm * rate1) / 100) * 100;
-                    legPrices = [minPrice];
-                } else if (priceCalc.rawDistances.length === 2) {
-                    const rd1 = Math.round(priceCalc.rawDistances[0]);
-                    const rd2 = Math.round(priceCalc.rawDistances[1]);
-                    const price1 = Math.round((baseFee + rd1 * rate1) / 100) * 100;
-                    const price2 = Math.round((rd2 * rate2) / 100) * 100;
-                    minPrice = price1 + price2;
-                    legPrices = [price1, price2];
-                }
-            }
-
-            setTimeout(() => setPriceCalc(prev => prev ? { ...prev, minPrice, tariffName: selectedTariff?.name || '', legPrices } : null), 0);
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tariff, currentCity, toCity]);
 
-    // Clear price if coords missing or checkpoint changes
+        setIsCalculatingRoute(true);
+
+        const routePoints = [];
+        routePoints.push(debouncedFrom);
+        if (activeCheckpoint && activeCheckpoint.coords) {
+            routePoints.push(activeCheckpoint.coords);
+        }
+        routePoints.push(debouncedTo);
+
+        ymapsInstance.route(routePoints, {
+            multiRoute: true,
+            routingMode: 'auto'
+        }).then((route: any) => {
+            if (!route) {
+                setPriceCalc(null);
+                setIsCalculatingRoute(false);
+                return;
+            }
+
+            const activeRoute = route.getRoutes().get(0);
+            if (activeRoute) {
+                try {
+                    const wayPoint0 = route.getWayPoints().get(0);
+                    const wayPoint1 = route.getWayPoints().get(routePoints.length - 1);
+                    if (wayPoint0) setFromCoords(wayPoint0.geometry.getCoordinates());
+                    if (wayPoint1) setToCoords(wayPoint1.geometry.getCoordinates());
+                } catch(e) {}
+
+                let distancesKm: number[] = [];
+                let totalDuration = 0;
+                let totalKm = 0;
+
+                const paths = activeRoute.getPaths();
+                let pathCount = paths.getLength();
+                for (let i = 0; i < pathCount; i++) {
+                    const path = paths.get(i);
+                    distancesKm.push(path.properties.get('distance').value / 1000);
+                    totalDuration += path.properties.get('duration').value;
+                    totalKm += path.properties.get('distance').value / 1000;
+                }
+
+                if (distancesKm.length === 0) {
+                    distancesKm = [activeRoute.properties.get('distance').value / 1000];
+                    totalDuration = activeRoute.properties.get('duration').value;
+                    totalKm = distancesKm[0];
+                }
+
+                const roadKm = Math.round(totalKm);
+                const hours = Math.floor(totalDuration / 3600);
+                const mins = Math.round((totalDuration % 3600) / 60);
+                const duration = hours === 0 ? `${mins} мин` : mins === 0 ? `${hours} ч` : `${hours} ч ${mins} мин`;
+
+                const selectedTariffObj = TARIFFS.find(t => t.id === tariff);
+                const fromCityTariffs = cityTariffs[currentCity?.name || 'Москва'] || cityTariffs['Москва'];
+                const rate1 = tariff === 'delivery' ? (fromCityTariffs['econom'] || 25) : (fromCityTariffs[tariff as keyof CityTariffs] || 25);
+
+                let toCityMatchedName = 'Москва';
+                for (const cityName of Object.keys(cityTariffs)) {
+                    if (toCity.toLowerCase().includes(cityName.toLowerCase())) {
+                        toCityMatchedName = cityName;
+                        break;
+                    }
+                }
+                const toCityTariffs = cityTariffs[toCityMatchedName] || cityTariffs['Москва'];
+                const rate2 = tariff === 'delivery' ? (toCityTariffs['econom'] || 25) : (toCityTariffs[tariff as keyof CityTariffs] || 25);
+
+                const baseFee = tariff === 'delivery' ? 1500 : 0;
+                let minPrice = 0;
+                let legPrices: number[] = [];
+
+                if (tariff === 'delivery') {
+                    minPrice = 1500;
+                    legPrices = [1500];
+                } else {
+                    if (distancesKm.length <= 1) {
+                        minPrice = Math.round((baseFee + roadKm * rate1) / 100) * 100;
+                        legPrices = [minPrice];
+                    } else if (distancesKm.length >= 2) {
+                        const rd1 = Math.round(distancesKm[0]);
+                        const rd2 = Math.round(distancesKm[1]);
+                        const price1 = Math.round((baseFee + rd1 * rate1) / 100) * 100;
+                        const price2 = Math.round((rd2 * rate2) / 100) * 100;
+                        minPrice = price1 + price2;
+                        legPrices = [price1, price2];
+                    }
+                }
+
+                setPriceCalc({ roadKm, minPrice, duration, tariffName: selectedTariffObj?.name || '', rawDistances: distancesKm, legPrices });
+                setRouteRenderData(route);
+            }
+        }).catch((err: any) => {
+            console.error('Yandex Routing Error:', err);
+            setPriceCalc(null);
+        }).finally(() => {
+            setIsCalculatingRoute(false);
+        });
+    }, [debouncedFrom, debouncedTo, activeCheckpoint, tariff, ymapsInstance, currentCity]);
+
+    // Attach SuggestView
     useEffect(() => {
-        if (!fromCoords || !toCoords) {
-            setTimeout(() => setPriceCalc(null), 0);
-        } else {
-            setTimeout(() => setIsCalculatingRoute(true), 0);
-        }
-    }, [fromCoords, toCoords, checkpointId]);
+        if (!ymapsInstance || step !== 1) return;
+
+        let suggestFrom: any = null;
+        let suggestTo: any = null;
+
+        const initSuggest = () => {
+            try {
+                if (fromInputRef.current && !suggestFrom) {
+                    suggestFrom = new ymapsInstance.SuggestView(fromInputRef.current, { results: 5 });
+                    suggestFrom.events.add('select', (e: any) => {
+                        const val = e.get('item').value;
+                        setFromCity(val);
+                    });
+                }
+
+                if (toInputRef.current && !suggestTo) {
+                    suggestTo = new ymapsInstance.SuggestView(toInputRef.current, { results: 5 });
+                    suggestTo.events.add('select', (e: any) => {
+                        const val = e.get('item').value;
+                        setToCity(val);
+                    });
+                }
+            } catch (error) {
+                console.error('SuggestView Initialization Error:', error);
+            }
+        };
+
+        const timer = setTimeout(initSuggest, 100);
+
+        return () => {
+            clearTimeout(timer);
+            if (suggestFrom && typeof suggestFrom.destroy === 'function') suggestFrom.destroy();
+            if (suggestTo && typeof suggestTo.destroy === 'function') suggestTo.destroy();
+        };
+    }, [ymapsInstance, step]);
 
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
@@ -321,19 +352,14 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                             <label className={styles.label}>Откуда (Город, улица, номер дома)</label>
                                             <div className={styles.inputWrapper}>
                                                 <MapPin size={18} className={styles.icon} />
-                                                <LeafletSuggestInput
+                                                <input
+                                                    ref={fromInputRef}
+                                                    type="text"
                                                     className={styles.input}
                                                     placeholder="г. Москва, ул. Ленина, д. 1"
                                                     value={fromCity}
-                                                    onChange={(e) => {
-                                                        setFromCity(e.target.value);
-                                                        setFromCoords(null);
-                                                        setPriceCalc(null);
-                                                    }}
-                                                    onSuggestSelect={(text, coords) => {
-                                                        setFromCity(text);
-                                                        setFromCoords(coords);
-                                                    }}
+                                                    onChange={(e) => setFromCity(e.target.value)}
+                                                    autoComplete="off"
                                                 />
                                             </div>
                                         </div>
@@ -342,19 +368,14 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                             <label className={styles.label}>Куда (Город, улица, номер дома)</label>
                                             <div className={styles.inputWrapper}>
                                                 <MapPin size={18} className={styles.icon} />
-                                                <LeafletSuggestInput
+                                                <input
+                                                    ref={toInputRef}
+                                                    type="text"
                                                     className={styles.input}
                                                     placeholder="г. Казань, ул. Баумана, д. 2"
                                                     value={toCity}
-                                                    onChange={(e) => {
-                                                        setToCity(e.target.value);
-                                                        setToCoords(null);
-                                                        setPriceCalc(null);
-                                                    }}
-                                                    onSuggestSelect={(text, coords) => {
-                                                        setToCity(text);
-                                                        setToCoords(coords);
-                                                    }}
+                                                    onChange={(e) => setToCity(e.target.value)}
+                                                    autoComplete="off"
                                                 />
                                             </div>
                                         </div>
@@ -383,22 +404,30 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                         )}
                                     </div>
 
+                                    {/* Yandex Map Preview */}
                                     <div style={{
                                         marginTop: '20px',
                                         borderRadius: '16px',
+                                        overflow: 'hidden',
                                         height: '320px',
                                         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                                         border: '1px solid var(--glass-border)',
-                                        width: '100%',
-                                        position: 'relative',
-                                        zIndex: 1
+                                        width: '100%'
                                     }}>
-                                        <LeafletMapPreview
-                                            fromCoords={fromCoords}
-                                            toCoords={toCoords}
-                                            checkpointCoords={activeCheckpoint ? activeCheckpoint.coords : null}
-                                            onRouteCalculated={handleRouteCalculated}
-                                        />
+                                        <YMaps query={{ apikey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY }}>
+                                            <Map
+                                                defaultState={{ center: [55.751574, 37.573856], zoom: 9 }}
+                                                width="100%"
+                                                height="100%"
+                                                onLoad={(ymaps: any) => setYmapsInstance(ymaps)}
+                                                instanceRef={(ref: any) => {
+                                                    if (ref && routeRenderData) {
+                                                        ref.geoObjects.removeAll();
+                                                        ref.geoObjects.add(routeRenderData);
+                                                    }
+                                                }}
+                                            />
+                                        </YMaps>
                                     </div>
 
                                     <div className={styles.formGroup}>
