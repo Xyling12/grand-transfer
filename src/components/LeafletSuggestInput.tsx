@@ -58,7 +58,10 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
 
                 if (data && Array.isArray(data)) {
                     setSuggestions(data);
-                    if (data.length > 0) setShowSuggestions(true);
+                    const inputElement = wrapperRef.current?.querySelector('input');
+                    if (data.length > 0 && document.activeElement === inputElement) {
+                        setShowSuggestions(true);
+                    }
                 }
             } catch (err) {
                 console.error("Nominatim fetch error:", err);
@@ -77,11 +80,11 @@ export default function LeafletSuggestInput({ onSuggestSelect, className, ...pro
                 setShowSuggestions(false);
             }
         }
-        document.addEventListener("mousedown", handleClickOutside);
-        document.addEventListener("touchstart", handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside, true);
+        document.addEventListener("touchstart", handleClickOutside, true);
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("touchstart", handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside, true);
+            document.removeEventListener("touchstart", handleClickOutside, true);
         }
     }, []);
 
