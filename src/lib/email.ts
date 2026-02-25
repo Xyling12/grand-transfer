@@ -16,6 +16,9 @@ const transporter = nodemailer.createTransport({
     host: 'smtp.yandex.ru',
     port: 465,
     secure: true,
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000,
     auth: {
         user: process.env.EMAIL_USER || 'romanbatkovic1@yandex.ru',
         pass: process.env.EMAIL_PASS || 'тут_нужен_пароль_приложения' // Need real password here

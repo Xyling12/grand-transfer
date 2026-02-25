@@ -49,13 +49,14 @@ export default function Header() {
         <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ''}`}>
             <div className={styles.container} ref={menuRef}>
                 <div className={styles.leftGroup}>
-                    <Link
+                    <a
                         href="/"
                         className={styles.logo}
                         onClick={(e) => {
                             if (window.location.pathname === '/') {
                                 e.preventDefault();
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                window.scrollTo(0, 0);
+                                window.location.reload();
                             }
                         }}
                     >
@@ -63,7 +64,7 @@ export default function Header() {
                             <Car size={28} strokeWidth={1.5} />
                         </div>
                         <span className={styles.logoText}>GrandTransfer</span>
-                    </Link>
+                    </a>
 
                     {/* City Selector */}
                     <div style={{ position: 'relative' }}>

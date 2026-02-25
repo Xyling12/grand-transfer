@@ -519,8 +519,8 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                                 {(tariff !== 'delivery' && tariff !== 'soberDriver') && (
                                                     <div style={{
                                                         textAlign: 'center',
-                                                        fontSize: '0.90rem',
-                                                        color: '#fff',
+                                                        fontSize: '0.9rem',
+                                                        color: 'var(--color-text-muted)',
                                                         background: 'rgba(212, 175, 55, 0.1)',
                                                         border: '1px solid rgba(212, 175, 55, 0.2)',
                                                         borderRadius: '8px',
@@ -536,7 +536,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                                     <div style={{
                                                         textAlign: 'center',
                                                         fontSize: '0.95rem',
-                                                        color: '#fff',
+                                                        color: 'var(--color-foreground)',
                                                         background: 'rgba(212, 175, 55, 0.15)',
                                                         border: '1px solid rgba(212, 175, 55, 0.3)',
                                                         borderRadius: '8px',
