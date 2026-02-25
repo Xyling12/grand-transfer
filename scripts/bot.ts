@@ -18,6 +18,28 @@ const bot = new Telegraf(token || 'dummy:123456'); // Telegraf needs some token 
 const prisma = new PrismaClient();
 const adminId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim();
 
+const translateTariff = (tariff: string) => {
+    switch (tariff?.toLowerCase()) {
+        case 'econom': return 'Эконом';
+        case 'comfort': return 'Комфорт';
+        case 'minivan': return 'Минивэн';
+        case 'business': return 'Бизнес';
+        default: return tariff;
+    }
+};
+
+const translateStatus = (status: string, role?: string) => {
+    switch (status) {
+        case 'NEW': return 'Новая';
+        case 'PROCESSING': return role === 'DISPATCHER' ? 'В обработке' : 'У диспетчера';
+        case 'DISPATCHED': return 'Поиск водителя';
+        case 'TAKEN': return 'Взят в работу';
+        case 'COMPLETED': return 'Выполнена';
+        case 'CANCELLED': return 'Отменена';
+        default: return status;
+    }
+};
+
 // Helper to generate the main menu keyboard
 const getMainMenu = (chatId: string, role: string) => {
     let buttons = [];
@@ -292,10 +314,13 @@ const handleHelp = async (ctx: any) => {
         msg += `• <b>🌐 Панель на сайте:</b> Получение ссылки и пин-кода (7878) для доступа к веб-интерфейсу.\n\n`;
     }
 
-    msg += `📌 <b>Обновление v1.3.4 (25.02.2026):</b>\n`;
+    msg += `📌 <b>Обновление v1.3.5 (${new Date().toLocaleDateString('ru-RU')}):</b>\n`;
+    msg += `- 🏁 **Выполнение**: Возможность закрывать взятые заказы кнопкой "Заявка выполнена".\n`;
+    msg += `- 🌐 **Локализация**: Статусы заказов и тарифы переведены на русский язык.\n`;
+    msg += `\n📌 <b>Обновление v1.3.4:</b>\n`;
     msg += `- 🔓 **Скриншоты**: Снята "принудительная" серверная защита, теперь защита полностью зависит от глобальной кнопки.\n`;
     msg += `- 📝 **Changelog**: Обновлены правила ведения версионирования.\n`;
-    msg += `\n📌 <b>Обновление v1.3.3 (25.02.2026):</b>\n`;
+    msg += `\n📌 <b>Обновление v1.3.3:</b>\n`;
     msg += `- 🔓 **Скриншоты**: Исправлен баг, из-за которого водители не могли делать скриншоты, даже если защита была отключена в настройках.\n`;
     msg += `- 🌐 **Уведомления**: Восстановлена ссылка на источник сайта в новых заказах.\n`;
     msg += `\n📌 <b>Обновление v1.3.2:</b>\n`;
@@ -338,10 +363,10 @@ bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) 
             const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
 
             msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
-                `⏳ <b>Статус:</b> ${o.status}\n` +
+                `⏳ <b>Статус:</b> ${translateStatus(o.status, role)}\n` +
                 `📍 <b>Откуда:</b> ${o.fromCity}\n` +
                 `🏁 <b>Куда:</b> ${o.toCity}\n` +
-                `🚕 <b>Тариф:</b> ${o.tariff}\n` +
+                `🚕 <b>Тариф:</b> ${translateTariff(o.tariff)}\n` +
                 `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
                 `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
                 `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
@@ -461,20 +486,22 @@ bot.action(/^full_order_(\d+)$/, async (ctx) => {
 
 📍 <b>Откуда:</b> ${order.fromCity}
 🏁 <b>Куда:</b> ${order.toCity}
-🚕 <b>Тариф:</b> ${order.tariff}
+🚕 <b>Тариф:</b> ${translateTariff(order.tariff)}
 👥 <b>Пассажиров:</b> ${order.passengers}
 💰 <b>Стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
 
 📝 <b>Комментарий:</b> ${order.comments || 'Нет'}
 👤 <b>Клиент:</b> ${order.customerName}
 📞 <b>Телефон:</b> ${order.customerPhone}
-📌 <b>Текущий Статус:</b> ${order.status}
+📌 <b>Текущий Статус:</b> ${translateStatus(order.status, role)}
         `.trim();
 
         const keyboardButtons: any[] = [];
         if (order.status === 'NEW' || order.status === 'PROCESSING') {
             keyboardButtons.push([{ text: '🎧 Взять в работу', callback_data: `take_work_${order.id}` }]);
             keyboardButtons.push([{ text: '📤 Отправить водителям', callback_data: `dispatch_order_${order.id}` }]);
+        } else if (order.status === 'TAKEN' || order.status === 'PROCESSING') {
+            keyboardButtons.push([{ text: '🏁 Заявка выполнена', callback_data: `complete_order_${order.id}` }]);
         }
         keyboardButtons.push([{ text: '🗺 Открыть маршрут', url: mapLink }]);
 
@@ -586,12 +613,20 @@ bot.hears('📥 Выгрузить EXCEL', async (ctx) => {
     if (!auth || role !== 'ADMIN') return;
     try {
         const orders = await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
+        const drivers = await prisma.driver.findMany();
+        const driverMap = new Map();
+        drivers.forEach((d: any) => {
+            const name = d.username ? `@${d.username}` : (d.firstName || `ID: ${d.telegramId}`);
+            driverMap.set(d.id, name);
+        });
+
         let csv = '\uFEFF';
         csv += "ID;Дата;Откуда;Куда;Тариф;Пассажиров;Сумма;Имя;Телефон;Комментарий;Водитель\n";
         orders.forEach((o: any) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
             const safeComment = (o.comments || '').replace(/;/g, ',').replace(/\n/g, ' ');
-            csv += `${o.id};${dateStr};${o.fromCity};${o.toCity};${o.tariff};${o.passengers};${o.priceEstimate || ''};${o.customerName};${o.customerPhone};${safeComment};${o.driverId || ''}\n`;
+            const driverStr = o.driverId ? (driverMap.get(o.driverId) || o.driverId) : '';
+            csv += `${o.id};${dateStr};${o.fromCity};${o.toCity};${translateTariff(o.tariff)};${o.passengers};${o.priceEstimate || ''};${o.customerName};${o.customerPhone};${safeComment};${driverStr}\n`;
         });
         const buffer = Buffer.from(csv, 'utf8');
         await ctx.replyWithDocument(
@@ -859,16 +894,16 @@ bot.action(/^view_orders_(\d+)$/, async (ctx) => {
         orders.forEach((o: any) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
             msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
+                `⏳ <b>Статус:</b> ${translateStatus(o.status)}\n` +
                 `📍 <b>Откуда:</b> ${o.fromCity}\n` +
                 `🏁 <b>Куда:</b> ${o.toCity}\n` +
-                `🚕 <b>Тариф:</b> ${o.tariff}\n` +
+                `🚕 <b>Тариф:</b> ${translateTariff(o.tariff)}\n` +
                 `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
                 `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
                 `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
                 `👤 <b>Клиент:</b> ${o.customerName}\n` +
                 `📞 <b>Телефон:</b> ${o.customerPhone}\n` +
                 `👨‍✈️ <b>Исполнитель:</b> ${targetDriver.firstName || 'Без имени'} (@${targetDriver.username || 'Нет'})\n` +
-                `📌 <b>Статус:</b> ${o.status}\n` +
                 `━━━━━━━━━━━━━━━━━━\n\n`;
         });
 
@@ -923,7 +958,7 @@ bot.action(/^dispatch_order_(\d+)$/, async (ctx) => {
 
 📍 <b>Откуда:</b> ${order.fromCity}
 🏁 <b>Куда:</b> ${order.toCity}
-🚕 <b>Тариф:</b> ${order.tariff}
+🚕 <b>Тариф:</b> ${translateTariff(order.tariff)}
 👥 <b>Пассажиров:</b> ${order.passengers}
 💰 <b>Стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
 
@@ -1035,7 +1070,7 @@ bot.action(/^take_work_(\d+)$/, async (ctx) => {
 
 📍 <b>Откуда:</b> ${order.fromCity}
 🏁 <b>Куда:</b> ${order.toCity}
-🚕 <b>Тариф:</b> ${order.tariff}
+🚕 <b>Тариф:</b> ${translateTariff(order.tariff)}
 👥 <b>Пассажиров:</b> ${order.passengers}
 💰 <b>Расчетная стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
 
@@ -1050,6 +1085,7 @@ bot.action(/^take_work_(\d+)$/, async (ctx) => {
                             inline_keyboard: [
                                 [{ text: '📋 Полная заявка', callback_data: `full_order_${order.id}` }],
                                 [{ text: '📤 Отправить водителям', callback_data: `dispatch_order_${order.id}` }],
+                                [{ text: '🏁 Заявка выполнена', callback_data: `complete_order_${order.id}` }],
                                 [{ text: '🗺 Открыть Яндекс Карты', url: mapLink }]
                             ]
                         };
@@ -1095,7 +1131,7 @@ bot.action(/^full_order_(\d+)$/, async (ctx) => {
 📋 <b>Полная информация по заявке № ${order.id}</b>
 
 📍 <b>Маршрут:</b> ${order.fromCity} — ${order.toCity}
-🚕 <b>Тариф:</b> ${order.tariff}
+🚕 <b>Тариф:</b> ${translateTariff(order.tariff)}
 👥 <b>Пассажиров:</b> ${order.passengers}
 💰 <b>Стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
 📝 <b>Комментарий:</b> ${order.comments || 'Нет'}
@@ -1143,9 +1179,16 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
         const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
 
         // Provide full info to the driver via editing the notification
-        const customerInfo = `\n\n✅ <b>ВЫ ВЗЯЛИ ЭТУ ЗАЯВКУ В РАБОТУ</b>\n\n👤 <b>Клиент:</b> ${order.customerName}\n📞 <b>Телефон:</b> ${order.customerPhone}`;
+        const customerInfo = `\n\n✅ <b>ВЫ ВЗЯЛИ ЭТУ ЗАЯВКУ В РАБОТУ</b>\n\n👤 <b>Клиент:</b> ${order.customerName}\n📞 <b>Телефон:</b> ${order.customerPhone}\n\n<i>Для завершения заказа нажмите кнопку ниже:</i>`;
 
-        await ctx.editMessageText(txt + customerInfo, { parse_mode: 'HTML', reply_markup: undefined });
+        await ctx.editMessageText(txt + customerInfo, {
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '🏁 Заявка выполнена', callback_data: `complete_order_${order.id}` }]
+                ]
+            }
+        });
         await ctx.answerCbQuery('Вы успешно взяли заявку!', { show_alert: true });
 
         // Retrieve and delete messages for other drivers/admins
@@ -1189,6 +1232,62 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
     } catch (err) {
         console.error('Take_order error:', err);
         ctx.answerCbQuery('Произошла ошибка при попытке взять заявку.');
+    }
+});
+
+// Complete Order Action
+bot.action(/^complete_order_(\d+)$/, async (ctx) => {
+    const { auth, role, dbId } = await checkAuth(ctx);
+    if (!auth || !dbId) return ctx.answerCbQuery('Нет прав', { show_alert: true });
+
+    const orderId = parseInt(ctx.match[1], 10);
+    try {
+        const order = await prisma.order.findUnique({ where: { id: orderId } });
+        if (!order) return ctx.answerCbQuery('Заявка не найдена', { show_alert: true });
+
+        if (order.status !== 'TAKEN' && order.status !== 'PROCESSING') {
+            return ctx.answerCbQuery('Заявка не находится в работе!', { show_alert: true });
+        }
+
+        const isAssignedDriver = order.driverId === dbId;
+        const isAssignedDispatcher = order.dispatcherId === dbId;
+
+        if (!isAssignedDriver && !isAssignedDispatcher && role !== 'ADMIN') {
+            return ctx.answerCbQuery('Только назначенный исполнитель может завершить заявку.', { show_alert: true });
+        }
+
+        await prisma.order.update({
+            where: { id: orderId },
+            data: { status: 'COMPLETED' }
+        });
+
+        const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
+        const cleanTxt = txt.replace(/Для завершения заказа нажмите кнопку ниже:/i, '').trim();
+
+        await ctx.editMessageText(cleanTxt + '\n\n✅ <b>ЗАЯВКА УСПЕШНО ВЫПОЛНЕНА</b>', { parse_mode: 'HTML', reply_markup: undefined });
+        await ctx.answerCbQuery('Заявка выполнена!', { show_alert: true });
+
+        const takerName = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || 'Неизвестно');
+
+        if (order.dispatcherId && !isAssignedDispatcher) {
+            const disp = await prisma.driver.findUnique({ where: { id: order.dispatcherId } });
+            if (disp && disp.telegramId !== BigInt(ctx.chat?.id || 0)) {
+                const dispMsg = `✅ <b>Заявка № ${order.id} ВЫПОЛНЕНА</b>\n\nИсполнитель: <b>${takerName}</b>\nМаршрут: ${order.fromCity} — ${order.toCity}`;
+                await bot.telegram.sendMessage(Number(disp.telegramId), dispMsg, { parse_mode: 'HTML' }).catch(() => { });
+            }
+        }
+
+        const admins = await prisma.driver.findMany({ where: { status: 'APPROVED', role: 'ADMIN' } });
+        for (const admin of admins) {
+            if (admin.id !== order.dispatcherId && admin.telegramId !== BigInt(ctx.chat?.id || 0)) {
+                const adminMsg = `✅ <b>Заявка № ${order.id} ЗАКРЫТА</b>\n\nЗакрыл(а): <b>${takerName}</b>\nМаршрут: ${order.fromCity} — ${order.toCity}`;
+                await bot.telegram.sendMessage(Number(admin.telegramId), adminMsg, { parse_mode: 'HTML' }).catch(() => { });
+            }
+        }
+
+    } catch (err) {
+        console.error('Complete_order error:', err);
+        ctx.answerCbQuery('Произошла ошибка при завершении заявки.');
     }
 });
 
@@ -1288,7 +1387,7 @@ bot.command('invite', async (ctx) => {
 
 // Bot version command
 bot.command('version', async (ctx) => {
-    ctx.reply('🤖 GrandTransfer Bot v1.3.4\n\n📌 Обновление v1.3.4:\n- 🔓 Снята жёсткая программная привязка скриншотов.\n- 📝 Улучшено авто-версионирование бота.\n\n📌 Обновление v1.3.3:\n- 🔓 Исправлен баг со скриншотами (теперь настройка применяется везде).\n- 🌐 Возвращена ссылка на источник сайта в новые заказы.\n\n📌 Обновление v1.3.2:\n- 🚀 Успешный переезд на сервер Timeweb.', { protect_content: false });
+    ctx.reply(`🤖 GrandTransfer Bot v1.3.5\n\n📌 Обновление v1.3.5:\n- 🏁 Добавлены кнопки завершения заказа.\n- 📝 Статусы и тарифы переведены на русский язык.\n\n📌 Обновление v1.3.4:\n- 🔓 Снята жёсткая программная привязка скриншотов.\n- 📝 Улучшено авто-версионирование бота.`, { protect_content: false });
 });
 
 let isShuttingDown = false;

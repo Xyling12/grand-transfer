@@ -13,6 +13,10 @@ export async function POST(req: Request) {
 
         let orderId = "N/A";
         try {
+            const host = req.headers.get('host') || 'unknown';
+            const origin = req.headers.get('origin') || host;
+            const sourceSite = origin.includes('taximezhgorod') ? 'taximezhgorod777.ru' : 'межгород.com';
+
             // Save order to Prisma SQLite
             const order = await prisma.order.create({
                 data: {
@@ -24,6 +28,7 @@ export async function POST(req: Request) {
                     customerName: body.customerName,
                     customerPhone: body.customerPhone,
                     comments: body.comments,
+                    sourceSite: sourceSite,
                 }
             });
             orderId = order.id.toString();
@@ -32,6 +37,9 @@ export async function POST(req: Request) {
         }
 
         // Send Telegram Notification (must await on Vercel otherwise Lambda is killed instantly)
+        const host = req.headers.get('host') || 'unknown';
+        const origin = req.headers.get('origin') || host;
+        body.sourceSite = origin.includes('taximezhgorod') ? 'taximezhgorod777.ru' : 'межгород.com';
         body.id = orderId; // Include the DB ID (or N/A) in the notification
         const tgSuccess = await sendOrderNotification(body);
 

@@ -412,7 +412,7 @@
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    z-index: 9999;
     max-height: 250px;
     overflow-y: auto;
 }
