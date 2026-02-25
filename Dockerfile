@@ -29,12 +29,15 @@ RUN apk add --no-cache openssl
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 # Copy built files and necessary modules from builder
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/package-lock.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma ./prisma_backup
@@ -45,5 +48,5 @@ COPY --from=builder /app/wait-for-db.sh ./wait-for-db.sh
 # Expose port
 EXPOSE 3000
 
-# Start app using next
-CMD cp -f /app/prisma_backup/schema.prisma /app/prisma/schema.prisma && npx prisma db push --accept-data-loss && npm start
+# Start app using standalone server
+CMD cp -f /app/prisma_backup/schema.prisma /app/prisma/schema.prisma && npx prisma db push --accept-data-loss && node server.js
