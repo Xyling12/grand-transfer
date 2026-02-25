@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   web:
-    build: .
+    image: ghcr.io/xyling12/grand-transfer:main
     restart: unless-stopped
     networks:
       - dokploy-network
@@ -19,7 +19,7 @@ services:
       - "traefik.docker.network=dokploy-network"
 
   bot:
-    build: .
+    image: ghcr.io/xyling12/grand-transfer:main
     command: sh -c "chmod +x wait-for-db.sh && ./wait-for-db.sh"
     restart: unless-stopped
     networks:
