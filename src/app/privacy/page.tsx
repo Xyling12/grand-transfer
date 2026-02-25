@@ -1,40 +1,48 @@
-import styles from './page.module.css';
+import React from 'react';
 import Link from 'next/link';
+import { ChevronLeft } from 'lucide-react';
 
-export default function PrivacyPolicy() {
+export const metadata = {
+    title: 'Политика обработки персональных данных | Grand Transfer',
+    description: 'Соглашение об обработке персональных данных согласно ФЗ-152'
+};
+
+export default function PrivacyPage() {
     return (
-        <main className={styles.main} style={{ paddingTop: '100px', maxWidth: '800px', margin: '0 auto', minHeight: '80vh', padding: '100px 20px 40px' }}>
-            <h1 style={{ marginBottom: '2rem', fontSize: '2.5rem' }}>Политика конфиденциальности</h1>
+        <main style={{ padding: '120px 20px 60px', maxWidth: '800px', margin: '0 auto', color: 'var(--color-foreground)' }}>
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--color-primary)', marginBottom: '30px', textDecoration: 'none', fontWeight: 500 }}>
+                <ChevronLeft size={20} /> На главную
+            </Link>
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>1. Общие положения</h2>
-                <p style={{ lineHeight: '1.6', color: 'var(--color-text-muted)' }}>Настоящая политика обработки персональных данных составлена в соответствии с требованиями Федерального закона от 27.07.2006. №152-ФЗ «О персональных данных» и определяет порядок обработки персональных данных и меры по обеспечению безопасности персональных данных, предпринимаемые сервисом GrandTransfer (далее – Оператор).</p>
-            </section>
+            <h1 style={{ fontSize: '2rem', marginBottom: '20px', color: 'var(--color-primary)' }}>
+                Политика обработки персональных данных
+            </h1>
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>2. Основные понятия, используемые в Политике</h2>
-                <p style={{ lineHeight: '1.6', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>2.1. Автоматизированная обработка персональных данных – обработка персональных данных с помощью средств вычислительной техники;</p>
-                <p style={{ lineHeight: '1.6', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>2.2. Блокирование персональных данных – временное прекращение обработки персональных данных (за исключением случаев, если обработка необходима для уточнения персональных данных);</p>
-                <p style={{ lineHeight: '1.6', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>2.3. Веб-сайт – совокупность графических и информационных материалов, а также программ для ЭВМ и баз данных, обеспечивающих их доступность в сети интернет.</p>
-            </section>
+            <div style={{ lineHeight: '1.6', opacity: 0.9, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p><strong>1. Общие положения</strong></p>
+                <p>Настоящая политика обработки персональных данных составлена в соответствии с требованиями Федерального закона от 27.07.2006. №152-ФЗ «О персональных данных» (далее — Закон о персональных данных) и определяет порядок обработки персональных данных и меры по обеспечению безопасности персональных данных, предпринимаемые Оператором.</p>
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>3. Оператор может обрабатывать следующие персональные данные Пользователя</h2>
-                <ul style={{ listStyleType: 'disc', paddingLeft: '20px', lineHeight: '1.6', color: 'var(--color-text-muted)' }}>
-                    <li>Фамилия, имя, отчество;</li>
+                <p><strong>2. Основные понятия</strong></p>
+                <p>Персональные данные — любая информация, относящаяся прямо или косвенно к определенному или определяемому Пользователю веб-сайта.</p>
+
+                <p><strong>3. Оператор может обрабатывать следующие ФИО Пользователя:</strong></p>
+                <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <li>Фамилия, Имя, Отчество (по желанию);</li>
                     <li>Номер телефона;</li>
-                    <li>Маршрут поездки;</li>
+                    <li>Данные о геолокации (адреса посадки и высадки);</li>
+                    <li>Сбор аналитических данных через файлы cookie (Яндекс.Метрика, Google Analytics и другие).</li>
                 </ul>
-            </section>
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>4. Цели обработки персональных данных</h2>
-                <p style={{ lineHeight: '1.6', color: 'var(--color-text-muted)' }}>Цель обработки персональных данных Пользователя — информирование Пользователя посредством отправки электронных писем; заключение, исполнение и прекращение гражданско-правовых договоров; предоставление доступа Пользователю к сервисам, информации и/или материалам, содержащимся на веб-сайте.</p>
-            </section>
+                <p><strong>4. Цели обработки персональных данных</strong></p>
+                <p>Цель обработки персональных данных Пользователя — информирование Пользователя посредством отправки звонков и СМС, заключение, исполнение и прекращение гражданско-правовых договоров; предоставление доступа Пользователю к сервисам, информации и/или материалам, содержащимся на веб-сайте.</p>
 
-            <div style={{ marginTop: '4rem', paddingBottom: '2rem', textAlign: 'center' }}>
-                <Link href="/" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 'bold', border: '1px solid var(--color-primary)', padding: '10px 20px', borderRadius: '8px' }}>Вернуться на главную</Link>
+                <p><strong>5. Порядок сбора, хранения, передачи и других видов обработки</strong></p>
+                <p>Безопасность персональных данных, которые обрабатываются Оператором, обеспечивается путем реализации правовых, организационных и технических мер, необходимых для выполнения в полном объеме требований действующего законодательства в области защиты персональных данных.</p>
+                <p>Оператор обеспечивает сохранность персональных данных и принимает все возможные меры, исключающие доступ к персональным данным неуполномоченных лиц.</p>
+
+                <p><strong>6. Файлы Cookie</strong></p>
+                <p>Сайт использует файлы cookie и схожие технологии, чтобы гарантировать максимальное удобство пользователям. При использовании данного сайта, вы подтверждаете свое согласие на использование файлов cookie в соответствии с настоящим уведомлением.</p>
             </div>
         </main>
-    )
+    );
 }

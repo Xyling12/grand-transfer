@@ -50,6 +50,7 @@ export const metadata: Metadata = {
 };
 
 import YandexMetrika from "@/components/YandexMetrika";
+import CookieBanner from "@/components/CookieBanner";
 
 export default function RootLayout({
   children,
@@ -61,6 +62,7 @@ export default function RootLayout({
       <body className={`${bodoni.variable} ${jost.variable} `}>
         <SchemaOrg />
         <YandexMetrika />
+        <CookieBanner />
         <CityProvider>
           <ScrollAnimation />
           {children}

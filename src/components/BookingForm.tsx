@@ -238,6 +238,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     const [time, setTime] = useState('');
     const [passengers, setPassengers] = useState(1);
     const [comments, setComments] = useState('');
+    const [consentAgreed, setConsentAgreed] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
 
@@ -246,6 +247,11 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
 
         if (!name || (!phone && !comments)) {
             alert('Пожалуйста, укажите имя и телефон для связи.');
+            return;
+        }
+
+        if (!consentAgreed) {
+            alert('Для оформления заказа необходимо дать согласие на обработку персональных данных.');
             return;
         }
 
@@ -687,6 +693,19 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                                     <Users size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
                                                     Для компаний больше 4 человек рекомендуем выбрать класс Минивэн
                                                 </p>
+                                            </div>
+
+                                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginTop: '10px', padding: '0 5px' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    id="consent"
+                                                    checked={consentAgreed}
+                                                    onChange={(e) => setConsentAgreed(e.target.checked)}
+                                                    style={{ width: '20px', height: '20px', marginTop: '2px', accentColor: 'var(--color-primary)', cursor: 'pointer', flexShrink: 0 }}
+                                                />
+                                                <label htmlFor="consent" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: '1.4', cursor: 'pointer' }}>
+                                                    Я даю согласие на <a href="/privacy" target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>обработку персональных данных</a> в соответствии с ФЗ-152 и принимаю условия Пользовательского соглашения.
+                                                </label>
                                             </div>
                                         </div>
 
