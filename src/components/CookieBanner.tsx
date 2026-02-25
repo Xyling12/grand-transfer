@@ -64,7 +64,7 @@ export default function CookieBanner() {
                 onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
                 onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
             >
-                Понятно
+                Согласен
             </button>
         </div>
     );
