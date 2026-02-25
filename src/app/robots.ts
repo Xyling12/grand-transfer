@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/api/'],
         },
-        sitemap: 'https://xn--c1acbe2apap.com/sitemap.xml',
+        sitemap: 'https://xn--c1adjkiged.com/sitemap.xml',
     };
 }
