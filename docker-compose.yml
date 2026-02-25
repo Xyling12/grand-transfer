@@ -2,6 +2,7 @@ version: '3.8'
 services:
   web:
     image: ghcr.io/xyling12/grand-transfer:main
+    pull_policy: always
     restart: unless-stopped
     networks:
       - dokploy-network
@@ -20,6 +21,7 @@ services:
 
   bot:
     image: ghcr.io/xyling12/grand-transfer:main
+    pull_policy: always
     command: sh -c "chmod +x wait-for-db.sh && ./wait-for-db.sh"
     restart: unless-stopped
     networks:
