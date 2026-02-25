@@ -43,6 +43,11 @@ export const metadata: Metadata = {
     title: "Такси Межгород | GrandTransfer",
     description: "Мгновенный расчет стоимости и комфортные поездки по межгороду."
   },
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' }
+    ]
+  },
   verification: {
     google: "6jdi0lGUwUYQl-a_LsZFZYz8709GNp18Zed3SohrgvQ",
     yandex: "4a87d70a322542ad"
