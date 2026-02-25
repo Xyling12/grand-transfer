@@ -346,7 +346,17 @@ bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) 
         });
 
 
-        ctx.replyWithHTML(msg, { protect_content: true });
+        let protectContentGlobal = true;
+        try {
+            const settings = await prisma.botSettings.findUnique({ where: { id: 1 } });
+            if (settings) {
+                protectContentGlobal = settings.protectContent;
+            }
+        } catch (e) {
+            console.warn("Could not query BotSettings", e);
+        }
+
+        ctx.replyWithHTML(msg, { protect_content: role === 'ADMIN' ? false : protectContentGlobal });
     } catch (err) {
         ctx.reply('❌ Ошибка при получении ваших заказов.', { protect_content: true });
     }
@@ -406,8 +416,18 @@ bot.hears('👀 Активные заявки', async (ctx) => {
             keyboardRows.push(inlineButtons.slice(i, i + 2));
         }
 
+        let protectContentGlobal = true;
+        try {
+            const settings = await prisma.botSettings.findUnique({ where: { id: 1 } });
+            if (settings) {
+                protectContentGlobal = settings.protectContent;
+            }
+        } catch (e) {
+            console.warn("Could not query BotSettings", e);
+        }
+
         ctx.replyWithHTML(msg, {
-            protect_content: true,
+            protect_content: role === 'ADMIN' ? false : protectContentGlobal,
             reply_markup: { inline_keyboard: keyboardRows }
         });
     } catch (err: any) {
@@ -452,9 +472,19 @@ bot.action(/^full_order_(\d+)$/, async (ctx) => {
         }
         keyboardButtons.push([{ text: '🗺 Открыть маршрут', url: mapLink }]);
 
+        let protectContentGlobal = true;
+        try {
+            const settings = await prisma.botSettings.findUnique({ where: { id: 1 } });
+            if (settings) {
+                protectContentGlobal = settings.protectContent;
+            }
+        } catch (e) {
+            console.warn("Could not query BotSettings", e);
+        }
+
         await ctx.replyWithHTML(msg, {
             reply_markup: { inline_keyboard: keyboardButtons },
-            protect_content: true
+            protect_content: role === 'ADMIN' ? false : protectContentGlobal
         });
         await ctx.answerCbQuery();
     } catch (err) {
