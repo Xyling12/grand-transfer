@@ -256,6 +256,14 @@ ${tariffStatsStr}`.trim();
 });
 
 bot.hears('ℹ️ Справка', async (ctx) => {
+    handleHelp(ctx);
+});
+
+bot.command('help', async (ctx) => {
+    handleHelp(ctx);
+});
+
+const handleHelp = async (ctx: any) => {
     const { auth, role } = await checkAuth(ctx);
     if (!auth) return;
 
@@ -292,7 +300,7 @@ bot.hears('ℹ️ Справка', async (ctx) => {
     msg += `\n<i>⚠️ Для обновления кнопок меню внизу напишите боту команду /start</i>\n`;
 
     ctx.replyWithHTML(msg, { protect_content: role !== 'ADMIN' });
-});
+};
 
 bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) => {
     const { auth, dbId, role } = await checkAuth(ctx);

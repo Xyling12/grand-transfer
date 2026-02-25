@@ -36,7 +36,7 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>
-
+${orderData.sourceSite && orderData.sourceSite !== 'grand-transfer.ru' ? `🌐 <b>Источник:</b> <a href="https://${orderData.sourceSite}">${orderData.sourceSite}</a>\n` : ''}
 📍 <b>Откуда:</b> ${orderData.fromCity}
 🏁 <b>Куда:</b> ${orderData.toCity}
 ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тариф:</b> ${orderData.tariff}
