@@ -22,22 +22,22 @@ const adminId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim()
 const getMainMenu = (chatId: string, role: string) => {
     let buttons = [];
 
-    // Admin and Dispatcher gets extra buttons
     if (role === 'ADMIN' || chatId === adminId) {
+        // Полный доступ для админа
         buttons.push(['👀 Активные заявки', '💬 Чат']);
         buttons.push(['👥 Пользователи', '📢 Рассылка']);
         buttons.push(['🌐 Панель на сайте', '📥 Выгрузить EXCEL']);
-        buttons.push(['📊 Статистика', '🚗 Мои заказы']);
-        buttons.push(['🗑 Очистить БД', 'ℹ️ Справка']);
-        buttons.push(['⚙️ Настройки']);
-    } else if (role === 'DISPATCHER') {
-        buttons.push(['👀 Активные заявки', '💬 Чат']);
-        buttons.push(['📊 Статистика', '🚗 Мои заказы']);
+        buttons.push(['📊 Статистика', '🚗 Мои заявки']);
+        buttons.push(['🗑 Очистить БД', '⚙️ Настройки']);
         buttons.push(['ℹ️ Справка']);
+    } else if (role === 'DISPATCHER') {
+        // Скрываем лишнее для диспетчера, добавляем Мои заявки
+        buttons.push(['👀 Активные заявки', '🚗 Мои заявки']);
+        buttons.push(['💬 Чат', 'ℹ️ Справка']);
     } else {
-        // Regular DRIVER
+        // Regular DRIVER - скрываем статистику
         buttons.push(['🚗 Мои заказы', '💬 Чат']);
-        buttons.push(['📊 Статистика', 'ℹ️ Справка']);
+        buttons.push(['ℹ️ Справка']);
     }
 
     return Markup.keyboard(buttons).resize();
@@ -270,7 +270,9 @@ bot.hears('ℹ️ Справка', async (ctx) => {
         msg += `🎧 <b>Функции Диспетчера:</b>\n`;
         msg += `• <b>Прием заказов:</b> Новые заявки с сайта приходят вам с полными данными клиента (ФИО, телефон).\n`;
         msg += `• <b>👀 Активные заявки:</b> Просмотр списка всех заявок, их статусов (в поиске / взята) и исполнителей.\n`;
-        msg += `• <b>📤 Отправить водителям:</b> Публикация заказа в общую ленту водителей без контактов.\n\n`;
+        msg += `• <b>🚗 Мои заявки:</b> Ваши взятые и курируемые заказы.\n`;
+        msg += `• <b>📤 Отправить водителям:</b> Публикация заказа в общую ленту водителей без контактов.\n`;
+        msg += `• <b>Полная заявка (кнопка):</b> Просмотр деталей заказа и быстрая ссылка на Яндекс Карты.\n\n`;
     }
 
     if (role === 'ADMIN') {
@@ -285,33 +287,37 @@ bot.hears('ℹ️ Справка', async (ctx) => {
     ctx.replyWithHTML(msg, { protect_content: role !== 'ADMIN' });
 });
 
-bot.hears('🚗 Мои заказы', async (ctx) => {
-    const { auth, dbId } = await checkAuth(ctx);
+bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) => {
+    const { auth, dbId, role } = await checkAuth(ctx);
     if (!auth || !dbId) return;
 
     try {
+        // Dispatchers should see orders where they are the driver (TAKEN) OR the dispatcher (DISPATCHED/PROCESSING)
+        const whereClause = role === 'DISPATCHER' ? {
+            OR: [
+                { dispatcherId: dbId },
+                { driverId: dbId, status: 'TAKEN' }
+            ]
+        } : { driverId: dbId, status: 'TAKEN' };
+
         const myOrders = await prisma.order.findMany({
-            where: { driverId: dbId, status: 'TAKEN' },
+            where: whereClause,
             orderBy: { createdAt: 'desc' },
             take: 20
         });
 
         if (myOrders.length === 0) {
-            return ctx.reply('У вас пока нет активных взятых заявок.', { protect_content: true });
+            return ctx.reply('У вас пока нет активных взятых или курируемых заявок.', { protect_content: true });
         }
 
         let msg = '🚗 <b>Ваши активные заявки:</b>\n\n';
         myOrders.forEach((o: any) => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
 
-            const fromCityObj = cities.find(c => c.name.toLowerCase() === o.fromCity.toLowerCase());
-            const toCityObj = cities.find(c => c.name.toLowerCase() === o.toCity.toLowerCase());
-
-            const pt1 = fromCityObj ? `${fromCityObj.lat},${fromCityObj.lon}` : encodeURIComponent(o.fromCity);
-            const pt2 = toCityObj ? `${toCityObj.lat},${toCityObj.lon}` : encodeURIComponent(o.toCity);
-            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
+            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
 
             msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
+                `⏳ <b>Статус:</b> ${o.status}\n` +
                 `📍 <b>Откуда:</b> ${o.fromCity}\n` +
                 `🏁 <b>Куда:</b> ${o.toCity}\n` +
                 `🚕 <b>Тариф:</b> ${o.tariff}\n` +
@@ -983,6 +989,7 @@ bot.action(/^full_order_(\d+)$/, async (ctx) => {
 👥 <b>Пассажиров:</b> ${order.passengers}
 💰 <b>Стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
 📝 <b>Комментарий:</b> ${order.comments || 'Нет'}
+🗺 <a href="https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(order.fromCity)}~${encodeURIComponent(order.toCity)}">📍 Открыть маршрут в Яндекс Картах</a>
 
 👤 <b>Клиент:</b> ${order.customerName}
 📞 <b>Телефон:</b> ${order.customerPhone}
@@ -1171,7 +1178,7 @@ bot.command('invite', async (ctx) => {
 
 // Bot version command
 bot.command('version', async (ctx) => {
-    ctx.reply('🤖 GrandTransfer Bot v1.3.0\n\nОбновление:\n- Новый функционал "Взять в работу" для Диспетчеров\n- Автоматическое удаление заявок у других диспетчеров при взятии в работу\n- Кнопка "Полная заявка" для просмотра контактов клиента\n- Разделение Исполнителей (Водитель/Диспетчер) в "Активных заявках"', { protect_content: true });
+    ctx.reply('🤖 GrandTransfer Bot v1.3.1\n\nОбновление:\n- Для Диспетчеров добавлена отдельная кнопка "Мои заявки", скрыты лишние кнопки (Статистика, Очистка БД и пр.)\n- Для Водителей скрыта кнопка Статистики.\n- Добавлена защита от бесконечного цикла перезапуска бота (Docker crash-loop) при падениях сети или конфликтах вебхуков.\n\nv1.3.0:\n- Новый функционал "Взять в работу" для Диспетчеров\n- Разделение Исполнителей в "Активных заявках"', { protect_content: true });
 });
 
 let isShuttingDown = false;
@@ -1183,8 +1190,8 @@ async function startBot() {
             // Force delete any existing webhook so long-polling works reliably
             await bot.telegram.deleteWebhook({ drop_pending_updates: true });
             await bot.launch({ dropPendingUpdates: true });
-            console.log('🤖 Telegram bot stopped normally.');
-            break;
+            console.log('🤖 Telegram bot stopped normally. Waiting 10s before restart to prevent Docker loop...');
+            await new Promise(resolve => setTimeout(resolve, 10000));
         } catch (error) {
             console.error('Bot crashed, restarting in 5s...', error);
             await new Promise(resolve => setTimeout(resolve, 5000));

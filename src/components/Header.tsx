@@ -13,7 +13,7 @@ const NAV_LINKS = [
     { href: '/blog', label: 'Блог' },
     { href: '/#tariffs', label: 'Тарифы' },
     { href: '/#reviews', label: 'Отзывы' },
-    { href: '/#faq', label: 'FAQ' },
+    { href: '/faq', label: 'FAQ' },
 ];
 
 export default function Header() {
@@ -59,7 +59,9 @@ export default function Header() {
                             }
                         }}
                     >
-                        <Car size={28} />
+                        <div style={{ transform: "scaleX(-1)", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "-2px" }}>
+                            <Car size={28} strokeWidth={1.5} />
+                        </div>
                         <span className={styles.logoText}>GrandTransfer</span>
                     </Link>
 
@@ -183,6 +185,6 @@ export default function Header() {
                     <a href="https://max.ru/u/f9LHodD0cOJCpX9My7upgEOBL0dt-DNGWgrFFD4IwEdtYkMWb7DJK1v8yOo" target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Max"><MaxIcon size={22} /></a>
                 </div>
             </div>
-        </header>
+        </header >
     );
 }

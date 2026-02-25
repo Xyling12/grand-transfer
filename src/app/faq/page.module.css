@@ -1,0 +1,66 @@
+.main {
+    min-height: 100vh;
+    background: var(--color-background);
+}
+
+.title {
+    font-family: var(--font-bodoni);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    text-align: left;
+    margin-bottom: 2rem;
+    color: var(--color-foreground);
+    font-weight: 600;
+}
+
+.faqList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+}
+
+.faqItem {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+}
+
+.faqItem:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.question {
+    font-family: var(--font-bodoni);
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    margin: 0 0 1rem 0;
+    font-weight: 500;
+}
+
+.answer {
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.backLink {
+    display: inline-block;
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--color-foreground);
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.backLink:hover {
+    background: var(--color-primary);
+    color: var(--color-background);
+    border-color: var(--color-primary);
+}

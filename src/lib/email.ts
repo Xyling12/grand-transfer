@@ -47,6 +47,7 @@ export async function sendEmailNotification(orderData: any) {
             <li><b>Дата/Время:</b> ${dateTime || 'Сразу'}</li>
             <li><b>Комментарий:</b> ${comments || 'Нет'}</li>
             <li><b>ID в базе:</b> ${id}</li>
+            <li><b>Маршрут на карте:</b> <a href="https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(fromCity)}~${encodeURIComponent(toCity)}">📍 Открыть в Яндекс Картах</a></li>
         </ul>
     `;
 
