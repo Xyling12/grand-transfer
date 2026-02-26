@@ -102,11 +102,18 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
 
                         return (
                             <div key={o.id} style={{
-                                padding: '1rem', borderRadius: '0.75rem',
+                                padding: '1rem', borderRadius: '0.75rem', cursor: 'pointer',
                                 border: isActive ? '1px solid rgba(245, 158, 11, 0.5)' : '1px solid rgba(255,255,255,0.1)',
                                 background: isActive ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.05)',
-                                transition: 'background-color 0.2s'
-                            }}>
+                                transition: 'all 0.2s'
+                            }}
+                                onClick={(e) => {
+                                    if ((e.target as HTMLElement).closest('button')) return;
+                                    window.location.href = orderLink;
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = isActive ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255,255,255,0.08)'}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = isActive ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.05)'}
+                            >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <h4 style={{ fontWeight: 500, color: 'var(--color-foreground)', margin: 0 }}>Заказ #{o.id}</h4>
@@ -122,7 +129,7 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                                 </div>
 
                                 <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-                                    {new Date(o.createdAt).toLocaleDateString('ru-RU')} • <a href={orderLink} style={{ color: '#60a5fa', textDecoration: 'underline', textUnderlineOffset: '2px' }} onMouseEnter={e => e.currentTarget.style.color = '#93c5fd'} onMouseLeave={e => e.currentTarget.style.color = '#60a5fa'}>{o.fromCity} &rarr; {o.toCity}</a>
+                                    {new Date(o.createdAt).toLocaleDateString('ru-RU')} • <span style={{ color: '#60a5fa' }}>{o.fromCity} &rarr; {o.toCity}</span>
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '0.75rem', fontSize: '0.875rem' }}>

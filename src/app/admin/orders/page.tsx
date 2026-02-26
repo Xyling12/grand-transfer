@@ -7,13 +7,20 @@ const prisma = new PrismaClient();
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrdersPage() {
-    const orders = await prisma.order.findMany({
+    const rawOrders = (await prisma.order.findMany({
         orderBy: { createdAt: 'desc' },
+        // @ts-ignore
         include: {
             driver: true,
             dispatcher: true
         }
-    });
+    })) as any[];
+
+    const orders = rawOrders.map(o => ({
+        ...o,
+        driver: o.driver ? { ...o.driver, telegramId: o.driver.telegramId.toString() } : null,
+        dispatcher: o.dispatcher ? { ...o.dispatcher, telegramId: o.dispatcher.telegramId.toString() } : null,
+    }));
 
 
 
