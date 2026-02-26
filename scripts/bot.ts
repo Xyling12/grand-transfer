@@ -97,8 +97,7 @@ bot.start(async (ctx) => {
                         reply_markup: {
                             inline_keyboard: [
                                 [{ text: '📝 Подать заявку (Водитель)', callback_data: 'register_role_DRIVER' }],
-                                [{ text: '🎧 Подать заявку (Диспетчер)', callback_data: 'register_role_DISPATCHER' }],
-                                [{ text: '💻 СРМ Панель (Для Администраторов)', url: 'https://xn--c1acbe2apap.com/admin/login' }]
+                                [{ text: '🎧 Подать заявку (Диспетчер)', callback_data: 'register_role_DISPATCHER' }]
                             ]
                         }
                     }
@@ -127,12 +126,13 @@ bot.start(async (ctx) => {
 });
 
 interface RegState {
-    step: 'FIO' | 'PHONE' | 'PTS' | 'STS' | 'CAR';
+    step: 'FIO' | 'PHONE' | 'PTS' | 'STS' | 'LICENSE' | 'CAR';
     role: 'DRIVER' | 'DISPATCHER';
     fullFio?: string;
     phone?: string;
     ptsNumber?: string;
     stsPhotoId?: string;
+    licensePhotoId?: string;
     carPhotoId?: string;
     messageIdsToDelete: number[];
 }
@@ -293,7 +293,7 @@ bot.on('message', async (ctx, next) => {
                 // If DRIVER, proceed to PTS
                 state.step = 'PTS';
 
-                const m2 = await ctx.reply('📄 <b>Шаг 3 из 5: Фото ПТС</b>\n\nПришлите ФОТО Паспорта Транспортного Средства (ПТС).', {
+                const m2 = await ctx.reply('📄 <b>Шаг 3 из 6: Фото ПТС</b>\n\nПришлите ФОТО Паспорта Транспортного Средства (ПТС).', {
                     parse_mode: 'HTML',
                     reply_markup: { remove_keyboard: true } // Remove contact button
                 });
@@ -323,7 +323,7 @@ bot.on('message', async (ctx, next) => {
             const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
             state.messageIdsToDelete = [];
 
-            const m2 = await ctx.reply('🪪 <b>Шаг 4 из 5: Фото СТС</b>\n\nПожалуйста, отправьте ФОТО Свидетельства о регистрации ТС (лицевую сторону с Гос. знаком).', { parse_mode: 'HTML' });
+            const m2 = await ctx.reply('🪪 <b>Шаг 4 из 6: Фото СТС</b>\n\nПожалуйста, отправьте ФОТО Свидетельства о регистрации ТС (лицевую сторону с Гос. знаком).', { parse_mode: 'HTML' });
             state.messageIdsToDelete.push(m2.message_id);
 
             for (const mid of cleanupMsgs) {
@@ -343,12 +343,12 @@ bot.on('message', async (ctx, next) => {
 
             const largestPhoto = photoList[photoList.length - 1];
             state.stsPhotoId = largestPhoto.file_id;
-            state.step = 'CAR';
+            state.step = 'LICENSE';
 
             const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
             state.messageIdsToDelete = [];
 
-            const m2 = await ctx.reply('🚙 <b>Шаг 5 из 5: Фото автомобиля</b>\n\nПожалуйста, отправьте ФОТО вашей машины сбоку так, чтобы был отчетливо виден государственный номер.', { parse_mode: 'HTML' });
+            const m2 = await ctx.reply('🪪 <b>Шаг 5 из 6: Фото Водительских прав</b>\n\nПожалуйста, отправьте ФОТО вашего Водительского удостоверения (с обеих сторон или лицевую часть).', { parse_mode: 'HTML' });
             state.messageIdsToDelete.push(m2.message_id);
 
             for (const mid of cleanupMsgs) {
@@ -357,7 +357,32 @@ bot.on('message', async (ctx, next) => {
             return;
         }
 
-        // Step 5: CAR
+        // Step 5: LICENSE
+        if (state.step === 'LICENSE') {
+            const photoList = (ctx.message as any).photo;
+            if (!photoList || photoList.length === 0) {
+                const m = await ctx.reply('⚠️ Пожалуйста, отправьте именно ФОТО, а не текст или файл.');
+                state.messageIdsToDelete.push(ctx.message.message_id, m.message_id);
+                return;
+            }
+
+            const largestPhoto = photoList[photoList.length - 1];
+            state.licensePhotoId = largestPhoto.file_id;
+            state.step = 'CAR';
+
+            const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
+            state.messageIdsToDelete = [];
+
+            const m2 = await ctx.reply('🚙 <b>Шаг 6 из 6: Фото автомобиля</b>\n\nПожалуйста, отправьте ФОТО вашей машины сбоку так, чтобы был отчетливо виден государственный номер.', { parse_mode: 'HTML' });
+            state.messageIdsToDelete.push(m2.message_id);
+
+            for (const mid of cleanupMsgs) {
+                ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
+            }
+            return;
+        }
+
+        // Step 6: CAR
         if (state.step === 'CAR') {
             const photoList = (ctx.message as any).photo;
             if (!photoList || photoList.length === 0) {
@@ -387,6 +412,7 @@ bot.on('message', async (ctx, next) => {
                     phone: state.phone,
                     ptsNumber: state.ptsNumber, // This is actually PTS Photo ID now
                     stsPhotoId: state.stsPhotoId,
+                    licensePhotoId: state.licensePhotoId,
                     carPhotoId: state.carPhotoId,
                     status: 'PENDING',
                     role: 'DRIVER'
