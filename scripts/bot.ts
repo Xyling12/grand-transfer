@@ -564,6 +564,76 @@ bot.command('unban', async (ctx) => {
     }
 });
 
+bot.command('add_driver', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    // Expected format: /add_driver <telegram_id> <FIO> [phone]
+    const args = ctx.message.text.split(' ').slice(1);
+    if (args.length < 2) {
+        return ctx.reply('Использование: /add_driver <Telegram_ID> <ФИО полностью> [Телефон]\nПример: /add_driver 123456789 Иванов Иван Иванович 89001234567');
+    }
+
+    const tgIdStr = args[0].replace(/[^\d]/g, '');
+    if (!tgIdStr) return ctx.reply('Ошибка: Telegram_ID должен состоять только из цифр.');
+
+    // Extract phone if the last argument looks like one (e.g., +7..., 89... with digits)
+    let phone = '';
+    let fioParts = args.slice(1);
+    const lastArg = fioParts[fioParts.length - 1];
+    if (/^[\d\+\-\(\)\s]{10,}$/.test(lastArg)) {
+        phone = lastArg;
+        fioParts.pop(); // Remove phone from FIO parts
+    }
+    const fio = fioParts.join(' ');
+
+    try {
+        const tgIdBig = BigInt(tgIdStr);
+
+        // Check if user already exists
+        let driver = await prisma.driver.findUnique({ where: { telegramId: tgIdBig } });
+
+        if (driver) {
+            // Update existing user
+            driver = await prisma.driver.update({
+                where: { id: driver.id },
+                data: {
+                    status: 'APPROVED',
+                    fullFio: fio,
+                    ...(phone ? { phone } : {})
+                }
+            });
+            ctx.reply(`✅ Существующий профиль обновлен и одобрен.\nВодитель: ${driver.fullFio}\nID: ${tgIdStr}`);
+        } else {
+            // Create new user directly as APPROVED using upsert-like logic via create, since they might not have started the bot yet.
+            driver = await prisma.driver.create({
+                data: {
+                    telegramId: tgIdBig,
+                    status: 'APPROVED',
+                    role: 'DRIVER',
+                    fullFio: fio,
+                    firstName: fio.split(' ')[0] || 'Водитель',
+                    phone: phone || null,
+                }
+            });
+            ctx.reply(`✅ Создан новый профиль водителя (в обход проверки).\nВодитель: ${driver.fullFio}\nID: ${tgIdStr}`);
+        }
+
+        // Try to notify the user. This might fail if the user has never started the bot (Telegram restriction).
+        await bot.telegram.sendMessage(
+            Number(tgIdBig),
+            '🎉 <b>Ваша заявка одобрена администратором!</b>\n\nТеперь вам доступно рабочее меню водителя.',
+            { parse_mode: 'HTML', ...getMainMenu(tgIdBig.toString(), driver.role) }
+        ).catch((err) => {
+            console.log("Could not notify added driver:", err.message);
+            ctx.reply(`⚠️ Профиль создан, но отправить уведомление водителю не удалось. Возможно, он еще ни разу не нажимал /start в боте.`);
+        });
+
+    } catch (e: any) {
+        ctx.reply(e.message || 'Ошибка выполнения команды. Проверьте правильность ID.');
+    }
+});
+
 
 // Helper to check authorization before executing commands
 const checkAuth = async (ctx: any): Promise<{ auth: boolean, role: string, dbId?: string }> => {
@@ -703,6 +773,7 @@ const handleHelp = async (ctx: any) => {
     if (role === 'ADMIN') {
         msg += `👑 <b>Дополнительные функции (Администратор):</b>\n`;
         msg += `• <b>Верификация:</b> Команды <code>/approve номер</code>, <code>/reject номер</code>, <code>/ban номер причина</code>, <code>/unban номер</code>.\n`;
+        msg += `• <b>Добавление без проверки:</b> <code>/add_driver ID ФИО Телефон</code>.\n`;
         msg += `• <b>👥 Пользователи:</b> Поиск людей по ID/@username, одобрение/бан, выдача ролей администраторов, диспетчеров и просмотр чужих заказов.\n`;
         msg += `• <b>📢 Рассылка:</b> Команда <code>/send текст</code> отправляет важное сообщение всем пользователям.\n`;
         msg += `• <b>📥 Выгрузить EXCEL:</b> Скачивание всей базы заявок CSV файлом.\n`;
