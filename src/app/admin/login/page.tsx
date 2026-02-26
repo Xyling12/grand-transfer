@@ -42,7 +42,7 @@ export default function AdminLogin() {
             const script = document.createElement('script');
             script.src = 'https://telegram.org/js/telegram-widget.js?22';
             // IMPORTANT: Bot username must be exact!
-            script.setAttribute('data-telegram-login', 'GrandTransferBot');
+            script.setAttribute('data-telegram-login', 'grandtransferIZH_bot');
             script.setAttribute('data-size', 'large');
             script.setAttribute('data-radius', '10');
             script.setAttribute('data-request-access', 'write');
