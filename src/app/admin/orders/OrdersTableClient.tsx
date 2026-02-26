@@ -130,7 +130,7 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
                                         <td style={{ padding: '1rem' }}>
                                             {o.dispatcher && (
                                                 <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                                                    Дисп:{' '}
+                                                    🎧 Диспетчер:{' '}
                                                     <span
                                                         onClick={(e) => { e.stopPropagation(); setSelectedUser(o.dispatcher); setUserModalType('dispatcher'); }}
                                                         style={{ color: '#d8b4fe', textDecoration: 'underline', textDecorationStyle: 'dotted', cursor: 'pointer' }}
@@ -141,7 +141,7 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
                                             )}
                                             {o.driver && (o.status === 'TAKEN' || o.status === 'COMPLETED') ? (
                                                 <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
-                                                    Вод:{' '}
+                                                    🚕 Водитель:{' '}
                                                     <span
                                                         onClick={(e) => { e.stopPropagation(); setSelectedUser(o.driver); setUserModalType('driver'); }}
                                                         style={{ color: '#a5b4fc', textDecoration: 'underline', textDecorationStyle: 'dotted', cursor: 'pointer' }}

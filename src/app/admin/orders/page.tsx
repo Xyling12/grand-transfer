@@ -35,12 +35,6 @@ export default async function AdminOrdersPage() {
                         <p style={{ color: '#9ca3af', marginTop: '0.5rem' }}>Мониторинг всех заявок и исполнителей</p>
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <Link href="/admin/drivers" style={{ padding: '0.5rem 1rem', background: '#171717', border: '1px solid #262626', borderRadius: '0.5rem', color: '#fff', textDecoration: 'none', transition: 'background 0.2s' }}>
-                            Водители
-                        </Link>
-                        <Link href="/admin/clients" style={{ padding: '0.5rem 1rem', background: '#171717', border: '1px solid #262626', borderRadius: '0.5rem', color: '#fff', textDecoration: 'none', transition: 'background 0.2s' }}>
-                            Клиенты
-                        </Link>
                         <Link href="/" style={{ padding: '0.5rem 1rem', background: '#171717', border: '1px solid #262626', borderRadius: '0.5rem', color: '#fff', textDecoration: 'none', transition: 'background 0.2s' }}>
                             На главную
                         </Link>

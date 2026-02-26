@@ -40,6 +40,43 @@ const translateStatus = (status: string, role?: string) => {
     }
 };
 
+const formatOrderMessage = (o: any, role: string) => {
+    const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
+    const takenStr = o.takenAt ? new Date(o.takenAt).toLocaleString('ru-RU') : '';
+    const compStr = o.completedAt ? new Date(o.completedAt).toLocaleString('ru-RU') : '';
+    const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
+
+    let dispStr = '';
+    if (o.dispatcher) {
+        dispStr = `🎧 <b>Диспетчер:</b> <a href="tg://user?id=${o.dispatcher.telegramId.toString()}">${o.dispatcher.firstName || o.dispatcher.username || 'Профиль'}</a>\n`;
+    }
+    let driverStr = '';
+    if (o.driver) {
+        driverStr = `🚕 <b>Водитель:</b> <a href="tg://user?id=${o.driver.telegramId.toString()}">${o.driver.firstName || o.driver.username || 'Профиль'}</a>\n`;
+    }
+
+    let timeStr = '';
+    if (takenStr) {
+        timeStr += `⏱ <b>Взята:</b> ${takenStr}\n`;
+    }
+    if (compStr) {
+        timeStr += `⏱ <b>Завершена:</b> ${compStr}\n`;
+    }
+
+    return `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
+        `⏳ <b>Статус:</b> ${translateStatus(o.status, role)}\n` +
+        `📍 <b>Откуда:</b> ${o.fromCity}\n` +
+        `🏁 <b>Куда:</b> ${o.toCity}\n` +
+        `🚕 <b>Тариф:</b> ${translateTariff(o.tariff)}\n` +
+        `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
+        `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
+        `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
+        `🗺 <a href="${mapLink}">📍 Открыть маршрут в Яндекс Картах</a>\n\n` +
+        `👤 <b>Клиент:</b> ${o.customerName}\n` +
+        `📞 <b>Телефон:</b> ${o.customerPhone}\n\n` +
+        dispStr + driverStr + timeStr;
+};
+
 // Helper to generate the main menu keyboard
 const getMainMenu = (chatId: string, role: string) => {
     let buttons = [];
@@ -48,9 +85,9 @@ const getMainMenu = (chatId: string, role: string) => {
         // Полный доступ для админа
         buttons.push(['👀 Активные заявки', '💬 Чат']);
         buttons.push(['👥 Пользователи', '📢 Рассылка']);
-        buttons.push(['🌐 Панель на сайте', '📥 Выгрузить EXCEL']);
-        buttons.push(['📊 Статистика', '🚗 Мои заявки']);
-        buttons.push(['📚 История заявок', '⚙️ Настройки']);
+        buttons.push(['📥 Выгрузить EXCEL', '📊 Статистика']);
+        buttons.push(['🚗 Мои заявки', '📚 История заявок']);
+        buttons.push(['Выполненные заявки', '⚙️ Настройки']);
         buttons.push(['🗑 Очистить БД', '💻 CRM Система']);
         buttons.push(['ℹ️ Справка']);
     } else if (role === 'DISPATCHER') {
@@ -933,7 +970,8 @@ bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) 
         const myOrders = await prisma.order.findMany({
             where: whereClause,
             orderBy: { createdAt: 'desc' },
-            take: 20
+            take: 20,
+            include: { driver: true, dispatcher: true }
         });
 
         if (myOrders.length === 0) {
@@ -953,20 +991,7 @@ bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) 
         }
 
         for (const o of myOrders) {
-            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
-            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
-
-            const msg = `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
-                `⏳ <b>Статус:</b> ${translateStatus(o.status, role)}\n` +
-                `📍 <b>Откуда:</b> ${o.fromCity}\n` +
-                `🏁 <b>Куда:</b> ${o.toCity}\n` +
-                `🚕 <b>Тариф:</b> ${translateTariff(o.tariff)}\n` +
-                `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
-                `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
-                `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
-                `🗺 <a href="${mapLink}">📍 Открыть маршрут в Яндекс Картах</a>\n\n` +
-                `👤 <b>Клиент:</b> ${o.customerName}\n` +
-                `📞 <b>Телефон:</b> ${o.customerPhone}`;
+            const msg = formatOrderMessage(o, role);
 
             const buttons = [];
             // Driver can complete order if they are taking it
@@ -1000,7 +1025,8 @@ bot.hears('📚 История заявок', async (ctx) => {
         const historyOrders = await prisma.order.findMany({
             where: whereClause,
             orderBy: { createdAt: 'desc' },
-            take: 20
+            take: 20,
+            include: { driver: true, dispatcher: true }
         });
 
         // Filter for dispatchers in memory to only show COMPLETED or CANCELLED,
@@ -1017,20 +1043,7 @@ bot.hears('📚 История заявок', async (ctx) => {
         await ctx.reply('📚 <b>История ваших заявок (последние 20):</b>', { parse_mode: 'HTML' });
 
         for (const o of finalOrders) {
-            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
-            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
-
-            const msg = `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
-                `⏳ <b>Статус:</b> ${translateStatus(o.status, role)}\n` +
-                `📍 <b>Откуда:</b> ${o.fromCity}\n` +
-                `🏁 <b>Куда:</b> ${o.toCity}\n` +
-                `🚕 <b>Тариф:</b> ${translateTariff(o.tariff)}\n` +
-                `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
-                `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
-                `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
-                `🗺 <a href="${mapLink}">📍 Открыть маршрут в Яндекс Картах</a>\n\n` +
-                `👤 <b>Клиент:</b> ${o.customerName}\n` +
-                `📞 <b>Телефон:</b> ${o.customerPhone}`;
+            const msg = formatOrderMessage(o, role);
 
             await ctx.replyWithHTML(msg, {
                 protect_content: role !== 'ADMIN'
@@ -1111,6 +1124,36 @@ bot.hears('👀 Активные заявки', async (ctx) => {
         });
     } catch (err: any) {
         ctx.reply(`❌ Ошибка при получении активных заявок.\nТех. информация: ${err.message}`, { protect_content: true });
+    }
+});
+
+bot.hears('Выполненные заявки', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    try {
+        const completedOrders = await prisma.order.findMany({
+            where: { status: 'COMPLETED' },
+            orderBy: { createdAt: 'desc' },
+            take: 20,
+            include: { driver: true, dispatcher: true }
+        });
+
+        if (completedOrders.length === 0) {
+            return ctx.reply('Нет выполненных заявок.', { protect_content: true });
+        }
+
+        await ctx.reply('✅ <b>Последние 20 выполненных заявок:</b>', { parse_mode: 'HTML' });
+
+        for (const o of completedOrders) {
+            const msg = formatOrderMessage(o, role);
+
+            await ctx.replyWithHTML(msg, {
+                protect_content: false
+            });
+        }
+    } catch (err) {
+        ctx.reply('❌ Ошибка при получении заявок.', { protect_content: true });
     }
 });
 
@@ -1786,7 +1829,7 @@ bot.action(/^take_work_(\d+)$/, async (ctx) => {
         // Update status to PROCESSING (meaning a dispatcher is working on it but it's not dispatched yet)
         await prisma.order.update({
             where: { id: orderId },
-            data: { status: 'PROCESSING', dispatcherId: dbId }
+            data: { status: 'PROCESSING', dispatcherId: dbId, takenAt: new Date() }
         });
 
         const takerName = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || 'Неизвестно');
@@ -1917,7 +1960,7 @@ bot.action(/^take_order_(\d+)$/, async (ctx) => {
         // Lock the order
         await prisma.order.update({
             where: { id: orderId },
-            data: { status: 'TAKEN', driverId: dbId }
+            data: { status: 'TAKEN', driverId: dbId, takenAt: new Date() }
         });
 
         const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
@@ -2002,7 +2045,7 @@ bot.action(/^complete_order_(\d+)$/, async (ctx) => {
 
         await prisma.order.update({
             where: { id: orderId },
-            data: { status: 'COMPLETED' }
+            data: { status: 'COMPLETED', completedAt: new Date() }
         });
 
         const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";

@@ -8,9 +8,10 @@ type UserDetailModalProps = {
     data: any; // User (Driver/Dispatcher) or Client
     type: 'driver' | 'dispatcher' | 'client';
     onUpdateFeedback?: (orderId: number, currentVal: boolean) => void;
+    onOpenOrder?: (orderId: number) => void;
 };
 
-export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateFeedback }: UserDetailModalProps) {
+export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateFeedback, onOpenOrder }: UserDetailModalProps) {
     if (!isOpen || !data) return null;
 
     const renderDocs = () => {
@@ -109,7 +110,11 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                             }}
                                 onClick={(e) => {
                                     if ((e.target as HTMLElement).closest('button')) return;
-                                    window.location.href = orderLink;
+                                    if (onOpenOrder) {
+                                        onOpenOrder(o.id);
+                                    } else {
+                                        window.location.href = orderLink;
+                                    }
                                 }}
                                 onMouseEnter={e => e.currentTarget.style.backgroundColor = isActive ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255,255,255,0.08)'}
                                 onMouseLeave={e => e.currentTarget.style.backgroundColor = isActive ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.05)'}
