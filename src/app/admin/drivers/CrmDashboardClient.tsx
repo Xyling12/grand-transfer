@@ -12,97 +12,126 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
     const approvedDrivers = users.filter((u: any) => u.status === 'APPROVED' && u.role === 'DRIVER');
     const approvedDispatchers = users.filter((u: any) => u.status === 'APPROVED' && (u.role === 'DISPATCHER' || u.role === 'ADMIN'));
 
-    const renderUserTable = (data: any[], emptyMessage: string, showFiles: boolean = true) => (
-        <div style={{
-            background: 'var(--glass-bg)',
-            backdropFilter: 'var(--glass-blur)',
-            WebkitBackdropFilter: 'var(--glass-blur)',
-            border: '1px solid var(--glass-border)',
-            borderRadius: 'var(--radius-xl)',
-            overflow: 'hidden',
-            boxShadow: 'var(--shadow-card)',
-            marginTop: '1.5rem'
-        }}>
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ background: 'rgba(0,0,0,0.2)', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-                            <th style={{ padding: '1rem', fontWeight: '500' }}>Пользователь</th>
-                            <th style={{ padding: '1rem', fontWeight: '500' }}>Телефон</th>
-                            <th style={{ padding: '1rem', fontWeight: '500' }}>Роль / Статус</th>
-                            {showFiles && <th style={{ padding: '1rem', fontWeight: '500', textAlign: 'right' }}>Файлы</th>}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.length === 0 ? (
-                            <tr>
-                                <td colSpan={showFiles ? 4 : 3} style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                                    {emptyMessage}
-                                </td>
-                            </tr>
-                        ) : (
-                            data.map((d: any, i: number) => (
-                                <tr key={i} style={{ borderBottom: '1px solid var(--glass-border)', transition: 'background 0.2s', cursor: 'default' }}
-                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                                >
-                                    <td style={{ padding: '1rem' }}>
-                                        <div style={{ fontWeight: '500', color: 'var(--color-foreground)' }}>{d.fullFio || d.firstName || "Без имени"}</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{d.username ? `@${d.username}` : `ID: ${d.telegramId}`}</div>
-                                    </td>
-                                    <td style={{ padding: '1rem', color: 'var(--color-text-muted)' }}>{d.phone || '—'}</td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
-                                            <span style={{
-                                                fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px',
-                                                background: d.role === 'ADMIN' ? 'rgba(202, 138, 4, 0.1)' : d.role === 'DISPATCHER' ? 'rgba(168, 85, 247, 0.1)' : 'rgba(255,255,255,0.05)',
-                                                color: d.role === 'ADMIN' ? 'var(--color-primary)' : d.role === 'DISPATCHER' ? '#c084fc' : 'var(--color-text-muted)',
-                                                border: d.role === 'ADMIN' ? '1px solid rgba(202, 138, 4, 0.2)' : d.role === 'DISPATCHER' ? '1px solid rgba(168, 85, 247, 0.2)' : '1px solid var(--glass-border)'
-                                            }}>
-                                                {d.role}
-                                            </span>
-                                            <span style={{
-                                                fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px',
-                                                color: d.status === 'APPROVED' ? '#4ade80' : d.status === 'PENDING' ? '#fbbf24' : '#f87171'
-                                            }}>
-                                                {d.status}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    {showFiles && (
-                                        <td style={{ padding: '1rem', textAlign: 'right' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                                                {['ptsNumber', 'stsPhotoId', 'licensePhotoId', 'carPhotoId'].map((docType, idx) => {
-                                                    const iconMap = ['📄', '🪪', '🎫', '🚙'];
-                                                    const titles = ['ПТС', 'СТС', 'Права', 'Авто'];
-                                                    const fileId = d[docType];
+    const roleTranslations: Record<string, string> = {
+        'DRIVER': 'Водитель',
+        'DISPATCHER': 'Диспетчер',
+        'ADMIN': 'Админ',
+        'USER': 'Пользователь'
+    };
 
-                                                    if (fileId) {
-                                                        return (
-                                                            <a key={idx} href={`/api/tg-file/${fileId}`} target="_blank" rel="noopener noreferrer"
-                                                                title={`${titles[idx]} (File ID: ${fileId})`}
-                                                                style={{
-                                                                    padding: '6px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px',
-                                                                    textDecoration: 'none', transition: 'background 0.2s', border: '1px solid var(--glass-border)'
-                                                                }}
-                                                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                                                                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.3)'}
-                                                            >
-                                                                {iconMap[idx]}
-                                                            </a>
-                                                        );
-                                                    }
-                                                    return <span key={idx} style={{ padding: '6px', color: 'rgba(255,255,255,0.1)' }}>{iconMap[idx]}</span>;
-                                                })}
+    const statusTranslations: Record<string, string> = {
+        'PENDING': 'Ожидает',
+        'APPROVED': 'Подтвержден',
+        'BANNED': 'Блок'
+    };
+
+    const renderUserTable = (data: any[], emptyMessage: string, showFiles: boolean = true) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
+            {data.length === 0 ? (
+                <div style={{
+                    background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)',
+                    border: '1px solid var(--glass-border)', padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)', borderRadius: 'var(--radius-xl)'
+                }}>
+                    {emptyMessage}
+                </div>
+            ) : (
+                data.map((d: any, i: number) => {
+                    // Normalize the document IDs for this user
+                    const docs = [
+                        { type: 'ptsNumber', icon: '📄', title: 'ПТС', id: d.ptsNumber },
+                        { type: 'stsPhotoId', icon: '🪪', title: 'СТС', id: d.stsPhotoId },
+                        { type: 'licensePhotoId', icon: '🎫', title: 'Права', id: d.licensePhotoId },
+                        { type: 'carPhotoId', icon: '🚙', title: 'Авто', id: d.carPhotoId }
+                    ];
+
+                    return (
+                        <div key={i} style={{
+                            background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)',
+                            border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-xl)', padding: '1rem',
+                            display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', alignItems: 'center',
+                            boxShadow: 'var(--shadow-card)', transition: 'transform 0.2s', cursor: 'default'
+                        }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}
+                        >
+                            {/* Header: User Info */}
+                            <div style={{ flex: '1 1 180px', minWidth: '150px' }}>
+                                <div style={{ fontWeight: '600', color: 'var(--color-foreground)', fontSize: '1.05rem', marginBottom: '4px' }}>
+                                    {d.fullFio || d.firstName || "Без имени"}
+                                </div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <span>{d.username ? `@${d.username}` : `ID: ${d.telegramId}`}</span>
+                                    <span>{d.phone || 'Телефон не указан'}</span>
+                                </div>
+                            </div>
+
+                            {/* Middle: Role & Status */}
+                            <div style={{ flex: '1 1 120px', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+                                <span style={{
+                                    fontSize: '0.7rem', padding: '4px 8px', borderRadius: '6px', fontWeight: '500', letterSpacing: '0.5px', textTransform: 'uppercase',
+                                    background: d.role === 'ADMIN' ? 'rgba(202, 138, 4, 0.1)' : d.role === 'DISPATCHER' ? 'rgba(168, 85, 247, 0.1)' : 'rgba(255,255,255,0.05)',
+                                    color: d.role === 'ADMIN' ? 'var(--color-primary)' : d.role === 'DISPATCHER' ? '#c084fc' : 'var(--color-text-muted)',
+                                    border: d.role === 'ADMIN' ? '1px solid rgba(202, 138, 4, 0.2)' : d.role === 'DISPATCHER' ? '1px solid rgba(168, 85, 247, 0.2)' : '1px solid var(--glass-border)'
+                                }}>
+                                    {roleTranslations[d.role] || d.role}
+                                </span>
+                                <span style={{
+                                    fontSize: '0.7rem', padding: '4px 8px', borderRadius: '6px', fontWeight: '500', letterSpacing: '0.5px', textTransform: 'uppercase',
+                                    color: d.status === 'APPROVED' ? '#4ade80' : d.status === 'PENDING' ? '#fbbf24' : '#f87171',
+                                    background: d.status === 'APPROVED' ? 'rgba(74, 222, 128, 0.1)' : d.status === 'PENDING' ? 'rgba(251, 191, 36, 0.1)' : 'rgba(248, 113, 113, 0.1)'
+                                }}>
+                                    {statusTranslations[d.status] || d.status}
+                                </span>
+                            </div>
+
+                            {/* Right: Files */}
+                            {showFiles && (
+                                <div style={{ flex: '1 1 100px', display: 'flex', justifyContent: 'flex-start', gap: '6px', flexWrap: 'wrap' }}>
+                                    {docs.map((doc, idx) => {
+                                        if (doc.id) {
+                                            // Handle case where PTS is a photo ID vs string number
+                                            let iconTitle = doc.title;
+                                            if (doc.type === 'ptsNumber' && !doc.id.startsWith('AgAC') && doc.id.length > 5 && doc.id.length < 50) {
+                                                iconTitle = 'Номер ПТС';
+                                            }
+
+                                            return (
+                                                <a key={idx} href={doc.type === 'ptsNumber' && !doc.id.startsWith('AgAC') && doc.id.length < 50 ? undefined : `/api/tg-file/${doc.id}`} target="_blank" rel="noopener noreferrer"
+                                                    title={`${iconTitle} (${doc.id})`}
+                                                    style={{
+                                                        width: '32px', height: '32px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px',
+                                                        textDecoration: 'none', transition: 'all 0.2s', border: '1px solid var(--color-primary)',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                        boxShadow: '0 0 10px rgba(202, 138, 4, 0.1)', cursor: (doc.type === 'ptsNumber' && !doc.id.startsWith('AgAC') && doc.id.length < 50) ? 'help' : 'pointer'
+                                                    }}
+                                                    onClick={(e) => {
+                                                        if (doc.type === 'ptsNumber' && !doc.id.startsWith('AgAC') && doc.id.length < 50) {
+                                                            e.preventDefault();
+                                                            alert(`Номер ПТС: ${doc.id}`);
+                                                        }
+                                                    }}
+                                                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(202, 138, 4, 0.2)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
+                                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.4)'; e.currentTarget.style.transform = 'none'; }}
+                                                >
+                                                    <span style={{ fontSize: '1rem' }}>{doc.icon}</span>
+                                                </a>
+                                            );
+                                        }
+                                        return (
+                                            <div key={idx} title={`Нет ${doc.title}`} style={{
+                                                width: '32px', height: '32px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed var(--glass-border)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3
+                                            }}>
+                                                <span style={{ fontSize: '1rem', filter: 'grayscale(1)' }}>{doc.icon}</span>
                                             </div>
-                                        </td>
-                                    )}
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })
+            )}
         </div>
     );
 
