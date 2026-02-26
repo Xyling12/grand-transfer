@@ -8,38 +8,43 @@ datasource db {
 }
 
 model Order {
-  id            Int      @id @default(autoincrement())
-  createdAt     DateTime @default(now())
-  fromCity      String
-  toCity        String
-  tariff        String
-  passengers    Int
-  priceEstimate Float?
-  customerName  String
-  customerPhone String
-  comments      String?
-  status        String   @default("NEW") // NEW, DISPATCHED, TAKEN, COMPLETED, CANCELLED
-  sourceSite    String   @default("grand-transfer.com")
-  driverId      String? // ID of the driver who took the order
-  dispatcherId  String? // ID of the dispatcher who released the order
+  id               Int      @id @default(autoincrement())
+  createdAt        DateTime @default(now())
+  fromCity         String
+  toCity           String
+  tariff           String
+  passengers       Int
+  priceEstimate    Float?
+  customerName     String
+  customerPhone    String
+  comments         String?
+  status           String   @default("NEW") // NEW, DISPATCHED, TAKEN, COMPLETED, CANCELLED
+  sourceSite       String   @default("grand-transfer.com")
+  driverId         String? // ID of the driver who took the order
+  dispatcherId     String? // ID of the dispatcher who released the order
+  feedbackReceived Boolean  @default(false)
+  driver           Driver?  @relation("DriverOrders", fields: [driverId], references: [id])
+  dispatcher       Driver?  @relation("DispatcherOrders", fields: [dispatcherId], references: [id])
 }
 
 model Driver {
-  id             String    @id @default(cuid())
-  telegramId     BigInt    @unique
-  username       String?
-  firstName      String?
-  phone          String?
-  ptsNumber      String?
-  licensePhotoId String?
-  stsPhotoId     String?
-  carPhotoId     String?
-  fullFio        String?
-  status         String    @default("PENDING") // PENDING, APPROVED, BANNED
-  role           String    @default("DRIVER") // USER, DRIVER, DISPATCHER, ADMIN
+  id                 String    @id @default(cuid())
+  telegramId         BigInt    @unique
+  username           String?
+  firstName          String?
+  phone              String?
+  ptsNumber          String?
+  licensePhotoId     String?
+  stsPhotoId         String?
+  carPhotoId         String?
+  fullFio            String?
+  status             String    @default("PENDING") // PENDING, APPROVED, BANNED
+  role               String    @default("DRIVER") // USER, DRIVER, DISPATCHER, ADMIN
   // Future subscription
-  subExpiresAt   DateTime?
-  createdAt      DateTime  @default(now())
+  subExpiresAt       DateTime?
+  createdAt          DateTime  @default(now())
+  ordersAsDriver     Order[]   @relation("DriverOrders")
+  ordersAsDispatcher Order[]   @relation("DispatcherOrders")
 }
 
 model BroadcastMessage {

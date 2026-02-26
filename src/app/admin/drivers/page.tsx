@@ -8,7 +8,11 @@ export const dynamic = "force-dynamic";
 export default async function AdminCrmPage() {
     // 1. Fetch all users from the Driver schema (which stores all bots interactions/roles)
     const users = await prisma.driver.findMany({
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        include: {
+            ordersAsDriver: true,
+            ordersAsDispatcher: true,
+        }
     });
 
     // 2. Fetch all orders to build the Clients list (people who ordered)

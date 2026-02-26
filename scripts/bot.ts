@@ -92,11 +92,12 @@ bot.start(async (ctx) => {
             } else {
                 // For regular users, show the registration button instead of auto-creating
                 return ctx.reply(
-                    'Здравствуйте! Добро пожаловать в Telegram-бот GrandTransfer.\n\nДля получения доступа к заказам необходимо подать заявку на регистрацию.\n\n⚠️ Нажимая кнопку ниже, вы даете согласие на обработку ваших персональных данных (Имя, Фамилия, Telegram ID) в соответствии с ФЗ-152.',
+                    'Здравствуйте! Добро пожаловать в Telegram-бот GrandTransfer.\n\nКем вы хотите стать?\n\n⚠️ Нажимая кнопки ниже, вы даете согласие на обработку ваших персональных данных (Имя, Фамилия, Telegram ID) в соответствии с ФЗ-152.',
                     {
                         reply_markup: {
                             inline_keyboard: [
-                                [{ text: '📝 Подать заявку на регистрацию', callback_data: 'register_driver' }],
+                                [{ text: '📝 Подать заявку (Водитель)', callback_data: 'register_role_DRIVER' }],
+                                [{ text: '🎧 Подать заявку (Диспетчер)', callback_data: 'register_role_DISPATCHER' }],
                                 [{ text: '💻 СРМ Панель (Для Администраторов)', url: 'https://xn--c1acbe2apap.com/admin/login' }]
                             ]
                         }
@@ -127,6 +128,7 @@ bot.start(async (ctx) => {
 
 interface RegState {
     step: 'FIO' | 'PHONE' | 'PTS' | 'STS' | 'CAR';
+    role: 'DRIVER' | 'DISPATCHER';
     fullFio?: string;
     phone?: string;
     ptsNumber?: string;
@@ -137,7 +139,9 @@ interface RegState {
 
 const pendingRegistrations = new Map<string, RegState>();
 
-bot.action('register_driver', async (ctx) => {
+// Handle Role Selection Callbacks
+bot.action(/register_role_(DRIVER|DISPATCHER)/, async (ctx) => {
+    const role = ctx.match[1] as 'DRIVER' | 'DISPATCHER';
     const telegramIdBigInt = BigInt(ctx.chat?.id || 0);
     const tgIdStr = telegramIdBigInt.toString();
 
@@ -149,11 +153,12 @@ bot.action('register_driver', async (ctx) => {
         }
 
         // Start registration state
-        pendingRegistrations.set(tgIdStr, { step: 'FIO', messageIdsToDelete: [] });
+        pendingRegistrations.set(tgIdStr, { step: 'FIO', role, messageIdsToDelete: [] });
 
         await ctx.answerCbQuery();
 
-        const msg = await ctx.reply('👤 <b>Шаг 1 из 5: Ваше ФИО</b>\n\nПожалуйста, напишите ваши Фамилию, Имя и Отчество полностью (например: Иванов Иван Иванович).', {
+        const roleText = role === 'DRIVER' ? 'Водителя' : 'Диспетчера';
+        const msg = await ctx.reply(`👤 <b>Регистрация ${roleText}</b>\n<b>Шаг 1: Ваше ФИО</b>\n\nПожалуйста, напишите ваши Фамилию, Имя и Отчество полностью (например: Иванов Иван Иванович).`, {
             parse_mode: 'HTML',
             reply_markup: { remove_keyboard: true }
         });
@@ -227,22 +232,79 @@ bot.on('message', async (ctx, next) => {
             }
 
             state.phone = phone;
-            state.step = 'PTS';
 
             const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
             state.messageIdsToDelete = []; // reset for next steps
 
-            const m2 = await ctx.reply('📄 <b>Шаг 3 из 5: Фото ПТС</b>\n\nПришлите ФОТО Паспорта Транспортного Средства (ПТС).', {
-                parse_mode: 'HTML',
-                reply_markup: { remove_keyboard: true } // Remove contact button
-            });
-            state.messageIdsToDelete.push(m2.message_id);
+            if (state.role === 'DISPATCHER') {
+                // Registration COMPLETE FOR DISPATCHER
+                for (const mid of cleanupMsgs) {
+                    ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
+                }
 
-            // Cleanup old msgs
-            for (const mid of cleanupMsgs) {
-                ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
+                // Save to DB
+                const telegramIdBigInt = BigInt(ctx.chat.id);
+                await prisma.driver.create({
+                    data: {
+                        telegramId: telegramIdBigInt,
+                        username: ctx.from.username,
+                        firstName: ctx.from.first_name,
+                        fullFio: state.fullFio,
+                        phone: state.phone,
+                        status: 'PENDING',
+                        role: 'DISPATCHER'
+                    }
+                });
+
+                pendingRegistrations.delete(tgIdStr);
+
+                await ctx.reply('✅ <b>Заявка Диспетчера успешно отправлена!</b>\n\nВаша заявка отправлена администратору на рассмотрение. Ожидайте уведомления.', { parse_mode: 'HTML' });
+
+                // Notify admins
+                try {
+                    const admins = await prisma.driver.findMany({ where: { role: 'ADMIN', status: 'APPROVED' } });
+                    const userStr = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || `ID: ${ctx.from.id}`);
+                    const adminMsg = `🚨 <b>Новая заявка на регистрацию (Диспетчер)!</b>\n\n👤 ФИО: ${state.fullFio}\nTG: ${userStr}\n📱 Тел: ${state.phone}`;
+
+                    const adminKeyboard = {
+                        inline_keyboard: [
+                            [
+                                { text: '✅ Одобрить как Диспетчера', callback_data: `verify_approve_disp_${telegramIdBigInt}` },
+                                { text: '❌ Отклонить', callback_data: `verify_reject_${telegramIdBigInt}` }
+                            ],
+                            [
+                                { text: '💻 Открыть CRM', url: 'https://xn--c1acbe2apap.com/admin/drivers' }
+                            ]
+                        ]
+                    };
+
+                    for (const ad of admins) {
+                        await bot.telegram.sendMessage(
+                            Number(ad.telegramId),
+                            adminMsg,
+                            { parse_mode: 'HTML', protect_content: true, reply_markup: adminKeyboard }
+                        ).catch(() => { });
+                    }
+                } catch (adminErr) {
+                    console.error('Failed to notify admins of new registration:', adminErr);
+                }
+                return;
+            } else {
+                // If DRIVER, proceed to PTS
+                state.step = 'PTS';
+
+                const m2 = await ctx.reply('📄 <b>Шаг 3 из 5: Фото ПТС</b>\n\nПришлите ФОТО Паспорта Транспортного Средства (ПТС).', {
+                    parse_mode: 'HTML',
+                    reply_markup: { remove_keyboard: true } // Remove contact button
+                });
+                state.messageIdsToDelete.push(m2.message_id);
+
+                // Cleanup old msgs
+                for (const mid of cleanupMsgs) {
+                    ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
+                }
+                return;
             }
-            return;
         }
 
         // Step 3: PTS
