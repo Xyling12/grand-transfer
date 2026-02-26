@@ -50,16 +50,18 @@ const getMainMenu = (chatId: string, role: string) => {
         buttons.push(['👥 Пользователи', '📢 Рассылка']);
         buttons.push(['🌐 Панель на сайте', '📥 Выгрузить EXCEL']);
         buttons.push(['📊 Статистика', '🚗 Мои заявки']);
-        buttons.push(['🗑 Очистить БД', '⚙️ Настройки']);
-        buttons.push(['ℹ️ Справка', '💻 CRM Система']);
+        buttons.push(['📚 История заявок', '⚙️ Настройки']);
+        buttons.push(['🗑 Очистить БД', '💻 CRM Система']);
+        buttons.push(['ℹ️ Справка']);
     } else if (role === 'DISPATCHER') {
         // Скрываем лишнее для диспетчера, добавляем Мои заявки
         buttons.push(['👀 Активные заявки', '🚗 Мои заявки']);
-        buttons.push(['💬 Чат', 'ℹ️ Справка']);
+        buttons.push(['📚 История заявок', '💬 Чат']);
+        buttons.push(['ℹ️ Справка']);
     } else {
         // Regular DRIVER - скрываем статистику
-        buttons.push(['🚗 Мои заказы', '💬 Чат']);
-        buttons.push(['ℹ️ Справка']);
+        buttons.push(['🚗 Мои заказы', '📚 История заявок']);
+        buttons.push(['💬 Чат', 'ℹ️ Справка']);
     }
 
     return Markup.keyboard(buttons).resize();
@@ -979,6 +981,63 @@ bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) 
         }
     } catch (err) {
         ctx.reply('❌ Ошибка при получении ваших заказов.', { protect_content: true });
+    }
+});
+
+bot.hears('📚 История заявок', async (ctx) => {
+    const { auth, dbId, role } = await checkAuth(ctx);
+    if (!auth || !dbId) return;
+
+    try {
+        // Dispatchers see orders where they were dispatcher or driver, Drivers see only where they were driver
+        const whereClause = role === 'DISPATCHER' ? {
+            OR: [
+                { dispatcherId: dbId },
+                { driverId: dbId, status: { in: ['COMPLETED', 'CANCELLED'] } }
+            ]
+        } : { driverId: dbId, status: { in: ['COMPLETED', 'CANCELLED'] } };
+
+        const historyOrders = await prisma.order.findMany({
+            where: whereClause,
+            orderBy: { createdAt: 'desc' },
+            take: 20
+        });
+
+        // Filter for dispatchers in memory to only show COMPLETED or CANCELLED,
+        // because we also want to show if they were the dispatcher and it got cancelled/completed.
+        // Or we can just add the status filter cleanly in the OR clause above. Wait, if we edit the OR above:
+        // status: { in: ['COMPLETED', 'CANCELLED'] } applies to BOTH conditions if we put it outside the OR.
+
+        const finalOrders = historyOrders.filter((o: any) => o.status === 'COMPLETED' || o.status === 'CANCELLED');
+
+        if (finalOrders.length === 0) {
+            return ctx.reply('У вас пока нет завершенных или отмененных заявок.', { protect_content: true });
+        }
+
+        await ctx.reply('📚 <b>История ваших заявок (последние 20):</b>', { parse_mode: 'HTML' });
+
+        for (const o of finalOrders) {
+            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
+            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
+
+            const msg = `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
+                `⏳ <b>Статус:</b> ${translateStatus(o.status, role)}\n` +
+                `📍 <b>Откуда:</b> ${o.fromCity}\n` +
+                `🏁 <b>Куда:</b> ${o.toCity}\n` +
+                `🚕 <b>Тариф:</b> ${translateTariff(o.tariff)}\n` +
+                `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
+                `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
+                `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
+                `🗺 <a href="${mapLink}">📍 Открыть маршрут в Яндекс Картах</a>\n\n` +
+                `👤 <b>Клиент:</b> ${o.customerName}\n` +
+                `📞 <b>Телефон:</b> ${o.customerPhone}`;
+
+            await ctx.replyWithHTML(msg, {
+                protect_content: role !== 'ADMIN'
+            });
+        }
+    } catch (err) {
+        ctx.reply('❌ Ошибка при получении истории.', { protect_content: true });
     }
 });
 
