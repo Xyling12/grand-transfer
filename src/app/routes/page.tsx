@@ -63,6 +63,7 @@ export default function RoutesHubPage() {
                                     {destinationLinks.map(route => {
                                         // Find destination ID
                                         const toCity = cities.find(c => c.name === route.to);
+                                        // Skip rendering if the destination is a generic fallback (like 'Аэропорт')
                                         if (!toCity) return null;
 
                                         return (
@@ -82,7 +83,7 @@ export default function RoutesHubPage() {
                                 </ul>
                                 <div style={{ marginTop: '16px', textAlign: 'right' }}>
                                     <span style={{ fontSize: '0.85rem', color: '#666', fontStyle: 'italic' }}>
-                                        И ещё {cities.length - destinationLinks.length - 1} направлений...
+                                        И другие направления...
                                     </span>
                                 </div>
                             </div>
