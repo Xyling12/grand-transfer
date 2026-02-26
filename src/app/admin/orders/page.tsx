@@ -1,51 +1,62 @@
 import { PrismaClient } from "@prisma/client";
 import Link from 'next/link';
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 
 const prisma = new PrismaClient();
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminOrdersPage({
-    searchParams
-}: {
-    searchParams: { month?: string }
-}) {
-    // 1. Load All Orders Server-Side
+export default async function AdminOrdersPage() {
     const orders = await prisma.order.findMany({
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        include: {
+            driver: true,
+            dispatcher: true
+        }
     });
 
-    // 2. Group by month Server-Side
-    const grouped: { [key: string]: any[] } = {};
-    orders.forEach((o: any) => {
-        const dateObj = new Date(o.createdAt);
-        let monthName = dateObj.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
-        monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1).replace(' г.', '').trim();
-        if (!grouped[monthName]) grouped[monthName] = [];
-        grouped[monthName].push(o);
-    });
+    const activeCount = orders.filter(o => !['COMPLETED', 'CANCELLED'].includes(o.status)).length;
+    const completedCount = orders.filter(o => o.status === 'COMPLETED').length;
 
-    const months = Object.keys(grouped);
+    const translateStatus = (status: string) => {
+        switch (status) {
+            case 'NEW': return <span className="text-blue-400">Новая</span>;
+            case 'PROCESSING': return <span className="text-amber-400">У диспетчера</span>;
+            case 'DISPATCHED': return <span className="text-purple-400">Поиск водителя</span>;
+            case 'TAKEN': return <span className="text-indigo-400">У водителя</span>;
+            case 'COMPLETED': return <span className="text-green-400">Выполнена</span>;
+            case 'CANCELLED': return <span className="text-red-400">Отменена</span>;
+            default: return status;
+        }
+    };
 
-    // Determine active tab
-    const selectedMonth = searchParams.month || (months.length > 0 ? months[0] : '');
-    const currentOrders = grouped[selectedMonth] || [];
+    const translateTariff = (tariff: string) => {
+        switch (tariff?.toLowerCase()) {
+            case 'econom': return 'Эконом';
+            case 'comfort': return 'Комфорт';
+            case 'minivan': return 'Минивэн';
+            case 'business': return 'Бизнес';
+            default: return tariff;
+        }
+    };
 
     return (
-        <main className="min-h-screen bg-neutral-950 text-white font-jost p-6">
+        <div className="min-h-screen bg-neutral-950 text-white font-jost p-6">
             <div className="max-w-7xl mx-auto space-y-8">
 
+                {/* Header & Navigation */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bodoni text-amber-500">Управление Заказами</h1>
-                        <p className="text-gray-400 mt-2">База всех заявок на трансфер</p>
+                        <h1 className="text-3xl font-bodoni text-amber-500">Доска Заказов</h1>
+                        <p className="text-gray-400 mt-2">Мониторинг всех заявок и исполнителей</p>
                     </div>
                     <div className="flex gap-2">
-                        <Link href="/admin/clients" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
-                            Клиенты
-                        </Link>
                         <Link href="/admin/drivers" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
                             Водители
+                        </Link>
+                        <Link href="/admin/clients" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
+                            Клиенты
                         </Link>
                         <Link href="/" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
                             На сайт
@@ -53,75 +64,95 @@ export default async function AdminOrdersPage({
                     </div>
                 </div>
 
-                {/* Tabs for Months (Server-side rendering via links) */}
-                {months.length > 0 && (
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        {months.map(m => (
-                            <Link
-                                key={m}
-                                href={`?month=${encodeURIComponent(m)}`}
-                                className={`whitespace-nowrap px-6 py-3 rounded-xl transition-all ${selectedMonth === m
-                                        ? 'bg-amber-500 text-neutral-950 font-medium'
-                                        : 'bg-neutral-900 border border-neutral-800 text-gray-400 hover:text-white'
-                                    }`}
-                            >
-                                {m} ({grouped[m]?.length || 0})
-                            </Link>
-                        ))}
+                {/* Dashboard Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-neutral-900/50 backdrop-blur-xl border border-neutral-800 rounded-2xl p-6">
+                        <div className="text-gray-400 text-sm mb-1">Всего Заказов</div>
+                        <div className="text-3xl font-light text-white">{orders.length}</div>
                     </div>
-                )}
+                    <div className="bg-neutral-900/50 backdrop-blur-xl border border-neutral-800 rounded-2xl p-6">
+                        <div className="text-gray-400 text-sm mb-1">В Работе</div>
+                        <div className="text-3xl font-light text-amber-500">{activeCount}</div>
+                    </div>
+                    <div className="bg-neutral-900/50 backdrop-blur-xl border border-neutral-800 rounded-2xl p-6">
+                        <div className="text-gray-400 text-sm mb-1">Завершено</div>
+                        <div className="text-3xl font-light text-green-400">{completedCount}</div>
+                    </div>
+                </div>
 
-                {/* Data Table */}
-                {currentOrders.length > 0 ? (
-                    <div className="bg-neutral-900/30 border border-neutral-800 rounded-2xl overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-neutral-800 bg-neutral-900/50 text-gray-400 text-sm">
-                                        <th className="p-4 font-normal">ID / Дата</th>
-                                        <th className="p-4 font-normal">Маршрут</th>
-                                        <th className="p-4 font-normal">Исполнитель</th>
-                                        <th className="p-4 font-normal">Сумма</th>
-                                        <th className="p-4 font-normal text-right">Статус</th>
+                {/* Orders List */}
+                <div className="bg-neutral-900/30 border border-neutral-800 rounded-2xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-neutral-800 bg-neutral-900/50 text-gray-400 text-sm">
+                                    <th className="p-4 font-normal">ID / Дата</th>
+                                    <th className="p-4 font-normal">Маршрут / Пассажиры</th>
+                                    <th className="p-4 font-normal">Клиент</th>
+                                    <th className="p-4 font-normal">Исполнители</th>
+                                    <th className="p-4 font-normal text-right">Статус / Цена</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {orders.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="p-8 text-center text-gray-500">
+                                            Нет данных о заказах
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {currentOrders.map((o, i) => (
-                                        <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/20 transition-colors">
+                                ) : (
+                                    orders.map((o) => (
+                                        <tr key={o.id} className="border-b border-neutral-800/50 hover:bg-neutral-800/20 transition-colors">
                                             <td className="p-4">
                                                 <div className="font-medium text-white">#{o.id}</div>
-                                                <div className="text-sm text-gray-500">{new Date(o.createdAt).toLocaleDateString('ru-RU')}</div>
+                                                <div className="text-xs text-gray-500">{format(new Date(o.createdAt), 'dd MMM yyyy, HH:mm', { locale: ru })}</div>
                                             </td>
                                             <td className="p-4">
-                                                <div className="text-gray-300">{o.fromCity} <span className="text-amber-500">→</span> {o.toCity}</div>
-                                                <div className="text-xs text-gray-500 mt-1">{o.customerName} ({o.customerPhone})</div>
+                                                <div className="text-sm text-gray-300">
+                                                    <span className="text-amber-500 font-medium">{o.fromCity}</span> → <span className="text-amber-500 font-medium">{o.toCity}</span>
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    {translateTariff(o.tariff)} • {o.passengers} чел.
+                                                </div>
                                             </td>
-                                            <td className="p-4 text-gray-400">
-                                                {o.driverId ? `Водитель ID: ${o.driverId}` : (o.dispatcherId ? `Диспетчер ID: ${o.dispatcherId}` : '—')}
+                                            <td className="p-4">
+                                                <div className="text-sm font-medium text-gray-200">{o.customerName}</div>
+                                                <div className="text-xs text-gray-400">{o.customerPhone}</div>
                                             </td>
-                                            <td className="p-4 text-amber-500 font-medium">
-                                                {o.priceEstimate ? `${o.priceEstimate} ₽` : '—'}
+                                            <td className="p-4">
+                                                {o.dispatcher && (
+                                                    <div className="text-xs text-gray-400">
+                                                        Дисп: <span className="text-purple-300">{o.dispatcher.fullFio || o.dispatcher.firstName}</span>
+                                                    </div>
+                                                )}
+                                                {o.driver && o.status === 'TAKEN' || o.status === 'COMPLETED' ? (
+                                                    <div className="text-xs text-gray-400 mt-1">
+                                                        Вод: <span className="text-indigo-300">{o.driver?.fullFio || o.driver?.firstName}</span>
+                                                    </div>
+                                                ) : o.status === 'DISPATCHED' ? (
+                                                    <div className="text-xs text-gray-500 italic mt-1">Идет поиск водителя...</div>
+                                                ) : null}
+                                                {!o.dispatcher && !o.driver && (
+                                                    <div className="text-xs text-gray-500 italic">Свободная заявка</div>
+                                                )}
                                             </td>
                                             <td className="p-4 text-right">
-                                                <span className={`text-xs px-2 py-1 rounded-md ${o.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
-                                                        o.status === 'NEW' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                                                            'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                                    }`}>
-                                                    {o.status}
-                                                </span>
+                                                <div className="text-sm font-medium mb-1">
+                                                    {translateStatus(o.status)}
+                                                </div>
+                                                <div className="text-xs text-gray-400">
+                                                    ~{o.priceEstimate || '0'} ₽
+                                                </div>
                                             </td>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                ) : (
-                    <div className="text-center py-20 text-gray-500">
-                        {months.length > 0 ? "В этом периоде нет заказов" : "В базе нет ни одного заказа"}
-                    </div>
-                )}
+                </div>
+
             </div>
-        </main>
+        </div>
     );
 }

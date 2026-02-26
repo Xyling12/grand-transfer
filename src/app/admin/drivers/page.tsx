@@ -10,8 +10,8 @@ export default async function AdminDriversPage() {
         orderBy: { createdAt: 'desc' }
     });
 
-    const pendingDrivers = drivers.filter(d => d.status === 'PENDING').length;
-    const activeDrivers = drivers.filter(d => d.status === 'APPROVED' && d.role === 'DRIVER').length;
+    const pendingDrivers = drivers.filter((d: any) => d.status === 'PENDING').length;
+    const activeDrivers = drivers.filter((d: any) => d.status === 'APPROVED' && d.role === 'DRIVER').length;
 
     return (
         <div className="min-h-screen bg-neutral-950 text-white font-jost p-6">
@@ -69,7 +69,7 @@ export default async function AdminDriversPage() {
                                         </td>
                                     </tr>
                                 ) : (
-                                    drivers.map((d, i) => (
+                                    drivers.map((d: any, i: number) => (
                                         <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/20 transition-colors">
                                             <td className="p-4">
                                                 <div className="font-medium text-white">{d.fullFio || d.firstName || "Без имени"}</div>
@@ -89,25 +89,25 @@ export default async function AdminDriversPage() {
                                             <td className="p-4 text-right">
                                                 <div className="flex justify-end gap-2">
                                                     {d.ptsNumber ? (
-                                                        <a href="#" onClick={(e) => e.preventDefault()} title={`ПТС (File ID: ${d.ptsNumber})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-help">
+                                                        <a href={`/api/tg-file/${d.ptsNumber}`} target="_blank" rel="noopener noreferrer" title={`ПТС (File ID: ${d.ptsNumber})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-pointer">
                                                             📄
                                                         </a>
                                                     ) : <span className="p-2 text-neutral-700">📄</span>}
 
                                                     {d.stsPhotoId ? (
-                                                        <a href="#" onClick={(e) => e.preventDefault()} title={`СТС (File ID: ${d.stsPhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-help">
+                                                        <a href={`/api/tg-file/${d.stsPhotoId}`} target="_blank" rel="noopener noreferrer" title={`СТС (File ID: ${d.stsPhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-pointer">
                                                             🪪
                                                         </a>
                                                     ) : <span className="p-2 text-neutral-700">🪪</span>}
 
                                                     {d.licensePhotoId ? (
-                                                        <a href="#" onClick={(e) => e.preventDefault()} title={`Водительские права (File ID: ${d.licensePhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-help">
+                                                        <a href={`/api/tg-file/${d.licensePhotoId}`} target="_blank" rel="noopener noreferrer" title={`Водительские права (File ID: ${d.licensePhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-pointer">
                                                             🎫
                                                         </a>
                                                     ) : <span className="p-2 text-neutral-700">🎫</span>}
 
                                                     {d.carPhotoId ? (
-                                                        <a href="#" onClick={(e) => e.preventDefault()} title={`Авто с ГРЗ (File ID: ${d.carPhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-help">
+                                                        <a href={`/api/tg-file/${d.carPhotoId}`} target="_blank" rel="noopener noreferrer" title={`Авто с ГРЗ (File ID: ${d.carPhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-pointer">
                                                             🚙
                                                         </a>
                                                     ) : <span className="p-2 text-neutral-700">🚙</span>}
@@ -120,7 +120,7 @@ export default async function AdminDriversPage() {
                         </table>
                     </div>
                     <div className="p-4 text-xs text-gray-500 bg-neutral-900/50 border-t border-neutral-800">
-                        Файлы сохранены в базе данных в виде Telegram File ID. Обратитесь к боту (или к будущему Telegram Web App) за их отображением.
+                        Файлы сохраняются в Telegram. При нажатии на иконку они автоматически скачиваются и открываются в новой вкладке.
                     </div>
                 </div>
 

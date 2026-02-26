@@ -1,39 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export function middleware(req: NextRequest) {
+// Secret to verify the JWT, matching the login route
+const JWT_SECRET = process.env.JWT_SECRET || process.env.TELEGRAM_BOT_TOKEN || 'fallback_secret_grand_transfer';
+
+export async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
 
-    // Защищаем все роуты, начинающиеся с /admin и /api/admin
-    if (path.startsWith('/admin') || path.startsWith('/api/admin')) {
-        const basicAuth = req.headers.get('authorization');
+    // Check if the current route is the login page itself to prevent infinite redirects
+    const isLoginPage = path === '/admin/login';
 
-        if (basicAuth) {
-            const authValue = basicAuth.split(' ')[1];
-            // Decode base64
-            const [user, pwd] = Buffer.from(authValue, 'base64').toString().split(':');
+    // Protect all /admin routes except the login route and API endpoints handling login
+    if (path.startsWith('/admin') && !isLoginPage) {
+        const token = req.cookies.get('admin_session')?.value;
 
-            // Берем логин и пароль из .env, или используем дефолтные при локальной разработке
-            const expectedUser = process.env.ADMIN_USER || 'admin';
-            const expectedPwd = process.env.ADMIN_PASSWORD || 'grand123';
-
-            if (user === expectedUser && pwd === expectedPwd) {
-                return NextResponse.next();
-            }
+        if (!token) {
+            return NextResponse.redirect(new URL('/admin/login', req.url));
         }
 
-        // Если пароль неверный или его нет — отдаем 401 и требуем браузерное окно логина (Basic Auth)
-        return new NextResponse('Требуется авторизация', {
-            status: 401,
-            headers: {
-                'WWW-Authenticate': 'Basic realm="Secure Admin Dashboard"',
-            },
-        });
+        try {
+            // Verify JWT token using jose (Next.js Edge runtime compatible)
+            const secret = new TextEncoder().encode(JWT_SECRET);
+            await jwtVerify(token, secret);
+
+            // Allow access to the protected route
+            return NextResponse.next();
+        } catch (error) {
+            console.error('JWT Verification failed in middleware:', error);
+            // Token is invalid or expired
+            return NextResponse.redirect(new URL('/admin/login', req.url));
+        }
+    }
+
+    // Redirect authenticated users away from the login page
+    if (isLoginPage) {
+        const token = req.cookies.get('admin_session')?.value;
+        if (token) {
+            try {
+                const secret = new TextEncoder().encode(JWT_SECRET);
+                await jwtVerify(token, secret);
+                return NextResponse.redirect(new URL('/admin/drivers', req.url));
+            } catch (e) {
+                // Invalid token, just render login page normally
+            }
+        }
     }
 
     return NextResponse.next();
 }
 
-// Указываем, к каким путям применять middleware
+// Specify paths to apply middleware
 export const config = {
-    matcher: ['/admin/:path*', '/api/admin/:path*'],
+    matcher: ['/admin/:path*'],
 };
