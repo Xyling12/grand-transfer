@@ -46,23 +46,6 @@ const features = [
 export default function WhyChooseUs() {
     return (
         <section className={`${styles.section} animate-on-scroll`} id="why-choose-us">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{
-                    __html: JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "FAQPage",
-                        "mainEntity": features.map(f => ({
-                            "@type": "Question",
-                            "name": `Какие гарантии ${f.title.toLowerCase()} вы предоставляете?`,
-                            "acceptedAnswer": {
-                                "@type": "Answer",
-                                "text": f.description
-                            }
-                        }))
-                    })
-                }}
-            />
             <div id="about" style={{ position: 'absolute', top: '-100px' }}></div>
             <div className="container">
                 <h2 className="section-title">Почему выбирают нас</h2>
