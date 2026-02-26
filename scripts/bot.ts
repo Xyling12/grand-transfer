@@ -346,6 +346,9 @@ bot.on('message', async (ctx, next) => {
                         [
                             { text: '✅ Одобрить', callback_data: `verify_approve_${telegramIdBigInt}` },
                             { text: '❌ Отклонить', callback_data: `verify_reject_${telegramIdBigInt}` }
+                        ],
+                        [
+                            { text: '💻 Открыть CRM', url: 'https://xn--c1acbe2apap.com/admin/drivers' }
                         ]
                     ]
                 };
