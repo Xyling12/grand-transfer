@@ -26,15 +26,22 @@ export default async function AdminClientsPage() {
                 phone: key,
                 ordersCount: 0,
                 totalSpent: 0,
-                lastOrder: o.createdAt,
-                months: new Set<string>(), // Keep track of months they ordered in
+                lastOrder: o.createdAt.toISOString(),
                 orders: [] // specific orders for this client
             });
         }
 
         const client = clientsMap.get(key);
         client.ordersCount++;
-        client.orders.push(o);
+        client.orders.push({
+            id: o.id,
+            createdAt: o.createdAt.toISOString(),
+            fromCity: o.fromCity,
+            toCity: o.toCity,
+            priceEstimate: o.priceEstimate,
+            status: o.status,
+            feedbackReceived: (o as any).feedbackReceived
+        });
 
         if (o.priceEstimate && o.status === 'COMPLETED') {
             client.totalSpent += o.priceEstimate;
@@ -42,13 +49,8 @@ export default async function AdminClientsPage() {
         }
 
         if (new Date(o.createdAt) > new Date(client.lastOrder)) {
-            client.lastOrder = o.createdAt;
+            client.lastOrder = o.createdAt.toISOString();
         }
-
-        const dateObj = new Date(o.createdAt);
-        let monthName = dateObj.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
-        monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1).replace(' г.', '').trim();
-        client.months.add(monthName);
     });
 
     const clients = Array.from(clientsMap.values());
