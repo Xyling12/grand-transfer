@@ -340,11 +340,21 @@ bot.on('message', async (ctx, next) => {
                 const userStr = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || `ID: ${ctx.from.id}`);
                 const adminMsg = `🚨 <b>Новая заявка на регистрацию!</b>\n\n👤 ФИО: ${state.fullFio}\nTG: ${userStr}\n📱 Тел: ${state.phone}\n\nЗайдите в раздел 👥 <b>Пользователи</b> на сайте, чтобы просмотреть фотографии ПТС, СТС и автомобиля, после чего одобрите или отклоните заявку.`;
 
+                // Add inline buttons for quick approve/reject
+                const adminKeyboard = {
+                    inline_keyboard: [
+                        [
+                            { text: '✅ Одобрить', callback_data: `verify_approve_${telegramIdBigInt}` },
+                            { text: '❌ Отклонить', callback_data: `verify_reject_${telegramIdBigInt}` }
+                        ]
+                    ]
+                };
+
                 for (const ad of admins) {
                     await bot.telegram.sendMessage(
                         Number(ad.telegramId),
                         adminMsg,
-                        { parse_mode: 'HTML', protect_content: true }
+                        { parse_mode: 'HTML', protect_content: true, reply_markup: adminKeyboard }
                     ).catch(() => { });
                 }
             } catch (adminErr) {
@@ -359,6 +369,201 @@ bot.on('message', async (ctx, next) => {
         pendingRegistrations.delete(tgIdStr);
     }
 });
+
+// --- ADMIN DRIVER VERIFICATION HANDLERS (Inline Buttons) ---
+
+bot.action(/^verify_approve_(\d+)$/, async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return ctx.answerCbQuery('Нет прав', { show_alert: true });
+
+    const driverTgId = BigInt(ctx.match[1]);
+    try {
+        const driver = await prisma.driver.update({
+            where: { telegramId: driverTgId },
+            data: { status: 'APPROVED' }
+        });
+
+        // Answer admin
+        await ctx.answerCbQuery('Водитель одобрен!');
+        await ctx.editMessageText(
+            `✅ <b>Заявка одобрена!</b>\nВодитель: ${driver.fullFio || driver.firstName}\nТелефон: ${driver.phone}\nTelegram ID: ${driverTgId.toString()}`,
+            { parse_mode: 'HTML' }
+        );
+
+        // Notify driver
+        await bot.telegram.sendMessage(
+            Number(driverTgId),
+            '🎉 <b>Ваша заявка одобрена администратором!</b>\n\nТеперь вам доступно рабочее меню водителя.',
+            { parse_mode: 'HTML', ...getMainMenu(driverTgId.toString(), driver.role) }
+        ).catch(() => { });
+    } catch (e) {
+        console.error(e);
+        ctx.answerCbQuery('Ошибка. Возможно, пользователь уже удален.', { show_alert: true });
+    }
+});
+
+bot.action(/^verify_reject_(\d+)$/, async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return ctx.answerCbQuery('Нет прав', { show_alert: true });
+
+    const driverTgId = BigInt(ctx.match[1]);
+    try {
+        const driver = await prisma.driver.update({
+            where: { telegramId: driverTgId },
+            data: { status: 'BANNED' }
+        });
+
+        await ctx.answerCbQuery('Заявка отклонена');
+        await ctx.editMessageText(
+            `❌ <b>Заявка отклонена!</b>\nВодитель: ${driver.fullFio || driver.firstName}\nТелефон: ${driver.phone}\nTelegram ID: ${driverTgId.toString()}`,
+            { parse_mode: 'HTML' }
+        );
+
+        // Notify driver
+        await bot.telegram.sendMessage(
+            Number(driverTgId),
+            '❌ <b>Ваша заявка на регистрацию отклонена администратором.</b>\nДоступ к системе закрыт.',
+            { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } }
+        ).catch(() => { });
+    } catch (e) {
+        console.error(e);
+        ctx.answerCbQuery('Ошибка. Возможно, пользователь уже удален.', { show_alert: true });
+    }
+});
+
+// --- ADMIN TEXT COMMANDS (`/approve`, `/reject`, `/ban`, `/unban`) ---
+
+const findDriverByArg = async (arg: string) => {
+    // If arg is pure digits, try Telegram ID first, then phone
+    const cleanArg = arg.replace(/[^\d+]/g, '');
+    let driver = null;
+
+    if (/^\d+$/.test(cleanArg)) {
+        try {
+            driver = await prisma.driver.findUnique({ where: { telegramId: BigInt(cleanArg) } });
+        } catch (e) { }
+    }
+
+    if (!driver && cleanArg) {
+        // Try searching by phone (contains)
+        const possibleDrivers = await prisma.driver.findMany({
+            where: { phone: { contains: cleanArg } }
+        });
+        if (possibleDrivers.length === 1) {
+            driver = possibleDrivers[0];
+        } else if (possibleDrivers.length > 1) {
+            throw new Error(`Найдено несколько водителей с похожеми номерами (${cleanArg}). Пожалуйста, используйте Telegram ID.`);
+        }
+    }
+    return driver;
+};
+
+bot.command('approve', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    const args = ctx.message.text.split(' ').slice(1).join(' ');
+    if (!args) return ctx.reply('Использование: /approve <Telegram_ID или Телефон>');
+
+    try {
+        const driver = await findDriverByArg(args);
+        if (!driver) return ctx.reply('Водитель не найден.');
+
+        await prisma.driver.update({ where: { id: driver.id }, data: { status: 'APPROVED' } });
+        ctx.reply(`✅ Водитель ${driver.fullFio || driver.firstName} одобрен!`);
+
+        await bot.telegram.sendMessage(
+            Number(driver.telegramId),
+            '🎉 <b>Ваша заявка одобрена администратором!</b>',
+            { parse_mode: 'HTML', ...getMainMenu(driver.telegramId.toString(), driver.role) }
+        ).catch(() => { });
+    } catch (e: any) {
+        ctx.reply(e.message || 'Ошибка выполнения команды.');
+    }
+});
+
+bot.command('reject', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    const parts = ctx.message.text.split(' ').slice(1);
+    const arg = parts[0];
+    const reason = parts.slice(1).join(' ');
+
+    if (!arg) return ctx.reply('Использование: /reject <Telegram_ID или Телефон> [Причина]');
+
+    try {
+        const driver = await findDriverByArg(arg);
+        if (!driver) return ctx.reply('Водитель не найден.');
+
+        await prisma.driver.update({ where: { id: driver.id }, data: { status: 'BANNED' } });
+
+        const reasonText = reason ? `\nПричина: ${reason}` : '';
+        ctx.reply(`❌ Водитель ${driver.fullFio || driver.firstName} отклонен.${reasonText}`);
+
+        await bot.telegram.sendMessage(
+            Number(driver.telegramId),
+            `❌ <b>Ваша заявка отклонена администратором.</b>${reasonText}\nДоступ к системе закрыт.`,
+            { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } }
+        ).catch(() => { });
+    } catch (e: any) {
+        ctx.reply(e.message || 'Ошибка выполнения команды.');
+    }
+});
+
+bot.command('ban', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    const parts = ctx.message.text.split(' ').slice(1);
+    const arg = parts[0];
+    const reason = parts.slice(1).join(' ');
+
+    if (!arg) return ctx.reply('Использование: /ban <Telegram_ID или Телефон> [Причина]');
+
+    try {
+        const driver = await findDriverByArg(arg);
+        if (!driver) return ctx.reply('Водитель не найден.');
+
+        await prisma.driver.update({ where: { id: driver.id }, data: { status: 'BANNED' } });
+
+        const reasonText = reason ? `\nПричина: ${reason}` : '';
+        ctx.reply(`🛑 Водитель ${driver.fullFio || driver.firstName} забанен.${reasonText}`);
+
+        await bot.telegram.sendMessage(
+            Number(driver.telegramId),
+            `🛑 <b>Ваш аккаунт заблокирован администратором.</b>${reasonText}\nДоступ к заказам закрыт.`,
+            { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } }
+        ).catch(() => { });
+    } catch (e: any) {
+        ctx.reply(e.message || 'Ошибка выполнения команды.');
+    }
+});
+
+bot.command('unban', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return;
+
+    const args = ctx.message.text.split(' ').slice(1).join(' ');
+    if (!args) return ctx.reply('Использование: /unban <Telegram_ID или Телефон>');
+
+    try {
+        const driver = await findDriverByArg(args);
+        if (!driver) return ctx.reply('Водитель не найден.');
+
+        await prisma.driver.update({ where: { id: driver.id }, data: { status: 'APPROVED' } });
+        ctx.reply(`✅ Водитель ${driver.fullFio || driver.firstName} разбанен!`);
+
+        await bot.telegram.sendMessage(
+            Number(driver.telegramId),
+            '🔄 <b>Администратор снял блокировку с вашего аккаунта!</b>',
+            { parse_mode: 'HTML', ...getMainMenu(driver.telegramId.toString(), driver.role) }
+        ).catch(() => { });
+    } catch (e: any) {
+        ctx.reply(e.message || 'Ошибка выполнения команды.');
+    }
+});
+
 
 // Helper to check authorization before executing commands
 const checkAuth = async (ctx: any): Promise<{ auth: boolean, role: string, dbId?: string }> => {
@@ -497,6 +702,7 @@ const handleHelp = async (ctx: any) => {
 
     if (role === 'ADMIN') {
         msg += `👑 <b>Дополнительные функции (Администратор):</b>\n`;
+        msg += `• <b>Верификация:</b> Команды <code>/approve номер</code>, <code>/reject номер</code>, <code>/ban номер причина</code>, <code>/unban номер</code>.\n`;
         msg += `• <b>👥 Пользователи:</b> Поиск людей по ID/@username, одобрение/бан, выдача ролей администраторов, диспетчеров и просмотр чужих заказов.\n`;
         msg += `• <b>📢 Рассылка:</b> Команда <code>/send текст</code> отправляет важное сообщение всем пользователям.\n`;
         msg += `• <b>📥 Выгрузить EXCEL:</b> Скачивание всей базы заявок CSV файлом.\n`;
