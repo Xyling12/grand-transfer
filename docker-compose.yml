@@ -19,6 +19,8 @@ services:
       - "traefik.http.routers.site-router.rule=Host(`xn--c1acbe2apap.com`) || Host(`www.xn--c1acbe2apap.com`)"
       - "traefik.http.services.site-router.loadbalancer.server.port=3000"
       - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.site-router.tls=true"
+      - "traefik.http.routers.site-router.tls.certresolver=letsencrypt"
 
   bot:
     image: ghcr.io/xyling12/grand-transfer:main
