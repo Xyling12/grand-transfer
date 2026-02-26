@@ -25,15 +25,19 @@ model Order {
 }
 
 model Driver {
-  id           String    @id @default(cuid())
-  telegramId   BigInt    @unique
-  username     String?
-  firstName    String?
-  status       String    @default("PENDING") // PENDING, APPROVED, BANNED
-  role         String    @default("DRIVER") // USER, DRIVER, DISPATCHER, ADMIN
+  id             String    @id @default(cuid())
+  telegramId     BigInt    @unique
+  username       String?
+  firstName      String?
+  phone          String?
+  ptsNumber      String?
+  licensePhotoId String?
+  carPhotoId     String?
+  status         String    @default("PENDING") // PENDING, APPROVED, BANNED
+  role           String    @default("DRIVER") // USER, DRIVER, DISPATCHER, ADMIN
   // Future subscription
-  subExpiresAt DateTime?
-  createdAt    DateTime  @default(now())
+  subExpiresAt   DateTime?
+  createdAt      DateTime  @default(now())
 }
 
 model BroadcastMessage {

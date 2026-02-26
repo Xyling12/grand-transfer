@@ -92,7 +92,7 @@ bot.start(async (ctx) => {
             } else {
                 // For regular users, show the registration button instead of auto-creating
                 return ctx.reply(
-                    'Здравствуйте! Добро пожаловать в Telegram-бот GrandTransfer.\n\nДля получения доступа к заказам необходимо подать заявку на регистрацию.',
+                    'Здравствуйте! Добро пожаловать в Telegram-бот GrandTransfer.\n\nДля получения доступа к заказам необходимо подать заявку на регистрацию.\n\n⚠️ Нажимая кнопку ниже, вы даете согласие на обработку ваших персональных данных (Имя, Фамилия, Telegram ID) в соответствии с ФЗ-152.',
                     {
                         reply_markup: {
                             inline_keyboard: [
@@ -124,8 +124,20 @@ bot.start(async (ctx) => {
     }
 });
 
+interface RegState {
+    step: 'PHONE' | 'PTS' | 'LICENSE' | 'CAR';
+    phone?: string;
+    ptsNumber?: string;
+    licensePhotoId?: string;
+    carPhotoId?: string;
+    messageIdsToDelete: number[];
+}
+
+const pendingRegistrations = new Map<string, RegState>();
+
 bot.action('register_driver', async (ctx) => {
     const telegramIdBigInt = BigInt(ctx.chat?.id || 0);
+    const tgIdStr = telegramIdBigInt.toString();
 
     try {
         // Check if already registered
@@ -134,39 +146,187 @@ bot.action('register_driver', async (ctx) => {
             return ctx.answerCbQuery('Вы уже подавали заявку.', { show_alert: true });
         }
 
-        // Create the user
-        await prisma.driver.create({
-            data: {
-                telegramId: telegramIdBigInt,
-                username: ctx.from.username,
-                firstName: ctx.from.first_name,
-                status: 'PENDING',
-                role: 'DRIVER'
+        // Start registration state
+        pendingRegistrations.set(tgIdStr, { step: 'PHONE', messageIdsToDelete: [] });
+
+        await ctx.answerCbQuery();
+
+        const msg = await ctx.reply('📱 <b>Шаг 1 из 4:Номер телефона</b>\n\nПожалуйста, нажмите кнопку ниже, чтобы поделиться вашим контактным номером телефона.', {
+            parse_mode: 'HTML',
+            reply_markup: {
+                keyboard: [
+                    [{ text: '☎️ Поделиться контактом', request_contact: true }]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: true
             }
         });
 
-        await ctx.answerCbQuery('Заявка успешно отправлена!');
-        await ctx.editMessageText('✅ Ваша заявка в систему GrandTransfer отправлена администратору. Пожалуйста, дождитесь одобрения доступа. Как только администратор проверит ваши данные, вам придет уведомление.');
-
-        // Notify admins about the new registration
-        try {
-            const admins = await prisma.driver.findMany({ where: { role: 'ADMIN', status: 'APPROVED' } });
-            const userStr = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || `ID: ${ctx.from.id}`);
-
-            for (const ad of admins) {
-                await bot.telegram.sendMessage(
-                    Number(ad.telegramId),
-                    `🚨 <b>Новая заявка на регистрацию!</b>\n\nПользователь ${userStr} ожидает одобрения.\n\nЗайдите в раздел 👥 <b>Пользователи</b>, чтобы одобрить заявку.`,
-                    { parse_mode: 'HTML', protect_content: true }
-                ).catch(() => { });
-            }
-        } catch (adminErr) {
-            console.error('Failed to notify admins of new registration:', adminErr);
-        }
+        const state = pendingRegistrations.get(tgIdStr);
+        if (state) state.messageIdsToDelete.push(msg.message_id);
 
     } catch (e) {
         console.error('Registration error:', e);
-        ctx.answerCbQuery('Произошла ошибка при регистрации. Попробуйте еще раз позже.', { show_alert: true });
+        ctx.answerCbQuery('Произошла ошибка при начале регистрации. Попробуйте еще раз позже.', { show_alert: true });
+    }
+});
+
+// Intercept All Messages to handle the Registration State Machine
+bot.on('message', async (ctx, next) => {
+    const tgIdStr = ctx.chat.id.toString();
+    const state = pendingRegistrations.get(tgIdStr);
+
+    if (!state) {
+        return next(); // Not in registration flow, continue to command handlers
+    }
+
+    try {
+        // Step 1: Phone
+        if (state.step === 'PHONE') {
+            const contact = (ctx.message as any).contact;
+            const text = (ctx.message as any).text;
+
+            let phone = '';
+            if (contact && contact.phone_number) {
+                phone = contact.phone_number;
+            } else if (text && /^\+?\d{10,15}$/.test(text.replace(/\D/g, ''))) {
+                phone = text;
+            } else {
+                const m = await ctx.reply('⚠️ Пожалуйста, нажмите кнопку «☎️ Поделиться контактом» внизу или отправьте корректный номер текстом.');
+                state.messageIdsToDelete.push(ctx.message.message_id, m.message_id);
+                return;
+            }
+
+            state.phone = phone;
+            state.step = 'PTS';
+
+            const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
+            state.messageIdsToDelete = []; // reset for next steps
+
+            const m2 = await ctx.reply('📄 <b>Шаг 2 из 4: ПТС</b>\n\nНапишите номер ПТС вашего автомобиля (или Серию и Номер СТС).\n<i>Пример: 99 АА 123456</i>', {
+                parse_mode: 'HTML',
+                reply_markup: { remove_keyboard: true } // Remove contact button
+            });
+            state.messageIdsToDelete.push(m2.message_id);
+
+            // Cleanup old msgs
+            for (const mid of cleanupMsgs) {
+                ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
+            }
+            return;
+        }
+
+        // Step 2: PTS
+        if (state.step === 'PTS') {
+            const text = (ctx.message as any).text;
+            if (!text || text.length < 5) {
+                const m = await ctx.reply('⚠️ Пожалуйста, введите корректный номер ПТС текстом (например: 99 АА 123456).');
+                state.messageIdsToDelete.push(ctx.message.message_id, m.message_id);
+                return;
+            }
+
+            state.ptsNumber = text;
+            state.step = 'LICENSE';
+
+            const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
+            state.messageIdsToDelete = [];
+
+            const m2 = await ctx.reply('🪪 <b>Шаг 3 из 4: Водительское удостоверение</b>\n\nПожалуйста, отправьте ФОТО ваших прав (лицевую сторону).', { parse_mode: 'HTML' });
+            state.messageIdsToDelete.push(m2.message_id);
+
+            for (const mid of cleanupMsgs) {
+                ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
+            }
+            return;
+        }
+
+        // Step 3: LICENSE
+        if (state.step === 'LICENSE') {
+            const photoList = (ctx.message as any).photo;
+            if (!photoList || photoList.length === 0) {
+                const m = await ctx.reply('⚠️ Пожалуйста, отправьте именно ФОТО, а не текст или файл.');
+                state.messageIdsToDelete.push(ctx.message.message_id, m.message_id);
+                return;
+            }
+
+            const largestPhoto = photoList[photoList.length - 1];
+            state.licensePhotoId = largestPhoto.file_id;
+            state.step = 'CAR';
+
+            const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
+            state.messageIdsToDelete = [];
+
+            const m2 = await ctx.reply('🚙 <b>Шаг 4 из 4: Фото автомобиля</b>\n\nПожалуйста, отправьте ФОТО вашей машины сбоку так, чтобы был отчетливо виден государственный номер.', { parse_mode: 'HTML' });
+            state.messageIdsToDelete.push(m2.message_id);
+
+            for (const mid of cleanupMsgs) {
+                ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
+            }
+            return;
+        }
+
+        // Step 4: CAR
+        if (state.step === 'CAR') {
+            const photoList = (ctx.message as any).photo;
+            if (!photoList || photoList.length === 0) {
+                const m = await ctx.reply('⚠️ Пожалуйста, отправьте именно ФОТО автомобиля.');
+                state.messageIdsToDelete.push(ctx.message.message_id, m.message_id);
+                return;
+            }
+
+            const largestPhoto = photoList[photoList.length - 1];
+            state.carPhotoId = largestPhoto.file_id;
+
+            // Registration COMPLETE
+            const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
+
+            for (const mid of cleanupMsgs) {
+                ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
+            }
+
+            // Save to DB
+            const telegramIdBigInt = BigInt(ctx.chat.id);
+            await prisma.driver.create({
+                data: {
+                    telegramId: telegramIdBigInt,
+                    username: ctx.from.username,
+                    firstName: ctx.from.first_name,
+                    phone: state.phone,
+                    ptsNumber: state.ptsNumber,
+                    licensePhotoId: state.licensePhotoId,
+                    carPhotoId: state.carPhotoId,
+                    status: 'PENDING',
+                    role: 'DRIVER'
+                }
+            });
+
+            pendingRegistrations.delete(tgIdStr);
+
+            await ctx.reply('✅ <b>Заявка успешно отправлена!</b>\n\nВы предоставили все необходимые документы. Ваша заявка отправлена администратору на рассмотрение. Вы получите уведомление о доступе.', { parse_mode: 'HTML' });
+
+            // Notify admins
+            try {
+                const admins = await prisma.driver.findMany({ where: { role: 'ADMIN', status: 'APPROVED' } });
+                const userStr = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || `ID: ${ctx.from.id}`);
+                const adminMsg = `🚨 <b>Новая заявка на регистрацию!</b>\n\n👤 Имя: ${userStr}\n📱 Тел: ${state.phone}\n📄 ПТС: ${state.ptsNumber}\n\nЗайдите в раздел 👥 <b>Пользователи</b>, чтобы одобрить заявку, или в Админ-панель на сайте для просмотра фото.`;
+
+                for (const ad of admins) {
+                    await bot.telegram.sendMessage(
+                        Number(ad.telegramId),
+                        adminMsg,
+                        { parse_mode: 'HTML', protect_content: true }
+                    ).catch(() => { });
+                }
+            } catch (adminErr) {
+                console.error('Failed to notify admins of new registration:', adminErr);
+            }
+            return;
+        }
+
+    } catch (err) {
+        console.error('State machine error:', err);
+        ctx.reply('❌ Ошибка при обработке данных. Начните заново с команды /start');
+        pendingRegistrations.delete(tgIdStr);
     }
 });
 
@@ -608,10 +768,15 @@ bot.command('send', async (ctx) => {
     }
 });
 
+import * as xlsx from 'xlsx';
+
 bot.hears('📥 Выгрузить EXCEL', async (ctx) => {
     const { auth, role } = await checkAuth(ctx);
     if (!auth || role !== 'ADMIN') return;
     try {
+        await ctx.reply('⏳ Формирую отчеты, подождите...');
+
+        // 1. ORDERS BY MONTH SHEETS
         const orders = await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
         const drivers = await prisma.driver.findMany();
         const driverMap = new Map();
@@ -620,21 +785,106 @@ bot.hears('📥 Выгрузить EXCEL', async (ctx) => {
             driverMap.set(d.id, name);
         });
 
-        let csv = '\uFEFF';
-        csv += "ID;Дата;Откуда;Куда;Тариф;Пассажиров;Сумма;Имя;Телефон;Комментарий;Водитель\n";
+        const ordersByMonth = new Map<string, any[][]>();
+        const headers = ["ID", "Дата", "Откуда", "Куда", "Тариф", "Пассажиров", "Сумма", "Имя Клиента", "Телефон", "Комментарий", "Исполнитель", "Статус"];
+
         orders.forEach((o: any) => {
-            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
-            const safeComment = (o.comments || '').replace(/;/g, ',').replace(/\n/g, ' ');
-            const driverStr = o.driverId ? (driverMap.get(o.driverId) || o.driverId) : '';
-            csv += `${o.id};${dateStr};${o.fromCity};${o.toCity};${translateTariff(o.tariff)};${o.passengers};${o.priceEstimate || ''};${o.customerName};${o.customerPhone};${safeComment};${driverStr}\n`;
+            const dateObj = o.createdAt ? new Date(o.createdAt) : new Date();
+            let monthName = dateObj.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+            monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1).replace(' г.', '').trim();
+
+            if (!ordersByMonth.has(monthName)) {
+                ordersByMonth.set(monthName, [[...headers]]);
+            }
+
+            const dateStr = dateObj.toLocaleString('ru-RU');
+            const driverStr = o.driverId ? (driverMap.get(o.driverId) || o.driverId) : (o.dispatcherId ? (driverMap.get(o.dispatcherId) + ' (Диспетчер)') : '');
+
+            ordersByMonth.get(monthName)!.push([
+                o.id.toString(), dateStr, o.fromCity, o.toCity, translateTariff(o.tariff),
+                o.passengers.toString(), o.priceEstimate ? o.priceEstimate.toString() : '',
+                o.customerName, o.customerPhone, o.comments || '', driverStr, translateStatus(o.status)
+            ]);
         });
-        const buffer = Buffer.from(csv, 'utf8');
+
+        // 2. DRIVERS SHEET
+        const driversData = [
+            ["ID (БД)", "TG ID", "Юзернейм", "Имя", "Телефон", "ПТС", "Роль", "Статус", "ФотоПрав_ФайлID", "ФотоАвто_ФайлID", "Дата регистрации"]
+        ];
+
+        drivers.forEach((d: any) => {
+            const dateStr = d.createdAt ? new Date(d.createdAt).toLocaleString('ru-RU') : '';
+            driversData.push([
+                d.id, d.telegramId.toString(), d.username || '', d.firstName || '',
+                d.phone || '', d.ptsNumber || '', d.role, d.status,
+                d.licensePhotoId || '', d.carPhotoId || '', dateStr
+            ]);
+        });
+
+        // 3. CLIENTS SHEET (Aggregated from Orders)
+        const clientsMap = new Map();
+        orders.forEach((o: any) => {
+            if (!o.customerPhone) return;
+            const key = o.customerPhone;
+            if (!clientsMap.has(key)) {
+                clientsMap.set(key, { name: o.customerName, phone: o.customerPhone, ordersCount: 0, totalSpent: 0, lastOrder: o.createdAt });
+            }
+            const client = clientsMap.get(key);
+            client.ordersCount++;
+            if (o.priceEstimate && o.status === 'COMPLETED') {
+                client.totalSpent += o.priceEstimate;
+            }
+            if (new Date(o.createdAt) > new Date(client.lastOrder)) {
+                client.lastOrder = o.createdAt;
+            }
+        });
+
+        const clientsData = [
+            ["Имя", "Телефон", "Кол-во заказов", "Сумма (Выполненные)", "Последний заказ"]
+        ];
+
+        Array.from(clientsMap.values()).forEach((c: any) => {
+            const dateStr = c.lastOrder ? new Date(c.lastOrder).toLocaleString('ru-RU') : '';
+            clientsData.push([
+                c.name, c.phone, c.ordersCount.toString(), c.totalSpent.toString(), dateStr
+            ]);
+        });
+
+        // Create Workook
+        const wb = xlsx.utils.book_new();
+
+        // Add Orders by Month
+        let hasOrders = false;
+        for (const [monthName, data] of ordersByMonth.entries()) {
+            const ws = xlsx.utils.aoa_to_sheet(data);
+            // Safe sheet name length is 31 characters
+            let sheetName = monthName.substring(0, 31);
+            xlsx.utils.book_append_sheet(wb, ws, sheetName);
+            hasOrders = true;
+        }
+
+        // Add fallback if DB is completely empty for orders
+        if (!hasOrders) {
+            const wsOrders = xlsx.utils.aoa_to_sheet([headers]);
+            xlsx.utils.book_append_sheet(wb, wsOrders, "Заказы (пусто)");
+        }
+
+        const wsDrivers = xlsx.utils.aoa_to_sheet(driversData);
+        // Replace / \ ? * : [ ] with empty spaces for valid sheet name
+        xlsx.utils.book_append_sheet(wb, wsDrivers, "Водители и Админы");
+
+        const wsClients = xlsx.utils.aoa_to_sheet(clientsData);
+        xlsx.utils.book_append_sheet(wb, wsClients, "Клиенты");
+
+        const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
         await ctx.replyWithDocument(
-            { source: buffer, filename: `orders_${new Date().toISOString().split('T')[0]}.csv` },
-            { caption: '📄 Выгрузка БД', protect_content: true }
+            { source: buffer, filename: `grand_transfer_db_${new Date().toISOString().split('T')[0]}.xlsx` },
+            { caption: '📄 Полная выгрузка базы данных (Заказы, Водители, Клиенты)', protect_content: true }
         );
     } catch (e) {
-        ctx.reply('❌ Ошибка экспорта.', { protect_content: true });
+        console.error("Export Error:", e);
+        ctx.reply('❌ Ошибка экспорта EXCEL.', { protect_content: true });
     }
 });
 

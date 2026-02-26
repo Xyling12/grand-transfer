@@ -1,136 +1,120 @@
-"use client";
+import { PrismaClient } from "@prisma/client";
+import Link from 'next/link';
 
-import { useState, useEffect } from 'react';
-import { getDrivers, updateDriverStatus, deleteDriver } from './actions';
+const prisma = new PrismaClient();
 
-export default function AdminDriversPage() {
-    const [pin, setPin] = useState('');
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [drivers, setDrivers] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
+export const dynamic = "force-dynamic";
 
-    const ADMIN_PIN = "7878"; // Simple hardcoded PIN for now
+export default async function AdminDriversPage() {
+    const drivers = await prisma.driver.findMany({
+        orderBy: { createdAt: 'desc' }
+    });
 
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (pin === ADMIN_PIN) {
-            setIsAuthenticated(true);
-            loadDrivers();
-        } else {
-            alert('Неверный PIN');
-        }
-    };
-
-    const loadDrivers = async () => {
-        setLoading(true);
-        try {
-            const data = await getDrivers();
-            setDrivers(data);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleStatusChange = async (id: string, newStatus: string) => {
-        if (!confirm(`Изменить статус на ${newStatus}?`)) return;
-        setLoading(true);
-        await updateDriverStatus(id, newStatus);
-        await loadDrivers();
-    };
-
-    const handleDelete = async (id: string) => {
-        if (!confirm('Точно удалить водителя?')) return;
-        setLoading(true);
-        await deleteDriver(id);
-        await loadDrivers();
-    };
-
-    if (!isAuthenticated) {
-        return (
-            <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)' }}>
-                <form onSubmit={handleLogin} style={{ background: '#1c1917', padding: '40px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'center', width: '100%', maxWidth: '400px' }}>
-                    <h1 style={{ color: '#fff', marginBottom: '20px', fontSize: '1.5rem', fontFamily: 'var(--font-heading)' }}>Доступ в панель</h1>
-                    <input
-                        type="password"
-                        placeholder="Введите PIN"
-                        value={pin}
-                        onChange={(e) => setPin(e.target.value)}
-                        style={{ width: '100%', padding: '16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff', marginBottom: '20px', fontSize: '1.2rem', textAlign: 'center' }}
-                        autoFocus
-                    />
-                    <button type="submit" className="btn-primary" style={{ width: '100%' }}>Войти</button>
-                </form>
-            </main>
-        );
-    }
+    const pendingDrivers = drivers.filter(d => d.status === 'PENDING').length;
+    const activeDrivers = drivers.filter(d => d.status === 'APPROVED' && d.role === 'DRIVER').length;
 
     return (
-        <main style={{ minHeight: '100vh', padding: '40px 20px', background: 'var(--color-bg)', color: '#fff' }}>
-            <div className="container" style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                    <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2.5rem', color: 'var(--color-primary)' }}>Управление Водителями</h1>
-                    <button onClick={loadDrivers} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Обновить</button>
+        <div className="min-h-screen bg-neutral-950 text-white font-jost p-6">
+            <div className="max-w-7xl mx-auto space-y-8">
+
+                {/* Header & Navigation */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bodoni text-amber-500">База Водителей</h1>
+                        <p className="text-gray-400 mt-2">Реестр всех зарегистрированных исполнителей</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <Link href="/admin/clients" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
+                            Окно Клиентов
+                        </Link>
+                        <Link href="/" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
+                            На сайт
+                        </Link>
+                    </div>
                 </div>
 
-                {loading && <p style={{ color: 'var(--color-primary)', textAlign: 'center' }}>Загрузка...</p>}
-
-                <div style={{ background: '#1c1917', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                        <thead style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                            <tr>
-                                <th style={{ padding: '20px', fontWeight: 500, color: 'var(--color-text-muted)' }}>ID / Telegram</th>
-                                <th style={{ padding: '20px', fontWeight: 500, color: 'var(--color-text-muted)' }}>Имя / Username</th>
-                                <th style={{ padding: '20px', fontWeight: 500, color: 'var(--color-text-muted)' }}>Статус</th>
-                                <th style={{ padding: '20px', fontWeight: 500, color: 'var(--color-text-muted)', textAlign: 'right' }}>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {drivers.length === 0 && (
-                                <tr>
-                                    <td colSpan={4} style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>Нет водителей в базе</td>
-                                </tr>
-                            )}
-                            {drivers.map(driver => (
-                                <tr key={driver.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }}>
-                                    <td style={{ padding: '20px' }}>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>{driver.id.substring(0, 8)}...</div>
-                                        <div style={{ fontWeight: 600 }}>{driver.telegramId.toString()}</div>
-                                    </td>
-                                    <td style={{ padding: '20px' }}>
-                                        <div style={{ fontWeight: 600 }}>{driver.firstName || '—'}</div>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--color-primary)' }}>{driver.username ? `@${driver.username}` : 'Без username'}</div>
-                                    </td>
-                                    <td style={{ padding: '20px' }}>
-                                        <span style={{
-                                            padding: '6px 12px',
-                                            borderRadius: '20px',
-                                            fontSize: '0.8rem',
-                                            fontWeight: 600,
-                                            background: driver.status === 'APPROVED' ? 'rgba(34, 197, 94, 0.2)' : driver.status === 'BANNED' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(202, 138, 4, 0.2)',
-                                            color: driver.status === 'APPROVED' ? '#4ade80' : driver.status === 'BANNED' ? '#f87171' : '#facc15'
-                                        }}>
-                                            {driver.status}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '20px', textAlign: 'right' }}>
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                            {driver.status !== 'APPROVED' && (
-                                                <button onClick={() => handleStatusChange(driver.id, 'APPROVED')} style={{ padding: '8px 16px', background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px', cursor: 'pointer' }}>Одобрить</button>
-                                            )}
-                                            {driver.status !== 'BANNED' && (
-                                                <button onClick={() => handleStatusChange(driver.id, 'BANNED')} style={{ padding: '8px 16px', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', cursor: 'pointer' }}>Бан</button>
-                                            )}
-                                            <button onClick={() => handleDelete(driver.id)} style={{ padding: '8px', background: 'transparent', color: '#f87171', border: 'none', cursor: 'pointer', opacity: 0.7 }}>Удалить</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                {/* Dashboard Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-neutral-900/50 backdrop-blur-xl border border-neutral-800 rounded-2xl p-6">
+                        <div className="text-gray-400 text-sm mb-1">Всего пользователей (С админами)</div>
+                        <div className="text-3xl font-light text-white">{drivers.length}</div>
+                    </div>
+                    <div className="bg-neutral-900/50 backdrop-blur-xl border border-neutral-800 rounded-2xl p-6">
+                        <div className="text-gray-400 text-sm mb-1">Активных Водителей</div>
+                        <div className="text-3xl font-light text-amber-500">{activeDrivers}</div>
+                    </div>
+                    <div className="bg-neutral-900/50 backdrop-blur-xl border border-neutral-800 rounded-2xl p-6">
+                        <div className="text-gray-400 text-sm mb-1">Ожидают проверки</div>
+                        <div className="text-3xl font-light text-red-400">{pendingDrivers}</div>
+                    </div>
                 </div>
+
+                {/* Drivers List */}
+                <div className="bg-neutral-900/30 border border-neutral-800 rounded-2xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-neutral-800 bg-neutral-900/50 text-gray-400 text-sm">
+                                    <th className="p-4 font-normal">Пользователь</th>
+                                    <th className="p-4 font-normal">Телефон</th>
+                                    <th className="p-4 font-normal">ПТС</th>
+                                    <th className="p-4 font-normal">Роль / Статус</th>
+                                    <th className="p-4 font-normal text-right">Документы (TG)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {drivers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="p-8 text-center text-gray-500">
+                                            Нет данных о водителях
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    drivers.map((d, i) => (
+                                        <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/20 transition-colors">
+                                            <td className="p-4">
+                                                <div className="font-medium text-white">{d.firstName || "Без имени"}</div>
+                                                <div className="text-sm text-gray-500">{d.username ? `@${d.username}` : `ID: ${d.telegramId}`}</div>
+                                            </td>
+                                            <td className="p-4 text-gray-300">{d.phone || '—'}</td>
+                                            <td className="p-4 text-gray-300 font-mono text-sm">{d.ptsNumber || '—'}</td>
+                                            <td className="p-4">
+                                                <div className="flex flex-col gap-1 items-start">
+                                                    <span className={`text-xs px-2 py-1 rounded-md ${d.role === 'ADMIN' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : d.role === 'DISPATCHER' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-neutral-800 text-gray-300 border border-neutral-700'}`}>
+                                                        {d.role}
+                                                    </span>
+                                                    <span className={`text-xs px-2 py-1 rounded-md ${d.status === 'APPROVED' ? 'text-green-400' : d.status === 'PENDING' ? 'text-yellow-400' : 'text-red-400'}`}>
+                                                        {d.status}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    {d.licensePhotoId ? (
+                                                        <a href={`https://t.me/`} title={`Права (File ID: ${d.licensePhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-not-allowed">
+                                                            🪪
+                                                        </a>
+                                                    ) : <span className="p-2 text-neutral-700">🪪</span>}
+
+                                                    {d.carPhotoId ? (
+                                                        <a href={`https://t.me/`} title={`Авто (File ID: ${d.carPhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-not-allowed">
+                                                            🚙
+                                                        </a>
+                                                    ) : <span className="p-2 text-neutral-700">🚙</span>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="p-4 text-xs text-gray-500 bg-neutral-900/50 border-t border-neutral-800">
+                        Файлы сохранены в базе данных в виде Telegram File ID. Обратитесь к боту (или к будущему Telegram Web App) за их отображением.
+                    </div>
+                </div>
+
             </div>
-        </main>
+        </div>
     );
 }

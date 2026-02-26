@@ -1,0 +1,1 @@
+const { spawn } = require('child_process'); const p = spawn('ssh', ['-o', 'StrictHostKeyChecking=no', 'root@155.212.216.227', 'top -b -n 1 -o %CPU | head -n 30']); p.stdout.on('data', d => process.stdout.write(d)); p.stderr.on('data', d => process.stderr.write(d)); p.stdin.write('nQ%RJGoHF7kZ\n');
