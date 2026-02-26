@@ -248,6 +248,20 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
                 >
                     Новые {pendingUsers.length > 0 && <span style={{ background: activeTab === 'pending' ? 'rgba(0,0,0,0.2)' : 'rgba(239,68,68,0.2)', color: activeTab === 'pending' ? '#000' : '#ef4444', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem' }}>{pendingUsers.length}</span>}
                 </button>
+                <Link
+                    href="/admin/orders"
+                    style={{
+                        padding: '10px 20px', borderRadius: 'var(--radius-full)', border: '1px solid rgba(245, 158, 11, 0.3)', outline: 'none', cursor: 'pointer',
+                        background: 'rgba(245, 158, 11, 0.05)',
+                        color: '#f59e0b',
+                        fontWeight: '500', textDecoration: 'none',
+                        transition: 'all 0.2s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.05)'}
+                >
+                    📋 Доска Заказов
+                </Link>
                 <button
                     onClick={() => setActiveTab('drivers')}
                     style={{

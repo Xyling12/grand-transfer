@@ -29,34 +29,40 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                     if (doc.id) {
                         const isText = doc.type === 'ptsNumber' && !doc.id.startsWith('AgAC') && doc.id.length < 50;
                         return (
-                            <a key={idx} href={isText ? undefined : `/api/tg-file/${doc.id}`} target="_blank" rel="noopener noreferrer"
-                                title={`${doc.title} (${doc.id})`}
-                                style={{
-                                    width: '40px', height: '40px', borderRadius: '0.5rem', background: 'rgba(0,0,0,0.4)',
-                                    border: '1px solid rgba(245, 158, 11, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: '1.25rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 0 10px rgba(202,138,4,0.1)',
-                                    cursor: isText ? 'help' : 'pointer'
-                                }}
-                                onClick={(e) => {
-                                    if (isText) {
-                                        e.preventDefault();
-                                        alert(`Номер ПТС: ${doc.id}`);
-                                    }
-                                }}
-                                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.4)'; e.currentTarget.style.transform = 'none'; }}
-                            >
-                                {doc.icon}
-                            </a>
+                            <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                <a href={isText ? undefined : `/api/tg-file/${doc.id}`} target="_blank" rel="noopener noreferrer"
+                                    title={`${doc.title} (${doc.id})`}
+                                    style={{
+                                        width: '40px', height: '40px', borderRadius: '0.5rem', background: 'rgba(0,0,0,0.4)',
+                                        border: '1px solid rgba(245, 158, 11, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: '1.25rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 0 10px rgba(202,138,4,0.1)',
+                                        cursor: isText ? 'help' : 'pointer'
+                                    }}
+                                    onClick={(e) => {
+                                        if (isText) {
+                                            e.preventDefault();
+                                            alert(`Номер ПТС: ${doc.id}`);
+                                        }
+                                    }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.4)'; e.currentTarget.style.transform = 'none'; }}
+                                >
+                                    {doc.icon}
+                                </a>
+                                <span style={{ fontSize: '10px', color: '#f59e0b', opacity: 0.8, textTransform: 'uppercase' }}>{doc.title}</span>
+                            </div>
                         );
                     }
                     return (
-                        <div key={idx} title={`Нет ${doc.title}`} style={{
-                            width: '40px', height: '40px', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)',
-                            border: '1px dashed rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            opacity: 0.3, filter: 'grayscale(100%)'
-                        }}>
-                            {doc.icon}
+                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                            <div title={`Нет ${doc.title}`} style={{
+                                width: '40px', height: '40px', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)',
+                                border: '1px dashed rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                opacity: 0.3, filter: 'grayscale(100%)'
+                            }}>
+                                {doc.icon}
+                            </div>
+                            <span style={{ fontSize: '10px', color: '#9ca3af', opacity: 0.5, textTransform: 'uppercase' }}>{doc.title}</span>
                         </div>
                     );
                 })}
@@ -92,7 +98,7 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {sortedOrders.map((o: any) => {
                         const isActive = activeStatuses.includes(o.status);
-                        const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
+                        const orderLink = `/admin/orders`;
 
                         return (
                             <div key={o.id} style={{
@@ -108,15 +114,15 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                                     </div>
                                     <span style={{
                                         fontSize: '0.75rem', padding: '0.25rem 0.5rem', borderRadius: '9999px',
-                                        background: o.status === 'COMPLETED' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(107, 114, 128, 0.2)',
-                                        color: o.status === 'COMPLETED' ? '#4ade80' : '#9ca3af'
+                                        background: o.status === 'COMPLETED' ? 'rgba(34, 197, 94, 0.2)' : o.status === 'NEW' ? 'rgba(56, 189, 248, 0.2)' : o.status === 'CANCELLED' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                                        color: o.status === 'COMPLETED' ? '#4ade80' : o.status === 'NEW' ? '#38bdf8' : o.status === 'CANCELLED' ? '#ef4444' : '#f59e0b'
                                     }}>
-                                        {o.status}
+                                        {o.status === 'COMPLETED' ? 'ВЫПОЛНЕН' : o.status === 'CANCELLED' ? 'ОТМЕНЕН' : o.status === 'NEW' ? 'НОВЫЙ' : 'В ПРОЦЕССЕ'}
                                     </span>
                                 </div>
 
                                 <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-                                    {new Date(o.createdAt).toLocaleDateString('ru-RU')} • <a href={mapLink} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa', textDecoration: 'underline', textUnderlineOffset: '2px' }} onMouseEnter={e => e.currentTarget.style.color = '#93c5fd'} onMouseLeave={e => e.currentTarget.style.color = '#60a5fa'}>{o.fromCity} &rarr; {o.toCity}</a>
+                                    {new Date(o.createdAt).toLocaleDateString('ru-RU')} • <a href={orderLink} style={{ color: '#60a5fa', textDecoration: 'underline', textUnderlineOffset: '2px' }} onMouseEnter={e => e.currentTarget.style.color = '#93c5fd'} onMouseLeave={e => e.currentTarget.style.color = '#60a5fa'}>{o.fromCity} &rarr; {o.toCity}</a>
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '0.75rem', fontSize: '0.875rem' }}>
@@ -144,11 +150,7 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                                         </div>
                                     )}
 
-                                    {(type === 'driver' || type === 'dispatcher') && (
-                                        <a href={`/admin/orders`} style={{ color: 'rgba(245, 158, 11, 0.8)', fontSize: '0.75rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(245, 158, 11, 1)'} onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(245, 158, 11, 0.8)'}>
-                                            В доску заказов &rarr;
-                                        </a>
-                                    )}
+
                                 </div>
                             </div>
                         );
@@ -203,6 +205,15 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                                     }}>
                                         {data.status}
                                     </span>
+                                )}
+                            </div>
+
+                            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                                {data.telegramId && (
+                                    <a href={data.username ? `https://t.me/${data.username}` : `tg://user?id=${data.telegramId}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#38bdf8', textDecoration: 'none', transition: 'background-color 0.2s', border: '1px solid rgba(56, 189, 248, 0.2)' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.2)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.1)'}>
+                                        <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.07.01.22 0 .38z" /></svg>
+                                        Написать в Telegram
+                                    </a>
                                 )}
                             </div>
                         </div>
