@@ -68,7 +68,7 @@ export default function AboutPage() {
                         <p><strong>Регион деятельности:</strong> Вся территория РФ и страны СНГ</p>
                         <hr style={{ margin: '15px 0', borderColor: 'var(--glass-border)' }} />
                         <p><strong>Телефон:</strong> <a href="tel:+79991234567">+7 (999) 123-45-67</a></p>
-                        <p><strong>Email:</strong> <a href="mailto:info@grand-transfer.com">info@grand-transfer.com</a></p>
+                        <p><strong>Email:</strong> <a href="mailto:romanbatkovic1@gmail.com">romanbatkovic1@gmail.com</a></p>
                         <p><strong>Режим работы:</strong> Круглосуточно, 24/7</p>
                     </div>
                 </section>
