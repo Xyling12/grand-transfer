@@ -1048,13 +1048,13 @@ bot.hears('💬 Чат', async (ctx) => {
 bot.hears('💻 CRM Система', async (ctx) => {
     const { auth, role } = await checkAuth(ctx);
     if (!auth || role !== 'ADMIN') return;
-    ctx.reply('Панель управления доступна по ссылке: https://xn--c1acbe2apap.com/admin/drivers\n\n📌 *Скоро здесь появится кнопка "Войти через Telegram" вместо пароля.', { protect_content: true });
+    ctx.reply('Панель управления доступна по ссылке: https://xn--c1acbe2apap.com/admin/drivers', { protect_content: true });
 });
 
 bot.hears('🌐 Панель на сайте', async (ctx) => {
     const { auth, role } = await checkAuth(ctx);
     if (!auth || role !== 'ADMIN') return;
-    ctx.reply('Панель управления доступна по ссылке: https://xn--c1acbe2apap.com/admin/drivers\n\n📌 *Скоро здесь появится кнопка "Войти через Telegram" вместо пароля.', { protect_content: true });
+    ctx.reply('Панель управления доступна по ссылке: https://xn--c1acbe2apap.com/admin/drivers', { protect_content: true });
 });
 
 bot.hears('🗑 Очистить БД', async (ctx) => {
