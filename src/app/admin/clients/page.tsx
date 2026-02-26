@@ -69,7 +69,7 @@ export default async function AdminClientsPage() {
                         <Link href="/admin/drivers" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
                             Водители
                         </Link>
-                        <Link href="/" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
+                        <Link href="/admin/drivers" style={{ padding: '0.5rem 1rem', background: '#171717', border: '1px solid #262626', borderRadius: '0.5rem', color: '#fff', textDecoration: 'none', transition: 'background 0.2s' }}>
                             На главную
                         </Link>
                     </div>

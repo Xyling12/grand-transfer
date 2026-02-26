@@ -219,15 +219,7 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
                         Единый реестр пользователей
                     </p>
                 </div>
-                <div>
-                    <Link href="/" style={{
-                        padding: '10px 16px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)',
-                        borderRadius: 'var(--radius-md)', color: 'var(--color-foreground)', textDecoration: 'none',
-                        fontSize: '0.9rem', transition: 'background 0.2s'
-                    }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={(e) => e.currentTarget.style.background = 'var(--glass-bg)'}>
-                        На главную &rarr;
-                    </Link>
-                </div>
+
             </div>
 
             {/* Custom Tab Bar */}
