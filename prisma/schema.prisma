@@ -32,7 +32,9 @@ model Driver {
   phone          String?
   ptsNumber      String?
   licensePhotoId String?
+  stsPhotoId     String?
   carPhotoId     String?
+  fullFio        String?
   status         String    @default("PENDING") // PENDING, APPROVED, BANNED
   role           String    @default("DRIVER") // USER, DRIVER, DISPATCHER, ADMIN
   // Future subscription

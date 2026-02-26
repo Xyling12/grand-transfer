@@ -55,11 +55,10 @@ export default async function AdminDriversPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-neutral-800 bg-neutral-900/50 text-gray-400 text-sm">
-                                    <th className="p-4 font-normal">Пользователь</th>
+                                    <th className="p-4 font-normal">Пользователь (ФИО)</th>
                                     <th className="p-4 font-normal">Телефон</th>
-                                    <th className="p-4 font-normal">ПТС</th>
                                     <th className="p-4 font-normal">Роль / Статус</th>
-                                    <th className="p-4 font-normal text-right">Документы (TG)</th>
+                                    <th className="p-4 font-normal text-right">Файлы (ПТС, СТС, Права, Авто)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -73,11 +72,10 @@ export default async function AdminDriversPage() {
                                     drivers.map((d, i) => (
                                         <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/20 transition-colors">
                                             <td className="p-4">
-                                                <div className="font-medium text-white">{d.firstName || "Без имени"}</div>
+                                                <div className="font-medium text-white">{d.fullFio || d.firstName || "Без имени"}</div>
                                                 <div className="text-sm text-gray-500">{d.username ? `@${d.username}` : `ID: ${d.telegramId}`}</div>
                                             </td>
                                             <td className="p-4 text-gray-300">{d.phone || '—'}</td>
-                                            <td className="p-4 text-gray-300 font-mono text-sm">{d.ptsNumber || '—'}</td>
                                             <td className="p-4">
                                                 <div className="flex flex-col gap-1 items-start">
                                                     <span className={`text-xs px-2 py-1 rounded-md ${d.role === 'ADMIN' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : d.role === 'DISPATCHER' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-neutral-800 text-gray-300 border border-neutral-700'}`}>
@@ -90,14 +88,26 @@ export default async function AdminDriversPage() {
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    {d.licensePhotoId ? (
-                                                        <a href={`https://t.me/`} title={`Права (File ID: ${d.licensePhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-not-allowed">
+                                                    {d.ptsNumber ? (
+                                                        <a href="#" onClick={(e) => e.preventDefault()} title={`ПТС (File ID: ${d.ptsNumber})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-help">
+                                                            📄
+                                                        </a>
+                                                    ) : <span className="p-2 text-neutral-700">📄</span>}
+
+                                                    {d.stsPhotoId ? (
+                                                        <a href="#" onClick={(e) => e.preventDefault()} title={`СТС (File ID: ${d.stsPhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-help">
                                                             🪪
                                                         </a>
                                                     ) : <span className="p-2 text-neutral-700">🪪</span>}
 
+                                                    {d.licensePhotoId ? (
+                                                        <a href="#" onClick={(e) => e.preventDefault()} title={`Водительские права (File ID: ${d.licensePhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-help">
+                                                            🎫
+                                                        </a>
+                                                    ) : <span className="p-2 text-neutral-700">🎫</span>}
+
                                                     {d.carPhotoId ? (
-                                                        <a href={`https://t.me/`} title={`Авто (File ID: ${d.carPhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-not-allowed">
+                                                        <a href="#" onClick={(e) => e.preventDefault()} title={`Авто с ГРЗ (File ID: ${d.carPhotoId})`} className="p-2 bg-neutral-800 rounded-lg outline-none hover:bg-neutral-700 text-gray-400 hover:text-white transition-colors cursor-help">
                                                             🚙
                                                         </a>
                                                     ) : <span className="p-2 text-neutral-700">🚙</span>}

@@ -125,10 +125,11 @@ bot.start(async (ctx) => {
 });
 
 interface RegState {
-    step: 'PHONE' | 'PTS' | 'LICENSE' | 'CAR';
+    step: 'FIO' | 'PHONE' | 'PTS' | 'STS' | 'CAR';
+    fullFio?: string;
     phone?: string;
     ptsNumber?: string;
-    licensePhotoId?: string;
+    stsPhotoId?: string;
     carPhotoId?: string;
     messageIdsToDelete: number[];
 }
@@ -147,19 +148,13 @@ bot.action('register_driver', async (ctx) => {
         }
 
         // Start registration state
-        pendingRegistrations.set(tgIdStr, { step: 'PHONE', messageIdsToDelete: [] });
+        pendingRegistrations.set(tgIdStr, { step: 'FIO', messageIdsToDelete: [] });
 
         await ctx.answerCbQuery();
 
-        const msg = await ctx.reply('📱 <b>Шаг 1 из 4:Номер телефона</b>\n\nПожалуйста, нажмите кнопку ниже, чтобы поделиться вашим контактным номером телефона.', {
+        const msg = await ctx.reply('👤 <b>Шаг 1 из 5: Ваше ФИО</b>\n\nПожалуйста, напишите ваши Фамилию, Имя и Отчество полностью (например: Иванов Иван Иванович).', {
             parse_mode: 'HTML',
-            reply_markup: {
-                keyboard: [
-                    [{ text: '☎️ Поделиться контактом', request_contact: true }]
-                ],
-                resize_keyboard: true,
-                one_time_keyboard: true
-            }
+            reply_markup: { remove_keyboard: true }
         });
 
         const state = pendingRegistrations.get(tgIdStr);
@@ -181,7 +176,40 @@ bot.on('message', async (ctx, next) => {
     }
 
     try {
-        // Step 1: Phone
+        // Step 1: FIO
+        if (state.step === 'FIO') {
+            const text = (ctx.message as any).text;
+            if (!text || text.length < 5) {
+                const m = await ctx.reply('⚠️ Пожалуйста, введите корректное ФИО текстом (например: Иванов Иван Иванович).');
+                state.messageIdsToDelete.push(ctx.message.message_id, m.message_id);
+                return;
+            }
+
+            state.fullFio = text;
+            state.step = 'PHONE';
+
+            const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
+            state.messageIdsToDelete = []; // reset for next steps
+
+            const m2 = await ctx.reply('📱 <b>Шаг 2 из 5: Номер телефона</b>\n\nПожалуйста, нажмите кнопку ниже, чтобы поделиться вашим контактным номером телефона.', {
+                parse_mode: 'HTML',
+                reply_markup: {
+                    keyboard: [
+                        [{ text: '☎️ Поделиться контактом', request_contact: true }]
+                    ],
+                    resize_keyboard: true,
+                    one_time_keyboard: true
+                }
+            });
+            state.messageIdsToDelete.push(m2.message_id);
+
+            for (const mid of cleanupMsgs) {
+                ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
+            }
+            return;
+        }
+
+        // Step 2: Phone
         if (state.step === 'PHONE') {
             const contact = (ctx.message as any).contact;
             const text = (ctx.message as any).text;
@@ -203,7 +231,7 @@ bot.on('message', async (ctx, next) => {
             const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
             state.messageIdsToDelete = []; // reset for next steps
 
-            const m2 = await ctx.reply('📄 <b>Шаг 2 из 4: ПТС</b>\n\nНапишите номер ПТС вашего автомобиля (или Серию и Номер СТС).\n<i>Пример: 99 АА 123456</i>', {
+            const m2 = await ctx.reply('📄 <b>Шаг 3 из 5: Фото ПТС</b>\n\nПришлите ФОТО Паспорта Транспортного Средства (ПТС).', {
                 parse_mode: 'HTML',
                 reply_markup: { remove_keyboard: true } // Remove contact button
             });
@@ -216,32 +244,8 @@ bot.on('message', async (ctx, next) => {
             return;
         }
 
-        // Step 2: PTS
+        // Step 3: PTS
         if (state.step === 'PTS') {
-            const text = (ctx.message as any).text;
-            if (!text || text.length < 5) {
-                const m = await ctx.reply('⚠️ Пожалуйста, введите корректный номер ПТС текстом (например: 99 АА 123456).');
-                state.messageIdsToDelete.push(ctx.message.message_id, m.message_id);
-                return;
-            }
-
-            state.ptsNumber = text;
-            state.step = 'LICENSE';
-
-            const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
-            state.messageIdsToDelete = [];
-
-            const m2 = await ctx.reply('🪪 <b>Шаг 3 из 4: Водительское удостоверение</b>\n\nПожалуйста, отправьте ФОТО ваших прав (лицевую сторону).', { parse_mode: 'HTML' });
-            state.messageIdsToDelete.push(m2.message_id);
-
-            for (const mid of cleanupMsgs) {
-                ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
-            }
-            return;
-        }
-
-        // Step 3: LICENSE
-        if (state.step === 'LICENSE') {
             const photoList = (ctx.message as any).photo;
             if (!photoList || photoList.length === 0) {
                 const m = await ctx.reply('⚠️ Пожалуйста, отправьте именно ФОТО, а не текст или файл.');
@@ -250,13 +254,13 @@ bot.on('message', async (ctx, next) => {
             }
 
             const largestPhoto = photoList[photoList.length - 1];
-            state.licensePhotoId = largestPhoto.file_id;
-            state.step = 'CAR';
+            state.ptsNumber = largestPhoto.file_id; // Storing PTS Photo ID here
+            state.step = 'STS';
 
             const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
             state.messageIdsToDelete = [];
 
-            const m2 = await ctx.reply('🚙 <b>Шаг 4 из 4: Фото автомобиля</b>\n\nПожалуйста, отправьте ФОТО вашей машины сбоку так, чтобы был отчетливо виден государственный номер.', { parse_mode: 'HTML' });
+            const m2 = await ctx.reply('🪪 <b>Шаг 4 из 5: Фото СТС</b>\n\nПожалуйста, отправьте ФОТО Свидетельства о регистрации ТС (лицевую сторону с Гос. знаком).', { parse_mode: 'HTML' });
             state.messageIdsToDelete.push(m2.message_id);
 
             for (const mid of cleanupMsgs) {
@@ -265,7 +269,32 @@ bot.on('message', async (ctx, next) => {
             return;
         }
 
-        // Step 4: CAR
+        // Step 4: STS
+        if (state.step === 'STS') {
+            const photoList = (ctx.message as any).photo;
+            if (!photoList || photoList.length === 0) {
+                const m = await ctx.reply('⚠️ Пожалуйста, отправьте именно ФОТО, а не текст или файл.');
+                state.messageIdsToDelete.push(ctx.message.message_id, m.message_id);
+                return;
+            }
+
+            const largestPhoto = photoList[photoList.length - 1];
+            state.stsPhotoId = largestPhoto.file_id;
+            state.step = 'CAR';
+
+            const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
+            state.messageIdsToDelete = [];
+
+            const m2 = await ctx.reply('🚙 <b>Шаг 5 из 5: Фото автомобиля</b>\n\nПожалуйста, отправьте ФОТО вашей машины сбоку так, чтобы был отчетливо виден государственный номер.', { parse_mode: 'HTML' });
+            state.messageIdsToDelete.push(m2.message_id);
+
+            for (const mid of cleanupMsgs) {
+                ctx.telegram.deleteMessage(ctx.chat.id, mid).catch(() => { });
+            }
+            return;
+        }
+
+        // Step 5: CAR
         if (state.step === 'CAR') {
             const photoList = (ctx.message as any).photo;
             if (!photoList || photoList.length === 0) {
@@ -291,9 +320,10 @@ bot.on('message', async (ctx, next) => {
                     telegramId: telegramIdBigInt,
                     username: ctx.from.username,
                     firstName: ctx.from.first_name,
+                    fullFio: state.fullFio,
                     phone: state.phone,
-                    ptsNumber: state.ptsNumber,
-                    licensePhotoId: state.licensePhotoId,
+                    ptsNumber: state.ptsNumber, // This is actually PTS Photo ID now
+                    stsPhotoId: state.stsPhotoId,
                     carPhotoId: state.carPhotoId,
                     status: 'PENDING',
                     role: 'DRIVER'
@@ -308,7 +338,7 @@ bot.on('message', async (ctx, next) => {
             try {
                 const admins = await prisma.driver.findMany({ where: { role: 'ADMIN', status: 'APPROVED' } });
                 const userStr = ctx.from.username ? `@${ctx.from.username}` : (ctx.from.first_name || `ID: ${ctx.from.id}`);
-                const adminMsg = `🚨 <b>Новая заявка на регистрацию!</b>\n\n👤 Имя: ${userStr}\n📱 Тел: ${state.phone}\n📄 ПТС: ${state.ptsNumber}\n\nЗайдите в раздел 👥 <b>Пользователи</b>, чтобы одобрить заявку, или в Админ-панель на сайте для просмотра фото.`;
+                const adminMsg = `🚨 <b>Новая заявка на регистрацию!</b>\n\n👤 ФИО: ${state.fullFio}\nTG: ${userStr}\n📱 Тел: ${state.phone}\n\nЗайдите в раздел 👥 <b>Пользователи</b> на сайте, чтобы просмотреть фотографии ПТС, СТС и автомобиля, после чего одобрите или отклоните заявку.`;
 
                 for (const ad of admins) {
                     await bot.telegram.sendMessage(
