@@ -1,87 +1,35 @@
-"use client";
+import { PrismaClient } from "@prisma/client";
+import Link from 'next/link';
 
-import { useState, useEffect } from 'react';
+const prisma = new PrismaClient();
 
-export default function AdminOrdersPage() {
-    const [ordersByMonth, setOrdersByMonth] = useState<{ [key: string]: any[] }>({});
-    const [months, setMonths] = useState<string[]>([]);
-    const [selectedMonth, setSelectedMonth] = useState<string>('');
-    const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [pin, setPin] = useState('');
+export const dynamic = "force-dynamic";
 
-    const ADMIN_PIN = "7878";
+export default async function AdminOrdersPage({
+    searchParams
+}: {
+    searchParams: { month?: string }
+}) {
+    // 1. Load All Orders Server-Side
+    const orders = await prisma.order.findMany({
+        orderBy: { createdAt: 'desc' }
+    });
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            loadOrders();
-        }
-    }, [isAuthenticated]);
+    // 2. Group by month Server-Side
+    const grouped: { [key: string]: any[] } = {};
+    orders.forEach((o: any) => {
+        const dateObj = new Date(o.createdAt);
+        let monthName = dateObj.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+        monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1).replace(' г.', '').trim();
+        if (!grouped[monthName]) grouped[monthName] = [];
+        grouped[monthName].push(o);
+    });
 
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (pin === ADMIN_PIN) {
-            setIsAuthenticated(true);
-        } else {
-            alert('Неверный PIN');
-        }
-    };
+    const months = Object.keys(grouped);
 
-    const loadOrders = async () => {
-        setLoading(true);
-        try {
-            // As we don't have a direct API for orders yet in this file, we will make a fetch request.
-            // Assumption: we need an API route for this. I will build it next.
-            const res = await fetch('/api/admin/orders');
-            if (res.ok) {
-                const data = await res.json();
-
-                // Group by month
-                const grouped: { [key: string]: any[] } = {};
-                data.forEach((o: any) => {
-                    const dateObj = new Date(o.createdAt);
-                    let monthName = dateObj.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
-                    monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1).replace(' г.', '').trim();
-                    if (!grouped[monthName]) grouped[monthName] = [];
-                    grouped[monthName].push(o);
-                });
-
-                setOrdersByMonth(grouped);
-                const monthKeys = Object.keys(grouped);
-                setMonths(monthKeys);
-                if (monthKeys.length > 0) {
-                    setSelectedMonth(monthKeys[0]);
-                }
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (!isAuthenticated) {
-        return (
-            <main className="min-h-screen flex items-center justify-center bg-neutral-950 font-jost p-4">
-                <form onSubmit={handleLogin} className="bg-neutral-900 p-10 rounded-2xl border border-neutral-800 text-center w-full max-w-sm">
-                    <h1 className="text-white mb-6 text-2xl font-bodoni">Доступ к базе</h1>
-                    <input
-                        type="password"
-                        placeholder="Введите PIN..."
-                        value={pin}
-                        onChange={(e) => setPin(e.target.value)}
-                        className="w-full p-4 bg-white/5 border border-white/20 rounded-xl outline-none text-white text-center text-lg mb-6 focus:border-amber-500 transition-colors"
-                        autoFocus
-                    />
-                    <button type="submit" className="w-full py-4 bg-amber-500 text-neutral-950 font-medium rounded-xl hover:bg-amber-400 transition-colors">
-                        Войти
-                    </button>
-                </form>
-            </main>
-        );
-    }
-
-    const currentOrders = ordersByMonth[selectedMonth] || [];
+    // Determine active tab
+    const selectedMonth = searchParams.month || (months.length > 0 ? months[0] : '');
+    const currentOrders = grouped[selectedMonth] || [];
 
     return (
         <main className="min-h-screen bg-neutral-950 text-white font-jost p-6">
@@ -93,39 +41,38 @@ export default function AdminOrdersPage() {
                         <p className="text-gray-400 mt-2">База всех заявок на трансфер</p>
                     </div>
                     <div className="flex gap-2">
-                        <a href="/admin/clients" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
+                        <Link href="/admin/clients" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
                             Клиенты
-                        </a>
-                        <a href="/admin/drivers" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
+                        </Link>
+                        <Link href="/admin/drivers" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
                             Водители
-                        </a>
-                        <button onClick={loadOrders} className="px-4 py-2 bg-amber-500 text-neutral-950 font-medium rounded-lg hover:bg-amber-400 transition-colors">
-                            Обновить
-                        </button>
+                        </Link>
+                        <Link href="/" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
+                            На сайт
+                        </Link>
                     </div>
                 </div>
 
-                {/* Tabs for Months */}
+                {/* Tabs for Months (Server-side rendering via links) */}
                 {months.length > 0 && (
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         {months.map(m => (
-                            <button
+                            <Link
                                 key={m}
-                                onClick={() => setSelectedMonth(m)}
-                                className={`whitespace-nowrap px-6 py-3 rounded-xl border transition-all ${selectedMonth === m
-                                        ? 'bg-amber-500 text-neutral-950 font-medium border-amber-500'
-                                        : 'bg-neutral-900 border-neutral-800 text-gray-400 hover:text-white'
+                                href={`?month=${encodeURIComponent(m)}`}
+                                className={`whitespace-nowrap px-6 py-3 rounded-xl transition-all ${selectedMonth === m
+                                        ? 'bg-amber-500 text-neutral-950 font-medium'
+                                        : 'bg-neutral-900 border border-neutral-800 text-gray-400 hover:text-white'
                                     }`}
                             >
-                                {m} ({ordersByMonth[m]?.length || 0})
-                            </button>
+                                {m} ({grouped[m]?.length || 0})
+                            </Link>
                         ))}
                     </div>
                 )}
 
-                {loading && <p className="text-amber-500 text-center py-10">Загрузка данных...</p>}
-
-                {!loading && currentOrders.length > 0 && (
+                {/* Data Table */}
+                {currentOrders.length > 0 ? (
                     <div className="bg-neutral-900/30 border border-neutral-800 rounded-2xl overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
@@ -169,11 +116,9 @@ export default function AdminOrdersPage() {
                             </table>
                         </div>
                     </div>
-                )}
-
-                {!loading && currentOrders.length === 0 && (
+                ) : (
                     <div className="text-center py-20 text-gray-500">
-                        В этом периоде нет заказов
+                        {months.length > 0 ? "В этом периоде нет заказов" : "В базе нет ни одного заказа"}
                     </div>
                 )}
             </div>
