@@ -938,26 +938,7 @@ bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) 
             return ctx.reply('У вас пока нет активных взятых или курируемых заявок.', { protect_content: true });
         }
 
-        let msg = '🚗 <b>Ваши активные заявки:</b>\n\n';
-        myOrders.forEach((o: any) => {
-            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
-
-            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
-
-            msg += `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
-                `⏳ <b>Статус:</b> ${translateStatus(o.status, role)}\n` +
-                `📍 <b>Откуда:</b> ${o.fromCity}\n` +
-                `🏁 <b>Куда:</b> ${o.toCity}\n` +
-                `🚕 <b>Тариф:</b> ${translateTariff(o.tariff)}\n` +
-                `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
-                `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
-                `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
-                `🗺 <a href="${mapLink}">📍 Открыть маршрут в Яндекс Картах</a>\n\n` +
-                `👤 <b>Клиент:</b> ${o.customerName}\n` +
-                `📞 <b>Телефон:</b> ${o.customerPhone}\n` +
-                `━━━━━━━━━━━━━━━━━━\n\n`;
-        });
-
+        await ctx.reply('🚗 <b>Ваши активные заявки:</b>', { parse_mode: 'HTML' });
 
         let protectContentGlobal = true;
         try {
@@ -969,7 +950,33 @@ bot.hears(['🚗 Мои заказы', '🚗 Мои заявки'], async (ctx) 
             console.warn("Could not query BotSettings", e);
         }
 
-        ctx.replyWithHTML(msg, { protect_content: role === 'ADMIN' ? false : protectContentGlobal });
+        for (const o of myOrders) {
+            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
+            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
+
+            const msg = `📋 <b>Заявка № ${o.id}</b> (создана ${dateStr})\n` +
+                `⏳ <b>Статус:</b> ${translateStatus(o.status, role)}\n` +
+                `📍 <b>Откуда:</b> ${o.fromCity}\n` +
+                `🏁 <b>Куда:</b> ${o.toCity}\n` +
+                `🚕 <b>Тариф:</b> ${translateTariff(o.tariff)}\n` +
+                `👥 <b>Пассажиров:</b> ${o.passengers}\n` +
+                `💰 <b>Стоимость:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n\n` +
+                `📝 <b>Комментарий:</b> ${o.comments || 'Нет'}\n` +
+                `🗺 <a href="${mapLink}">📍 Открыть маршрут в Яндекс Картах</a>\n\n` +
+                `👤 <b>Клиент:</b> ${o.customerName}\n` +
+                `📞 <b>Телефон:</b> ${o.customerPhone}`;
+
+            const buttons = [];
+            // Driver can complete order if they are taking it
+            if (o.status === 'TAKEN' && o.driverId === dbId) {
+                buttons.push([{ text: '✅ Заявка выполнена', callback_data: `complete_order_${o.id}` }]);
+            }
+
+            await ctx.replyWithHTML(msg, {
+                protect_content: role === 'ADMIN' ? false : protectContentGlobal,
+                reply_markup: buttons.length ? { inline_keyboard: buttons } : undefined
+            });
+        }
     } catch (err) {
         ctx.reply('❌ Ошибка при получении ваших заказов.', { protect_content: true });
     }

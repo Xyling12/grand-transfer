@@ -3,11 +3,16 @@
 import React, { useState } from 'react';
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import UserDetailModal from '@/components/admin/UserDetailModal';
+import OrderDetailModal from '@/components/admin/OrderDetailModal';
 
 type FilterType = 'all' | 'processing' | 'completed';
 
 export default function OrdersTableClient({ initialOrders }: { initialOrders: any[] }) {
     const [filter, setFilter] = useState<FilterType>('all');
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [userModalType, setUserModalType] = useState<'driver' | 'dispatcher' | 'client'>('driver');
+    const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
     const translateStatus = (status: string) => {
         switch (status) {
@@ -91,7 +96,7 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
                                 <th style={{ padding: '1rem', fontWeight: 400 }}>Маршрут / Пассажиры</th>
                                 <th style={{ padding: '1rem', fontWeight: 400 }}>Клиент</th>
                                 <th style={{ padding: '1rem', fontWeight: 400 }}>Исполнители</th>
-                                <th style={{ padding: '1rem', fontWeight: 400, textAlign: 'right', whiteSpace: 'nowrap' }}>Статус / Цена</th>
+                                <th style={{ padding: '1rem', fontWeight: 400, textAlign: 'right', whiteSpace: 'nowrap' }}>Статус / Действия</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -103,7 +108,7 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
                                 </tr>
                             ) : (
                                 filteredOrders.map((o) => (
-                                    <tr key={o.id} style={{ borderBottom: '1px solid rgba(38,38,38,0.5)', transition: 'background-color 0.2s' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(38,38,38,0.2)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                    <tr key={o.id} style={{ borderBottom: '1px solid rgba(38,38,38,0.5)', transition: 'background-color 0.2s', cursor: 'pointer' }} onClick={() => setSelectedOrder(o)} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(38,38,38,0.2)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
                                         <td style={{ padding: '1rem' }}>
                                             <div style={{ fontWeight: 500, color: '#fff' }}>#{o.id}</div>
                                             <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
@@ -125,12 +130,24 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
                                         <td style={{ padding: '1rem' }}>
                                             {o.dispatcher && (
                                                 <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                                                    Дисп: <span style={{ color: '#d8b4fe' }}>{o.dispatcher.fullFio || o.dispatcher.firstName}</span>
+                                                    Дисп:{' '}
+                                                    <span
+                                                        onClick={(e) => { e.stopPropagation(); setSelectedUser(o.dispatcher); setUserModalType('dispatcher'); }}
+                                                        style={{ color: '#d8b4fe', textDecoration: 'underline', textDecorationStyle: 'dotted', cursor: 'pointer' }}
+                                                    >
+                                                        {o.dispatcher.fullFio || o.dispatcher.firstName}
+                                                    </span>
                                                 </div>
                                             )}
                                             {o.driver && (o.status === 'TAKEN' || o.status === 'COMPLETED') ? (
                                                 <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
-                                                    Вод: <span style={{ color: '#a5b4fc' }}>{o.driver?.fullFio || o.driver?.firstName}</span>
+                                                    Вод:{' '}
+                                                    <span
+                                                        onClick={(e) => { e.stopPropagation(); setSelectedUser(o.driver); setUserModalType('driver'); }}
+                                                        style={{ color: '#a5b4fc', textDecoration: 'underline', textDecorationStyle: 'dotted', cursor: 'pointer' }}
+                                                    >
+                                                        {o.driver?.fullFio || o.driver?.firstName}
+                                                    </span>
                                                 </div>
                                             ) : o.status === 'DISPATCHED' ? (
                                                 <div style={{ fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic', marginTop: '0.25rem' }}>Идет поиск водителя...</div>
@@ -143,9 +160,14 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
                                             <div style={{ fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.25rem' }}>
                                                 {translateStatus(o.status)}
                                             </div>
-                                            <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                                                ~{o.priceEstimate || '0'} ₽
-                                            </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setSelectedOrder(o); }}
+                                                style={{ fontSize: '0.75rem', color: '#38bdf8', background: 'transparent', border: '1px solid rgba(56,189,248,0.3)', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', cursor: 'pointer', transition: 'all 0.2s', marginTop: '0.25rem' }}
+                                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(56,189,248,0.1)'}
+                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                            >
+                                                Открыть заявку
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
@@ -154,6 +176,27 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
                     </table>
                 </div>
             </div>
+
+            <OrderDetailModal
+                isOpen={!!selectedOrder}
+                onClose={() => setSelectedOrder(null)}
+                data={selectedOrder}
+                onUserClick={(user, type) => {
+                    setSelectedOrder(null); // Optional: close order modal when opening user modal
+                    setSelectedUser(user);
+                    setUserModalType(type);
+                }}
+            />
+
+            <UserDetailModal
+                isOpen={!!selectedUser}
+                onClose={() => {
+                    setSelectedUser(null);
+                    // If we closed order modal to open this, maybe user wants it back? Let's keep it simple for now.
+                }}
+                data={selectedUser}
+                type={userModalType}
+            />
         </>
     );
 }
