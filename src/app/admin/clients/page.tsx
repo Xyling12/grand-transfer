@@ -70,7 +70,7 @@ export default async function AdminClientsPage() {
                             Водители
                         </Link>
                         <Link href="/" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors">
-                            На сайт
+                            На главную
                         </Link>
                     </div>
                 </div>

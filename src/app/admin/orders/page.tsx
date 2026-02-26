@@ -42,7 +42,7 @@ export default async function AdminOrdersPage() {
                             Клиенты
                         </Link>
                         <Link href="/" style={{ padding: '0.5rem 1rem', background: '#171717', border: '1px solid #262626', borderRadius: '0.5rem', color: '#fff', textDecoration: 'none', transition: 'background 0.2s' }}>
-                            На сайт
+                            На главную
                         </Link>
                     </div>
                 </div>

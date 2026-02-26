@@ -91,7 +91,7 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
                                 <th style={{ padding: '1rem', fontWeight: 400 }}>Маршрут / Пассажиры</th>
                                 <th style={{ padding: '1rem', fontWeight: 400 }}>Клиент</th>
                                 <th style={{ padding: '1rem', fontWeight: 400 }}>Исполнители</th>
-                                <th style={{ padding: '1rem', fontWeight: 400, textAlign: 'right' }}>Статус / Цена</th>
+                                <th style={{ padding: '1rem', fontWeight: 400, textAlign: 'right', whiteSpace: 'nowrap' }}>Статус / Цена</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -139,7 +139,7 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
                                                 <div style={{ fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic' }}>Свободная заявка</div>
                                             )}
                                         </td>
-                                        <td style={{ padding: '1rem', textAlign: 'right' }}>
+                                        <td style={{ padding: '1rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
                                             <div style={{ fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.25rem' }}>
                                                 {translateStatus(o.status)}
                                             </div>

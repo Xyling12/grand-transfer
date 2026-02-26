@@ -225,7 +225,7 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
                         borderRadius: 'var(--radius-md)', color: 'var(--color-foreground)', textDecoration: 'none',
                         fontSize: '0.9rem', transition: 'background 0.2s'
                     }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={(e) => e.currentTarget.style.background = 'var(--glass-bg)'}>
-                        На сайт &rarr;
+                        На главную &rarr;
                     </Link>
                 </div>
             </div>
