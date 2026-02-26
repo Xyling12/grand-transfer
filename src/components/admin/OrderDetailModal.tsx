@@ -70,8 +70,10 @@ export default function OrderDetailModal({ isOpen, onClose, data, onUserClick }:
                     <div style={{ fontSize: '1.5rem' }}>📋</div>
                     <div>
                         <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: '#fff' }}>ПОЛНАЯ ЗАЯВКА № {o.id}</h2>
-                        <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontStyle: 'italic', marginTop: '0.25rem' }}>
-                            Создана {format(new Date(o.createdAt), 'dd.MM.yyyy, HH:mm:ss', { locale: ru })}
+                        <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontStyle: 'italic', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <div>Создана: {format(new Date(o.createdAt), 'dd.MM.yyyy, HH:mm:ss', { locale: ru })}</div>
+                            {o.takenAt && <div>Взята: {format(new Date(o.takenAt), 'dd.MM.yyyy, HH:mm:ss', { locale: ru })}</div>}
+                            {o.completedAt && <div>Завершена: {format(new Date(o.completedAt), 'dd.MM.yyyy, HH:mm:ss', { locale: ru })}</div>}
                         </div>
                     </div>
                 </div>

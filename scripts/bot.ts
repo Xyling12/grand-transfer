@@ -20,6 +20,7 @@ const adminId = (process.env.TELEGRAM_CHAT_ID || '').replace(/['"]/g, '').trim()
 
 const translateTariff = (tariff: string) => {
     switch (tariff?.toLowerCase()) {
+        case 'standart': return 'Стандарт';
         case 'econom': return 'Эконом';
         case 'comfort': return 'Комфорт';
         case 'minivan': return 'Минивэн';
@@ -41,9 +42,9 @@ const translateStatus = (status: string, role?: string) => {
 };
 
 const formatOrderMessage = (o: any, role: string) => {
-    const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
-    const takenStr = o.takenAt ? new Date(o.takenAt).toLocaleString('ru-RU') : '';
-    const compStr = o.completedAt ? new Date(o.completedAt).toLocaleString('ru-RU') : '';
+    const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
+    const takenStr = o.takenAt ? new Date(o.takenAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
+    const compStr = o.completedAt ? new Date(o.completedAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
     const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
 
     let dispStr = '';

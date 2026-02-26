@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import UserDetailModal from '@/components/admin/UserDetailModal';
@@ -13,6 +13,21 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [userModalType, setUserModalType] = useState<'driver' | 'dispatcher' | 'client'>('driver');
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const orderIdParam = params.get('orderId');
+            if (orderIdParam) {
+                const orderId = parseInt(orderIdParam, 10);
+                const orderToOpen = initialOrders.find(o => o.id === orderId);
+                if (orderToOpen) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    setSelectedOrder(orderToOpen);
+                }
+            }
+        }
+    }, [initialOrders]);
 
     const translateStatus = (status: string) => {
         switch (status) {

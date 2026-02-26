@@ -99,7 +99,7 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {sortedOrders.map((o: any) => {
                         const isActive = activeStatuses.includes(o.status);
-                        const orderLink = `/admin/orders`;
+                        const orderLink = `/admin/orders?orderId=${o.id}`;
 
                         return (
                             <div key={o.id} style={{
@@ -195,12 +195,12 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                             <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                     <svg style={{ width: '1rem', height: '1rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                                    {data.phone || 'Нет телефона'}
+                                    {data.phone ? <a href={`tel:+${data.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{data.phone}</a> : 'Нет телефона'}
                                 </span>
                                 {data.username && (
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#60a5fa' }}>
                                         <svg style={{ width: '1rem', height: '1rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path></svg>
-                                        {data.username}
+                                        <a href={`https://t.me/${data.username}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{data.username}</a>
                                     </span>
                                 )}
                             </div>
@@ -220,14 +220,7 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                                 )}
                             </div>
 
-                            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                                {data.telegramId && (
-                                    <a href={data.username ? `https://t.me/${data.username}` : data.phone ? `https://t.me/+${data.phone.replace(/[^0-9]/g, '')}` : `tg://user?id=${data.telegramId}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#38bdf8', textDecoration: 'none', transition: 'background-color 0.2s', border: '1px solid rgba(56, 189, 248, 0.2)' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.2)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.1)'}>
-                                        <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.07.01.22 0 .38z" /></svg>
-                                        Написать в Telegram
-                                    </a>
-                                )}
-                            </div>
+
                         </div>
                     </div>
                     <button onClick={onClose} style={{ color: '#9ca3af', background: 'rgba(255,255,255,0.05)', borderRadius: '9999px', padding: '0.5rem', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }} onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}>

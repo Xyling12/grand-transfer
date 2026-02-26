@@ -212,9 +212,11 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
                 <div>
-                    <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', margin: 0 }} className="gold-text">
-                        Управление CRM
-                    </h1>
+                    <Link href="/admin/drivers" style={{ textDecoration: 'none' }}>
+                        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', margin: 0 }} className="gold-text">
+                            Управление CRM
+                        </h1>
+                    </Link>
                     <p style={{ color: 'var(--color-text-muted)', margin: '4px 0 0 0', fontSize: '0.9rem' }}>
                         Единый реестр пользователей
                     </p>
