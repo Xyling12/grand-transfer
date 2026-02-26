@@ -7,22 +7,22 @@ export default function ClientsTableClient({ clients }: { clients: any[] }) {
     const [selectedClient, setSelectedClient] = useState<any>(null);
 
     return (
-        <div className="bg-neutral-900/30 border border-neutral-800 rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+        <div style={{ background: 'rgba(23,23,23,0.3)', border: '1px solid rgba(38,38,38,1)', borderRadius: '1rem', overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
                     <thead>
-                        <tr className="border-b border-neutral-800 bg-neutral-900/50 text-gray-400 text-sm">
-                            <th className="p-4 font-normal">Имя</th>
-                            <th className="p-4 font-normal">Телефон</th>
-                            <th className="p-4 font-normal text-center">Кол-во поездок</th>
-                            <th className="p-4 font-normal text-center">Сумма поездок</th>
-                            <th className="p-4 font-normal text-right">Последний заказ</th>
+                        <tr style={{ borderBottom: '1px solid rgba(38,38,38,1)', background: 'rgba(23,23,23,0.5)', color: '#9ca3af', fontSize: '0.875rem' }}>
+                            <th style={{ padding: '1rem', fontWeight: 400 }}>Имя</th>
+                            <th style={{ padding: '1rem', fontWeight: 400 }}>Телефон</th>
+                            <th style={{ padding: '1rem', fontWeight: 400, textAlign: 'center' }}>Кол-во поездок</th>
+                            <th style={{ padding: '1rem', fontWeight: 400, textAlign: 'center' }}>Сумма поездок</th>
+                            <th style={{ padding: '1rem', fontWeight: 400, textAlign: 'right' }}>Последний заказ</th>
                         </tr>
                     </thead>
                     <tbody>
                         {clients.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="p-8 text-center text-gray-500">
+                                <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
                                     Нет данных о клиентах
                                 </td>
                             </tr>
@@ -30,22 +30,24 @@ export default function ClientsTableClient({ clients }: { clients: any[] }) {
                             clients.map((c, i) => (
                                 <tr
                                     key={i}
-                                    className="border-b border-neutral-800/50 hover:bg-neutral-800/20 transition-colors cursor-pointer"
+                                    style={{ borderBottom: '1px solid rgba(38,38,38,0.5)', transition: 'background-color 0.2s', cursor: 'pointer' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(38,38,38,0.2)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                     onClick={() => setSelectedClient(c)}
                                 >
-                                    <td className="p-4">
-                                        <div className="font-medium text-white">{c.name}</div>
+                                    <td style={{ padding: '1rem' }}>
+                                        <div style={{ fontWeight: 500, color: '#fff' }}>{c.name}</div>
                                     </td>
-                                    <td className="p-4 text-gray-300">{c.phone}</td>
-                                    <td className="p-4 text-center">
-                                        <span className="inline-flex items-center justify-center bg-neutral-800 w-8 h-8 rounded-full text-sm">
+                                    <td style={{ padding: '1rem', color: '#d1d5db' }}>{c.phone}</td>
+                                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#262626', width: '2rem', height: '2rem', borderRadius: '9999px', fontSize: '0.875rem' }}>
                                             {c.ordersCount}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-center text-amber-500 font-medium">
+                                    <td style={{ padding: '1rem', textAlign: 'center', color: '#f59e0b', fontWeight: 500 }}>
                                         {c.totalSpent > 0 ? c.totalSpent + " ₽" : "-"}
                                     </td>
-                                    <td className="p-4 text-right text-sm text-gray-400">
+                                    <td style={{ padding: '1rem', textAlign: 'right', fontSize: '0.875rem', color: '#9ca3af' }}>
                                         {new Date(c.lastOrder).toLocaleDateString("ru-RU")}
                                     </td>
                                 </tr>
@@ -63,14 +65,10 @@ export default function ClientsTableClient({ clients }: { clients: any[] }) {
                 onUpdateFeedback={async (orderId, currentVal) => {
                     try {
                         const newVal = !currentVal;
-                        // Fast optimistic update
                         setSelectedClient({
                             ...selectedClient,
                             orders: selectedClient.orders.map((o: any) => o.id === orderId ? { ...o, feedbackReceived: newVal } : o)
                         });
-
-                        // Note: server API call is needed here for persistence but user requested to "add a mock UI boolean toggle or just a display badge for now"
-                        // so this just changes UI state locally. 
                     } catch (e) {
                         console.error('Failed to update feedback state');
                     }

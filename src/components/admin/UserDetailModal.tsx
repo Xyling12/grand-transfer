@@ -24,27 +24,38 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
         ];
 
         return (
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
                 {docs.map((doc, idx) => {
                     if (doc.id) {
                         const isText = doc.type === 'ptsNumber' && !doc.id.startsWith('AgAC') && doc.id.length < 50;
                         return (
                             <a key={idx} href={isText ? undefined : `/api/tg-file/${doc.id}`} target="_blank" rel="noopener noreferrer"
                                 title={`${doc.title} (${doc.id})`}
-                                className="w-10 h-10 rounded-lg bg-black/40 border border-amber-500/50 flex items-center justify-center text-xl hover:bg-amber-500/20 hover:scale-105 transition-all shadow-[0_0_10px_rgba(202,138,4,0.1)]"
+                                style={{
+                                    width: '40px', height: '40px', borderRadius: '0.5rem', background: 'rgba(0,0,0,0.4)',
+                                    border: '1px solid rgba(245, 158, 11, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '1.25rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 0 10px rgba(202,138,4,0.1)',
+                                    cursor: isText ? 'help' : 'pointer'
+                                }}
                                 onClick={(e) => {
                                     if (isText) {
                                         e.preventDefault();
                                         alert(`Номер ПТС: ${doc.id}`);
                                     }
                                 }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.4)'; e.currentTarget.style.transform = 'none'; }}
                             >
                                 {doc.icon}
                             </a>
                         );
                     }
                     return (
-                        <div key={idx} title={`Нет ${doc.title}`} className="w-10 h-10 rounded-lg bg-white/5 border border-dashed border-white/10 flex items-center justify-center opacity-30 grayscale">
+                        <div key={idx} title={`Нет ${doc.title}`} style={{
+                            width: '40px', height: '40px', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)',
+                            border: '1px dashed rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            opacity: 0.3, filter: 'grayscale(100%)'
+                        }}>
                             {doc.icon}
                         </div>
                     );
@@ -70,132 +81,160 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
 
     const renderOrders = () => {
         if (!sortedOrders || sortedOrders.length === 0) {
-            return <div className="text-gray-500 italic mt-4">Нет истории заказов</div>;
+            return <div style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', marginTop: '1rem' }}>Нет истории заказов</div>;
         }
 
         return (
-            <div className="mt-6 space-y-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-                <h3 className="text-lg font-semibold text-amber-500 mb-4 sticky top-0 bg-[#121212]/90 backdrop-blur-md py-2 z-10 border-b border-white/10">
+            <div style={{ marginTop: '1.5rem', maxHeight: '40vh', overflowY: 'auto', paddingRight: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '1rem', position: 'sticky', top: 0, background: 'rgba(18,18,18,0.9)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', padding: '0.5rem 0', zIndex: 10, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                     История заказов ({sortedOrders.length})
                 </h3>
-                {sortedOrders.map((o: any) => {
-                    const isActive = activeStatuses.includes(o.status);
-                    const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {sortedOrders.map((o: any) => {
+                        const isActive = activeStatuses.includes(o.status);
+                        const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
 
-                    return (
-                        <div key={o.id} className={`p-4 rounded-xl border ${isActive ? 'border-amber-500/50 bg-amber-500/10' : 'border-white/10 bg-white/5'} transition-colors`}>
-                            <div className="flex justify-between items-start mb-2">
-                                <div className="flex items-center gap-2">
-                                    <h4 className="font-medium text-white">Заказ #{o.id}</h4>
-                                    {isActive && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-black uppercase tracking-wider">Текущий</span>}
-                                </div>
-                                <span className={`text-xs px-2 py-1 rounded-full ${o.status === 'COMPLETED' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                                    {o.status}
-                                </span>
-                            </div>
-
-                            <div className="text-sm text-gray-300 mb-2">
-                                {new Date(o.createdAt).toLocaleDateString('ru-RU')} • <a href={mapLink} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">{o.fromCity} &rarr; {o.toCity}</a>
-                            </div>
-
-                            <div className="flex justify-between items-end mt-3 text-sm">
-                                <div className="text-gray-400">
-                                    {o.priceEstimate ? `${o.priceEstimate} ₽` : 'Цена не указана'}
-                                </div>
-
-                                {type === 'client' && o.status === 'COMPLETED' && (
-                                    <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
-                                        <span className="text-xs text-gray-400">ОС собрана:</span>
-                                        <button
-                                            onClick={() => onUpdateFeedback && onUpdateFeedback(o.id, !!o.feedbackReceived)}
-                                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 ${o.feedbackReceived ? 'border-green-500 bg-green-500/20' : 'border-gray-600 bg-gray-800'} transition-all`}
-                                        >
-                                            <span className="sr-only">Feedback receive toggle</span>
-                                            <span className={`pointer-events-none block h-3 w-3 rounded-full shadow-lg ring-0 transition-all ${o.feedbackReceived ? 'translate-x-2 bg-green-500' : '-translate-x-2 bg-gray-400'}`} />
-                                        </button>
+                        return (
+                            <div key={o.id} style={{
+                                padding: '1rem', borderRadius: '0.75rem',
+                                border: isActive ? '1px solid rgba(245, 158, 11, 0.5)' : '1px solid rgba(255,255,255,0.1)',
+                                background: isActive ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.05)',
+                                transition: 'background-color 0.2s'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <h4 style={{ fontWeight: 500, color: 'var(--color-foreground)', margin: 0 }}>Заказ #{o.id}</h4>
+                                        {isActive && <span style={{ padding: '0.125rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.625rem', fontWeight: 700, background: 'var(--color-primary)', color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Текущий</span>}
                                     </div>
-                                )}
+                                    <span style={{
+                                        fontSize: '0.75rem', padding: '0.25rem 0.5rem', borderRadius: '9999px',
+                                        background: o.status === 'COMPLETED' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(107, 114, 128, 0.2)',
+                                        color: o.status === 'COMPLETED' ? '#4ade80' : '#9ca3af'
+                                    }}>
+                                        {o.status}
+                                    </span>
+                                </div>
 
-                                {(type === 'driver' || type === 'dispatcher') && (
-                                    <a href={`/admin/orders`} className="text-amber-500/80 hover:text-amber-400 text-xs transition-colors flex items-center gap-1">
-                                        В доску заказов &rarr;
-                                    </a>
-                                )}
+                                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                                    {new Date(o.createdAt).toLocaleDateString('ru-RU')} • <a href={mapLink} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa', textDecoration: 'underline', textUnderlineOffset: '2px' }} onMouseEnter={e => e.currentTarget.style.color = '#93c5fd'} onMouseLeave={e => e.currentTarget.style.color = '#60a5fa'}>{o.fromCity} &rarr; {o.toCity}</a>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '0.75rem', fontSize: '0.875rem' }}>
+                                    <div style={{ color: '#9ca3af' }}>
+                                        {o.priceEstimate ? `${o.priceEstimate} ₽` : 'Цена не указана'}
+                                    </div>
+
+                                    {type === 'client' && o.status === 'COMPLETED' && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.4)', padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>ОС:</span>
+                                            <button
+                                                onClick={() => onUpdateFeedback && onUpdateFeedback(o.id, !!o.feedbackReceived)}
+                                                style={{
+                                                    position: 'relative', display: 'inline-flex', height: '1.25rem', width: '2.25rem', flexShrink: 0, cursor: 'pointer', alignItems: 'center', justifyContent: 'center', borderRadius: '9999px',
+                                                    border: o.feedbackReceived ? '2px solid #22c55e' : '2px solid #4b5563',
+                                                    background: o.feedbackReceived ? 'rgba(34, 197, 94, 0.2)' : '#1f2937',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                <span style={{
+                                                    pointerEvents: 'none', display: 'block', height: '0.75rem', width: '0.75rem', borderRadius: '9999px', background: o.feedbackReceived ? '#22c55e' : '#9ca3af',
+                                                    transform: o.feedbackReceived ? 'translateX(0.5rem)' : 'translateX(-0.5rem)', transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                                                }} />
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {(type === 'driver' || type === 'dispatcher') && (
+                                        <a href={`/admin/orders`} style={{ color: 'rgba(245, 158, 11, 0.8)', fontSize: '0.75rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(245, 158, 11, 1)'} onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(245, 158, 11, 0.8)'}>
+                                            В доску заказов &rarr;
+                                        </a>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
         );
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pb-20 sm:pb-6">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', padding: '1rem', paddingBottom: '5rem' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={onClose}></div>
 
-            <div className="relative w-full max-w-2xl bg-[#121212]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div style={{
+                position: 'relative', width: '100%', maxWidth: '42rem', background: 'rgba(18,18,18,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', overflow: 'hidden', animation: 'fadeIn 0.2s ease-out'
+            }}>
 
                 {/* Header Profile Area */}
-                <div className="p-6 border-b border-white/10 flex items-start justify-between bg-gradient-to-r from-amber-500/5 to-transparent">
-                    <div className="flex gap-4">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-600 to-yellow-400 flex items-center justify-center text-2xl font-bold text-black shadow-lg shadow-amber-500/20">
+                <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'linear-gradient(to right, rgba(245, 158, 11, 0.05), transparent)' }}>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{
+                            width: '4rem', height: '4rem', borderRadius: '9999px', background: 'linear-gradient(to top right, #d97706, #facc15)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700, color: '#000', boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.2)'
+                        }}>
                             {data.firstName?.charAt(0) || data.name?.charAt(0) || '?'}
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bodoni text-white">{data.fullFio || data.firstName || data.name || "Без имени"}</h2>
-                            <div className="text-gray-400 text-sm mt-1 flex items-center gap-3">
-                                <span className="flex items-center gap-1">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            <h2 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)', color: 'var(--color-foreground)', margin: 0 }}>{data.fullFio || data.firstName || data.name || "Без имени"}</h2>
+                            <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <svg style={{ width: '1rem', height: '1rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                                     {data.phone || 'Нет телефона'}
                                 </span>
                                 {data.username && (
-                                    <span className="flex items-center gap-1 text-blue-400">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path></svg>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#60a5fa' }}>
+                                        <svg style={{ width: '1rem', height: '1rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path></svg>
                                         @{data.username}
                                     </span>
                                 )}
                             </div>
 
-                            <div className="mt-3 flex gap-2">
-                                <span className="text-[10px] px-2 py-1 rounded bg-white/10 text-gray-300 uppercase font-semibold tracking-wider">
+                            <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', background: 'rgba(255,255,255,0.1)', color: '#d1d5db', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
                                     {type === 'driver' ? 'Водитель' : type === 'dispatcher' ? 'Диспетчер' : 'Клиент'}
                                 </span>
                                 {type !== 'client' && (
-                                    <span className={`text-[10px] px-2 py-1 rounded uppercase font-semibold tracking-wider ${data.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' : data.status === 'PENDING' ? 'bg-amber-500/20 text-amber-500' : 'bg-red-500/20 text-red-400'}`}>
+                                    <span style={{
+                                        fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em',
+                                        background: data.status === 'APPROVED' ? 'rgba(34, 197, 94, 0.2)' : data.status === 'PENDING' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                                        color: data.status === 'APPROVED' ? '#4ade80' : data.status === 'PENDING' ? '#f59e0b' : '#f87171'
+                                    }}>
                                         {data.status}
                                     </span>
                                 )}
                             </div>
                         </div>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full p-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <button onClick={onClose} style={{ color: '#9ca3af', background: 'rgba(255,255,255,0.05)', borderRadius: '9999px', padding: '0.5rem', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }} onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}>
+                        <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
 
                 {/* Content Area */}
-                <div className="p-6">
+                <div style={{ padding: '1.5rem' }}>
 
                     {/* Stats Row */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-white/5 border border-white/5 rounded-xl p-3">
-                            <div className="text-xs text-gray-500 mb-1">Всего заказов</div>
-                            <div className="text-xl font-semibold text-white">{sortedOrders.length}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0.75rem', padding: '0.75rem', gridColumn: 'span 2' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Всего заказов</div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#fff' }}>{sortedOrders.length}</div>
                         </div>
-                        <div className="bg-white/5 border border-white/5 rounded-xl p-3">
-                            <div className="text-xs text-gray-500 mb-1">Завершено</div>
-                            <div className="text-xl font-semibold text-green-400">{completedOrders.length}</div>
+                        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0.75rem', padding: '0.75rem', gridColumn: 'span 2' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Завершено</div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#4ade80' }}>{completedOrders.length}</div>
                         </div>
                         {type === 'client' && (
-                            <div className="bg-white/5 border border-white/5 rounded-xl p-3 col-span-2">
-                                <div className="text-xs text-gray-500 mb-1">Сумма всех поездок</div>
-                                <div className="text-xl font-semibold text-amber-500">{data.totalSpent || 0} ₽</div>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0.75rem', padding: '0.75rem', gridColumn: 'span 4' }}>
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Сумма всех поездок</div>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-primary)' }}>{data.totalSpent || 0} ₽</div>
                             </div>
                         )}
                         {type !== 'client' && (
-                            <div className="bg-white/5 border border-white/5 rounded-xl p-3 col-span-2">
-                                <div className="text-xs text-gray-500 mb-1">Регистрация</div>
-                                <div className="text-sm font-medium text-gray-300 mt-1">{new Date(data.createdAt).toLocaleDateString('ru-RU')}</div>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0.75rem', padding: '0.75rem', gridColumn: 'span 4' }}>
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Регистрация</div>
+                                <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#d1d5db', marginTop: '0.25rem' }}>{new Date(data.createdAt).toLocaleDateString('ru-RU')}</div>
                             </div>
                         )}
                     </div>
@@ -204,21 +243,11 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                     {renderOrders()}
                 </div>
             </div>
-
+            {/* Added a tiny style block to ensure animations still work simply */}
             <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(245, 158, 11, 0.5);
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(245, 158, 11, 0.8);
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: scale(0.95); }
+                    to { opacity: 1; transform: scale(1); }
                 }
             `}</style>
         </div>
