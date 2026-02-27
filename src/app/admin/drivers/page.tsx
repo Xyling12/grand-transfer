@@ -33,11 +33,13 @@ export default async function AdminCrmPage() {
                 ordersCount: 0,
                 totalSpent: 0,
                 lastOrder: o.createdAt,
+                orders: []
             });
         }
 
         const client = clientsMap.get(key);
         client.ordersCount++;
+        client.orders.push(o);
 
         if (o.priceEstimate && o.status === 'COMPLETED') {
             client.totalSpent += o.priceEstimate;

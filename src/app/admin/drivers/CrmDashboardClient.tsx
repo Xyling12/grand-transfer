@@ -224,74 +224,81 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
 
             </div>
 
-            {/* Custom Tab Bar */}
-            <div style={{
-                display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px',
-                borderBottom: '1px solid var(--glass-border)', marginBottom: '1.5rem',
-                scrollbarWidth: 'none' // hide scrollbar for firefox
-            }}>
-                <button
-                    onClick={() => setActiveTab('pending')}
-                    style={{
-                        padding: '10px 20px', borderRadius: 'var(--radius-full)', border: 'none', outline: 'none', cursor: 'pointer',
-                        background: activeTab === 'pending' ? 'var(--color-primary)' : 'transparent',
-                        color: activeTab === 'pending' ? '#000' : 'var(--color-text-muted)',
-                        fontWeight: activeTab === 'pending' ? '600' : '500',
-                        transition: 'all 0.2s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px'
-                    }}
-                >
-                    Новые {pendingUsers.length > 0 && <span style={{ background: activeTab === 'pending' ? 'rgba(0,0,0,0.2)' : 'rgba(239,68,68,0.2)', color: activeTab === 'pending' ? '#000' : '#ef4444', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem' }}>{pendingUsers.length}</span>}
-                </button>
-                <Link
-                    href="/admin/orders"
-                    style={{
-                        padding: '10px 20px', borderRadius: 'var(--radius-full)', border: '1px solid rgba(245, 158, 11, 0.3)', outline: 'none', cursor: 'pointer',
-                        background: 'rgba(245, 158, 11, 0.05)',
-                        color: '#f59e0b',
-                        fontWeight: '500', textDecoration: 'none',
-                        transition: 'all 0.2s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.05)'}
-                >
-                    📋 Доска Заказов
-                </Link>
-                <button
-                    onClick={() => setActiveTab('drivers')}
-                    style={{
-                        padding: '10px 20px', borderRadius: 'var(--radius-full)', border: 'none', outline: 'none', cursor: 'pointer',
-                        background: activeTab === 'drivers' ? 'var(--color-primary)' : 'transparent',
-                        color: activeTab === 'drivers' ? '#000' : 'var(--color-text-muted)',
-                        fontWeight: activeTab === 'drivers' ? '600' : '500',
-                        transition: 'all 0.2s', whiteSpace: 'nowrap'
-                    }}
-                >
-                    Водители ({approvedDrivers.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('dispatchers')}
-                    style={{
-                        padding: '10px 20px', borderRadius: 'var(--radius-full)', border: 'none', outline: 'none', cursor: 'pointer',
-                        background: activeTab === 'dispatchers' ? 'var(--color-primary)' : 'transparent',
-                        color: activeTab === 'dispatchers' ? '#000' : 'var(--color-text-muted)',
-                        fontWeight: activeTab === 'dispatchers' ? '600' : '500',
-                        transition: 'all 0.2s', whiteSpace: 'nowrap'
-                    }}
-                >
-                    Диспетчеры ({approvedDispatchers.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('clients')}
-                    style={{
-                        padding: '10px 20px', borderRadius: 'var(--radius-full)', border: 'none', outline: 'none', cursor: 'pointer',
-                        background: activeTab === 'clients' ? 'var(--color-primary)' : 'transparent',
-                        color: activeTab === 'clients' ? '#000' : 'var(--color-text-muted)',
-                        fontWeight: activeTab === 'clients' ? '600' : '500',
-                        transition: 'all 0.2s', whiteSpace: 'nowrap'
-                    }}
-                >
-                    Клиенты ({clientsMap.length})
-                </button>
+            {/* Custom Tab Bar Container */}
+            <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
+                <div style={{
+                    display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px',
+                    borderBottom: '1px solid var(--glass-border)',
+                    scrollbarWidth: 'none', // hide scrollbar for firefox
+                    msOverflowStyle: 'none'
+                }}>
+                    <button
+                        onClick={() => setActiveTab('pending')}
+                        style={{
+                            padding: '10px 20px', borderRadius: 'var(--radius-full)', border: 'none', outline: 'none', cursor: 'pointer',
+                            background: activeTab === 'pending' ? 'var(--color-primary)' : 'transparent',
+                            color: activeTab === 'pending' ? '#000' : 'var(--color-text-muted)',
+                            fontWeight: activeTab === 'pending' ? '600' : '500',
+                            transition: 'all 0.2s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px'
+                        }}
+                    >
+                        Новые {pendingUsers.length > 0 && <span style={{ background: activeTab === 'pending' ? 'rgba(0,0,0,0.2)' : 'rgba(239,68,68,0.2)', color: activeTab === 'pending' ? '#000' : '#ef4444', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem' }}>{pendingUsers.length}</span>}
+                    </button>
+                    <Link
+                        href="/admin/orders"
+                        style={{
+                            padding: '10px 20px', borderRadius: 'var(--radius-full)', border: '1px solid rgba(245, 158, 11, 0.3)', outline: 'none', cursor: 'pointer',
+                            background: 'rgba(245, 158, 11, 0.05)',
+                            color: '#f59e0b',
+                            fontWeight: '500', textDecoration: 'none',
+                            transition: 'all 0.2s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.05)'}
+                    >
+                        📋 Доска Заказов
+                    </Link>
+                    <button
+                        onClick={() => setActiveTab('drivers')}
+                        style={{
+                            padding: '10px 20px', borderRadius: 'var(--radius-full)', border: 'none', outline: 'none', cursor: 'pointer',
+                            background: activeTab === 'drivers' ? 'var(--color-primary)' : 'transparent',
+                            color: activeTab === 'drivers' ? '#000' : 'var(--color-text-muted)',
+                            fontWeight: activeTab === 'drivers' ? '600' : '500',
+                            transition: 'all 0.2s', whiteSpace: 'nowrap'
+                        }}
+                    >
+                        Водители ({approvedDrivers.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('dispatchers')}
+                        style={{
+                            padding: '10px 20px', borderRadius: 'var(--radius-full)', border: 'none', outline: 'none', cursor: 'pointer',
+                            background: activeTab === 'dispatchers' ? 'var(--color-primary)' : 'transparent',
+                            color: activeTab === 'dispatchers' ? '#000' : 'var(--color-text-muted)',
+                            fontWeight: activeTab === 'dispatchers' ? '600' : '500',
+                            transition: 'all 0.2s', whiteSpace: 'nowrap'
+                        }}
+                    >
+                        Диспетчеры ({approvedDispatchers.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('clients')}
+                        style={{
+                            padding: '10px 20px', borderRadius: 'var(--radius-full)', border: 'none', outline: 'none', cursor: 'pointer',
+                            background: activeTab === 'clients' ? 'var(--color-primary)' : 'transparent',
+                            color: activeTab === 'clients' ? '#000' : 'var(--color-text-muted)',
+                            fontWeight: activeTab === 'clients' ? '600' : '500',
+                            transition: 'all 0.2s', whiteSpace: 'nowrap'
+                        }}
+                    >
+                        Клиенты ({clientsMap.length})
+                    </button>
+                </div>
+                {/* Visual Scroll Indicators (Non-functional) */}
+                <div style={{ position: 'absolute', top: 0, right: 0, bottom: '8px', width: '40px', background: 'linear-gradient(to right, transparent, rgba(18,18,18,0.9) 80%)', pointerEvents: 'none', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '4px', color: 'var(--color-primary)', opacity: 0.7 }}>
+                    <svg style={{ width: '18px', height: '18px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
             </div>
 
             {/* Tab Content */}

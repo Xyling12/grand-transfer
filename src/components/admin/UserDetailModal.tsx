@@ -92,7 +92,7 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
         }
 
         return (
-            <div style={{ marginTop: '1.5rem', maxHeight: '40vh', overflowY: 'auto', paddingRight: '0.5rem' }}>
+            <div style={{ marginTop: '1.5rem', paddingRight: '0.25rem' }}>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '1rem', position: 'sticky', top: 0, background: 'rgba(18,18,18,0.9)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', padding: '0.5rem 0', zIndex: 10, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                     История заказов ({sortedOrders.length})
                 </h3>
@@ -133,7 +133,7 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                                     </span>
                                 </div>
 
-                                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem', wordBreak: 'break-word' }}>
                                     {new Date(o.createdAt).toLocaleDateString('ru-RU')} • <span style={{ color: '#60a5fa' }}>{o.fromCity} &rarr; {o.toCity}</span>
                                 </div>
 
@@ -177,12 +177,12 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={onClose}></div>
 
             <div style={{
-                position: 'relative', width: '100%', maxWidth: '42rem', background: 'rgba(18,18,18,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                position: 'relative', width: '100%', maxWidth: '42rem', maxHeight: '90vh', display: 'flex', flexDirection: 'column', background: 'rgba(18,18,18,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
                 border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', overflow: 'hidden', animation: 'fadeIn 0.2s ease-out'
             }}>
 
                 {/* Header Profile Area */}
-                <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'linear-gradient(to right, rgba(245, 158, 11, 0.05), transparent)' }}>
+                <div style={{ flexShrink: 0, padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'linear-gradient(to right, rgba(245, 158, 11, 0.05), transparent)' }}>
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <div style={{
                             width: '4rem', height: '4rem', borderRadius: '9999px', background: 'linear-gradient(to top right, #d97706, #facc15)',
@@ -191,7 +191,7 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                             {data.firstName?.charAt(0) || data.name?.charAt(0) || '?'}
                         </div>
                         <div>
-                            <h2 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)', color: 'var(--color-foreground)', margin: 0 }}>{data.fullFio || data.firstName || data.name || "Без имени"}</h2>
+                            <h2 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)', color: 'var(--color-foreground)', margin: 0, wordBreak: 'break-word', maxWidth: '300px' }}>{data.fullFio || data.firstName || data.name || "Без имени"}</h2>
                             <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                     <svg style={{ width: '1rem', height: '1rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
@@ -229,7 +229,7 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                 </div>
 
                 {/* Content Area */}
-                <div style={{ padding: '1.5rem' }}>
+                <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto' }}>
 
                     {/* Stats Row */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
