@@ -5,7 +5,7 @@ import Link from 'next/link';
 import UserDetailModal from '@/components/admin/UserDetailModal';
 import OrderDetailModal from '@/components/admin/OrderDetailModal';
 
-type TabType = 'pending' | 'drivers' | 'dispatchers' | 'clients';
+type TabType = 'pending' | 'drivers' | 'dispatchers' | 'clients' | 'banned';
 
 export default function CrmDashboardClient({ users, clientsMap }: { users: any[], clientsMap: any[] }) {
     const [activeTab, setActiveTab] = useState<TabType>('pending');
@@ -18,6 +18,7 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
     const pendingUsers = users.filter((u: any) => u.status === 'PENDING');
     const approvedDrivers = users.filter((u: any) => u.status === 'APPROVED' && u.role === 'DRIVER');
     const approvedDispatchers = users.filter((u: any) => u.status === 'APPROVED' && (u.role === 'DISPATCHER' || u.role === 'ADMIN'));
+    const bannedUsers = users.filter((u: any) => u.status === 'BANNED');
 
     const roleTranslations: Record<string, string> = {
         'DRIVER': 'Водитель',
@@ -287,15 +288,22 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
                     <button
                         onClick={() => setActiveTab('clients')}
                         style={{
-                            padding: '10px 20px', borderRadius: 'var(--radius-full)', border: 'none', outline: 'none', cursor: 'pointer',
-                            background: activeTab === 'clients' ? 'var(--color-primary)' : 'transparent',
-                            color: activeTab === 'clients' ? '#000' : 'var(--color-text-muted)',
-                            fontWeight: activeTab === 'clients' ? '600' : '500',
-                            transition: 'all 0.2s', whiteSpace: 'nowrap'
-                        }}
-                    >
-                        Клиенты ({clientsMap.length})
-                    </button>
+                            padding: '0.5rem 1rem', borderRadius: '1rem', whiteSpace: 'nowrap', border: '1px solid var(--glass-border)',
+                            color: activeTab === 'clients' ? '#000' : 'var(--color-foreground)',
+                            background: activeTab === 'clients' ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)',
+                            transition: 'all 0.2s'
+                        }}>Клиенты ({clientsMap.length})</button>
+
+                    <button onClick={() => setActiveTab('banned')} style={{
+                        padding: '0.5rem 1rem', borderRadius: '1rem', whiteSpace: 'nowrap', border: '1px solid var(--glass-border)',
+                        color: activeTab === 'banned' ? '#000' : 'var(--color-foreground)',
+                        background: activeTab === 'banned' ? '#f87171' : 'rgba(255,255,255,0.05)',
+                        transition: 'all 0.2s'
+                    }}>Заблокированные ({bannedUsers.length})</button>
+                    {/* Visual hint that it's scrollable */}
+                    <div style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', opacity: 0.5 }}>
+                        &rarr;
+                    </div>
                 </div>
                 {/* Visual Scroll Indicators (Non-functional) */}
                 <div style={{ position: 'absolute', top: 0, right: 0, bottom: '8px', width: '40px', background: 'linear-gradient(to right, transparent, rgba(18,18,18,0.9) 80%)', pointerEvents: 'none', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '4px', color: 'var(--color-primary)', opacity: 0.7 }}>
@@ -308,6 +316,9 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
             {activeTab === 'pending' && renderUserCards(pendingUsers)}
             {activeTab === 'drivers' && renderUserCards(approvedDrivers)}
             {activeTab === 'dispatchers' && renderUserCards(approvedDispatchers)}
+            {activeTab === 'banned' && renderUserCards(bannedUsers)}
+
+            {/* Clients UI */}
             {activeTab === 'clients' && renderClientsTable()}
 
             <UserDetailModal
