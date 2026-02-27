@@ -1,5 +1,5 @@
 import { BotDeps } from './types';
-import { checkAuth } from './helpers';
+import { checkAuth, replyWithMenu } from './helpers';
 
 export function registerTicketHandlers(deps: BotDeps) {
     const { bot, prisma, adminId, pendingBugReports, pendingSupportCreates, adminReplyingTo, userReplyingTo } = deps;
@@ -366,10 +366,10 @@ export async function handleTicketMessages(ctx: any, deps: BotDeps): Promise<boo
                 }
             );
             pendingBugReports.delete(tgIdStr);
-            await ctx.reply(`✅ Баг-репорт <b>№${ticketNum}</b> создан и отправлен разработчикам. Спасибо!\n\nВы можете отслеживать статус в разделе "📩 Мои обращения".`, { parse_mode: 'HTML' });
+            await replyWithMenu(ctx, deps, `✅ Баг-репорт <b>№${ticketNum}</b> создан и отправлен разработчикам. Спасибо!\n\nВы можете отслеживать статус в разделе "📩 Мои обращения".`, { parse_mode: 'HTML' });
         } catch (e) {
             pendingBugReports.delete(tgIdStr);
-            await ctx.reply('❌ Ошибка при отправке.');
+            await replyWithMenu(ctx, deps, '❌ Ошибка при отправке.');
         }
         return true;
     }
@@ -409,7 +409,7 @@ export async function handleTicketMessages(ctx: any, deps: BotDeps): Promise<boo
             });
         } catch (e) {
             console.error('Error creating support ticket in DB:', e);
-            await ctx.reply('❌ Ошибка при создании обращения.');
+            await replyWithMenu(ctx, deps, '❌ Ошибка при создании обращения.');
             pendingSupportCreates.delete(tgIdStr);
             return true;
         }
@@ -437,7 +437,7 @@ export async function handleTicketMessages(ctx: any, deps: BotDeps): Promise<boo
             } catch (e) { }
         }
 
-        await ctx.reply(`✅ Обращение <b>№${ticketNum}</b> создано и отправлено администрации.\nОжидайте ответа!\n\nОтслеживайте статус в разделе "📩 Мои обращения".`, {
+        await replyWithMenu(ctx, deps, `✅ Обращение <b>№${ticketNum}</b> создано и отправлено администрации.\nОжидайте ответа!\n\nОтслеживайте статус в разделе "📩 Мои обращения".`, {
             parse_mode: 'HTML'
         });
         return true;
@@ -447,7 +447,7 @@ export async function handleTicketMessages(ctx: any, deps: BotDeps): Promise<boo
     if (adminReplyingTo.has(tgIdStr)) {
         if (text === '/cancel' || text === 'Отмена' || !text) {
             adminReplyingTo.delete(tgIdStr);
-            await ctx.reply('❌ Отправка ответа отменена.', { reply_markup: { remove_keyboard: true } });
+            await replyWithMenu(ctx, deps, '❌ Отправка ответа отменена.');
             return true;
         }
 
@@ -458,7 +458,7 @@ export async function handleTicketMessages(ctx: any, deps: BotDeps): Promise<boo
 
             if (!ticket || ticket.status === 'CLOSED') {
                 adminReplyingTo.delete(tgIdStr);
-                await ctx.reply('❌ Обращение №' + ticketNum + ' не найдено или уже закрыто.', { reply_markup: { remove_keyboard: true } });
+                await replyWithMenu(ctx, deps, '❌ Обращение №' + ticketNum + ' не найдено или уже закрыто.');
                 return true;
             }
 
@@ -499,7 +499,7 @@ export async function handleTicketMessages(ctx: any, deps: BotDeps): Promise<boo
             });
         } catch (e) {
             adminReplyingTo.delete(tgIdStr);
-            await ctx.reply('❌ Ошибка при отправке ответа пользователю (возможно он заблокировал бота).');
+            await replyWithMenu(ctx, deps, '❌ Ошибка при отправке ответа пользователю (возможно он заблокировал бота).');
         }
         return true;
     }
@@ -508,7 +508,7 @@ export async function handleTicketMessages(ctx: any, deps: BotDeps): Promise<boo
     if (userReplyingTo.has(tgIdStr)) {
         if (text === '/cancel' || text === 'Отмена' || !text) {
             userReplyingTo.delete(tgIdStr);
-            await ctx.reply('❌ Отправка ответа отменена.', { reply_markup: { remove_keyboard: true } });
+            await replyWithMenu(ctx, deps, '❌ Отправка ответа отменена.');
             return true;
         }
 
@@ -519,7 +519,7 @@ export async function handleTicketMessages(ctx: any, deps: BotDeps): Promise<boo
 
             if (!ticket || ticket.status === 'CLOSED') {
                 userReplyingTo.delete(tgIdStr);
-                await ctx.reply('❌ Обращение №' + ticketNum + ' закрыто или не найдено.', { reply_markup: { remove_keyboard: true } });
+                await replyWithMenu(ctx, deps, '❌ Обращение №' + ticketNum + ' закрыто или не найдено.');
                 return true;
             }
 
@@ -561,7 +561,7 @@ export async function handleTicketMessages(ctx: any, deps: BotDeps): Promise<boo
             });
         } catch (e) {
             userReplyingTo.delete(tgIdStr);
-            await ctx.reply('❌ Ошибка при отправке ответа.');
+            await replyWithMenu(ctx, deps, '❌ Ошибка при отправке ответа.');
         }
         return true;
     }

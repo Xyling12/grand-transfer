@@ -107,6 +107,20 @@ export const getMapWebLink = (fromCity: string, toCity: string) => {
     return `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
 };
 
+// --- Reply With Menu Helper ---
+// Always re-sends the main menu keyboard to avoid losing it
+export const replyWithMenu = async (ctx: any, deps: BotDeps, text: string, extra?: any) => {
+    const tgIdStr = ctx.chat?.id?.toString() || '';
+    try {
+        const driver = await deps.prisma.driver.findUnique({ where: { telegramId: BigInt(tgIdStr) } });
+        const role = driver?.role || 'USER';
+        const menu = getMainMenu(tgIdStr, role, deps.adminId);
+        return ctx.reply(text, { ...menu, ...extra });
+    } catch (e) {
+        return ctx.reply(text, extra);
+    }
+};
+
 // --- Auth Helper ---
 
 export const checkAuth = async (ctx: any, deps: BotDeps): Promise<{ auth: boolean, role: string, dbId?: string }> => {
