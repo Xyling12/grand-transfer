@@ -44,7 +44,7 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
                 if (data && data.latitude && data.longitude) {
                     const closest = getClosestCity(parseFloat(data.latitude), parseFloat(data.longitude));
                     if (closest) {
-                        console.log(`📍 IP Geolocation detected: ${closest.name}`);
+                        // Город определён по IP
                         setCurrentCity(closest);
                     }
                 }

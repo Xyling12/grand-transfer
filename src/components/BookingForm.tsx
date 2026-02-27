@@ -5,12 +5,12 @@ import { useState, useEffect, useCallback, Suspense } from 'react';
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, MessageSquare, MapPin, Users, Route, Ruler, Clock3, Navigation, User, Phone, Calendar, Clock } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import LeafletSuggestInput from './LeafletSuggestInput';
+import YandexSuggestInput from './YandexSuggestInput';
 import { useCity } from '@/context/CityContext';
 import { useGeolocationCity } from '@/hooks/useGeolocationCity';
 import { cities } from '@/data/cities';
 
-const LeafletMapPreview = dynamic(() => import('./LeafletMapPreview'), {
+const YandexMapPreview = dynamic(() => import('./YandexMapPreview'), {
     ssr: false,
     loading: () => <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--glass-border)', borderRadius: '16px' }}><Loader2 size={32} style={{ animation: 'spin 2s linear infinite', color: 'var(--color-primary)' }} /></div>
 });
@@ -226,9 +226,12 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     // Clear price if coords missing or checkpoint changes
     useEffect(() => {
         if (!fromCoords || !toCoords) {
-            setTimeout(() => setPriceCalc(null), 0);
+            setPriceCalc(null);
+            setIsCalculatingRoute(false);
         } else {
-            setTimeout(() => setIsCalculatingRoute(true), 0);
+            // Сбрасываем цену и ждём новый расчёт от карты
+            setPriceCalc(null);
+            setIsCalculatingRoute(true);
         }
     }, [fromCoords, toCoords, checkpointId]);
 
@@ -339,7 +342,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                             <label className={styles.label}>Откуда (Город, улица, номер дома)</label>
                                             <div className={styles.inputWrapper}>
                                                 <MapPin size={18} className={styles.icon} />
-                                                <LeafletSuggestInput
+                                                <YandexSuggestInput
                                                     className={styles.input}
                                                     placeholder="г. Москва, ул. Ленина, д. 1"
                                                     value={fromCity}
@@ -360,7 +363,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                             <label className={styles.label}>Куда (Город, улица, номер дома)</label>
                                             <div className={styles.inputWrapper}>
                                                 <MapPin size={18} className={styles.icon} />
-                                                <LeafletSuggestInput
+                                                <YandexSuggestInput
                                                     className={styles.input}
                                                     placeholder="г. Казань, ул. Баумана, д. 2"
                                                     value={toCity}
@@ -411,7 +414,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                         position: 'relative',
                                         zIndex: 1
                                     }}>
-                                        <LeafletMapPreview
+                                        <YandexMapPreview
                                             fromCoords={fromCoords}
                                             toCoords={toCoords}
                                             checkpointCoords={activeCheckpoint ? activeCheckpoint.coords : null}
