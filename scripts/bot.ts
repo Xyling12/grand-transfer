@@ -1,6 +1,6 @@
 import { Telegraf, Markup } from 'telegraf';
 import { PrismaClient } from '@prisma/client';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import { cities } from '../src/data/cities';
 dotenv.config();
 
@@ -84,22 +84,25 @@ const getMainMenu = (chatId: string, role: string) => {
 
     if (role === 'ADMIN' || chatId === adminId) {
         // Полный доступ для админа
-        buttons.push(['👀 Активные заявки', '💬 Чат']);
+        buttons.push(['🆕 Заказы без работы', '👀 Активные заявки']);
         buttons.push(['👥 Пользователи', '📢 Рассылка']);
         buttons.push(['📥 Выгрузить EXCEL', '📊 Статистика']);
         buttons.push(['🚗 Мои заявки', '📚 История заявок']);
         buttons.push(['✅ Выполненные заявки', '⚙️ Настройки']);
         buttons.push(['🗑 Очистить БД', '💻 CRM Система']);
-        buttons.push(['ℹ️ Справка']);
+        buttons.push(['💬 Чат', '🛠 Найдена ошибка']);
+        buttons.push(['🆘 Связь с администрацией', 'ℹ️ Справка']);
     } else if (role === 'DISPATCHER') {
         // Скрываем лишнее для диспетчера, добавляем Мои заявки
-        buttons.push(['👀 Активные заявки', '🚗 Мои заявки']);
-        buttons.push(['📚 История заявок', '💬 Чат']);
-        buttons.push(['ℹ️ Справка']);
+        buttons.push(['🆕 Заказы без работы', '👀 Активные заявки']);
+        buttons.push(['🚗 Мои заявки', '📚 История заявок']);
+        buttons.push(['💬 Чат', '🛠 Найдена ошибка']);
+        buttons.push(['🆘 Связь с администрацией', 'ℹ️ Справка']);
     } else {
         // Regular DRIVER - скрываем статистику
         buttons.push(['🚗 Мои заказы', '📚 История заявок']);
-        buttons.push(['💬 Чат', 'ℹ️ Справка']);
+        buttons.push(['💬 Чат', '🛠 Найдена ошибка']);
+        buttons.push(['🆘 Связь с администрацией', 'ℹ️ Справка']);
     }
 
     return Markup.keyboard(buttons).resize();
@@ -177,7 +180,19 @@ interface RegState {
     messageIdsToDelete: number[];
 }
 
+interface Ticket {
+    id: string;
+    authorId: string;
+    adminId?: string; // Assigned admin
+    status: 'OPEN' | 'IN_PROGRESS';
+    authorName: string;
+}
+
 const pendingRegistrations = new Map<string, RegState>();
+const pendingBugReports = new Set<string>();
+const pendingSupportCreates = new Set<string>(); // Users writing a new ticket
+const activeTickets = new Map<string, Ticket>(); // Global ticket storage
+const adminReplyingTo = new Map<string, string>(); // AdminTgID -> TicketID
 
 // Handle Role Selection Callbacks
 bot.action(/register_role_(DRIVER|DISPATCHER)/, async (ctx) => {
@@ -194,16 +209,18 @@ bot.action(/register_role_(DRIVER|DISPATCHER)/, async (ctx) => {
 
         // Start registration state
         pendingRegistrations.set(tgIdStr, { step: 'FIO', role, messageIdsToDelete: [] });
+        const state = pendingRegistrations.get(tgIdStr); // Get the state immediately after setting it
 
         await ctx.answerCbQuery();
 
-        const roleText = role === 'DRIVER' ? 'Водителя' : 'Диспетчера';
-        const msg = await ctx.reply(`👤 <b>Регистрация ${roleText}</b>\n<b>Шаг 1: Ваше ФИО</b>\n\nПожалуйста, напишите ваши Фамилию, Имя и Отчество полностью (например: Иванов Иван Иванович).`, {
+        const roleText = state?.role === 'DISPATCHER' ? 'Диспетчера' : 'Водителя';
+        const totalSteps = state?.role === 'DISPATCHER' ? '2' : '6';
+
+        const msg = await ctx.reply(`👤 <b>Регистрация ${roleText}</b>\n<b>Шаг 1 из ${totalSteps}: Ваше ФИО</b>\n\nПожалуйста, напишите ваши Фамилию, Имя и Отчество полностью (например: Иванов Иван Иванович).`, {
             parse_mode: 'HTML',
             reply_markup: { remove_keyboard: true }
         });
 
-        const state = pendingRegistrations.get(tgIdStr);
         if (state) state.messageIdsToDelete.push(msg.message_id);
 
     } catch (e) {
@@ -212,9 +229,111 @@ bot.action(/register_role_(DRIVER|DISPATCHER)/, async (ctx) => {
     }
 });
 
-// Intercept All Messages to handle the Registration State Machine
+// Intercept All Messages to handle the Registration State Machine and Bug Reports
 bot.on('message', async (ctx, next) => {
+    if (!ctx.chat) return next();
     const tgIdStr = ctx.chat.id.toString();
+    const text = (ctx.message as any).text;
+
+    // Check Bug Reports First
+    if (pendingBugReports.has(tgIdStr)) {
+        if (text === '/cancel' || text === 'Отмена' || !text) {
+            pendingBugReports.delete(tgIdStr);
+            return ctx.reply('❌ Описание ошибки отменено.', { reply_markup: { remove_keyboard: true } });
+        }
+        try {
+            await ctx.telegram.sendMessage(
+                adminId,
+                `🚨 <b>НОВЫЙ БАГ РЕПОРТ</b>\n\n<b>От:</b> <a href="tg://user?id=${tgIdStr}">${ctx.from?.first_name || 'Пользователь'}</a>\n<b>Текст:</b>\n${text}`,
+                { parse_mode: 'HTML' }
+            );
+            pendingBugReports.delete(tgIdStr);
+            return ctx.reply('✅ Ваше сообщение об ошибке успешно отправлено разработчикам. Спасибо!');
+        } catch (e) {
+            pendingBugReports.delete(tgIdStr);
+            return ctx.reply('❌ Ошибка при отправке.');
+        }
+    }
+
+    // Check Support Ticket Create
+    if (pendingSupportCreates.has(tgIdStr)) {
+        if (text === '/cancel' || text === 'Отмена' || !text) {
+            pendingSupportCreates.delete(tgIdStr);
+            return ctx.reply('❌ Обращение отменено.');
+        }
+
+        const ticketId = Math.floor(10000 + Math.random() * 90000).toString();
+        const authorName = ctx.from?.first_name || 'Пользователь';
+
+        activeTickets.set(ticketId, {
+            id: ticketId, authorId: tgIdStr, status: 'OPEN', authorName
+        });
+        pendingSupportCreates.delete(tgIdStr);
+
+        // Notify Admins
+        const admins = await prisma.driver.findMany({ where: { role: 'ADMIN' } });
+        let sentCount = 0;
+        for (const admin of admins) {
+            try {
+                await bot.telegram.sendMessage(
+                    admin.telegramId.toString(),
+                    `🆘 <b>Новое обращение №${ticketId}</b>\n\n<b>От:</b> <a href="tg://user?id=${tgIdStr}">${authorName}</a>\n<b>Сообщение:</b>\n${text}`,
+                    {
+                        parse_mode: 'HTML',
+                        reply_markup: {
+                            inline_keyboard: [[{ text: '🙋‍♂️ Взять в работу', callback_data: `take_ticket_${ticketId}` }]]
+                        }
+                    }
+                );
+                sentCount++;
+            } catch (e) { }
+        }
+
+        return ctx.reply(`✅ Обращение <b>№${ticketId}</b> создано и отправлено администрации.\nОжидайте ответа!`, {
+            parse_mode: 'HTML'
+        });
+    }
+
+    // Check Admin Replying to a Ticket
+    if (adminReplyingTo.has(tgIdStr)) {
+        if (text === '/cancel' || text === 'Отмена' || !text) {
+            adminReplyingTo.delete(tgIdStr);
+            return ctx.reply('❌ Отправка ответа отменена.', { reply_markup: { remove_keyboard: true } });
+        }
+
+        const ticketId = adminReplyingTo.get(tgIdStr)!;
+        const ticket = activeTickets.get(ticketId);
+
+        if (!ticket) {
+            adminReplyingTo.delete(tgIdStr);
+            return ctx.reply('❌ Обращение №' + ticketId + ' не найдено или уже закрыто.', { reply_markup: { remove_keyboard: true } });
+        }
+
+        // Send reply to user
+        try {
+            await ctx.telegram.sendMessage(
+                ticket.authorId,
+                `📩 <b>Ответ администрации (Обращение №${ticketId}):</b>\n\n${text}`,
+                { parse_mode: 'HTML' }
+            );
+            adminReplyingTo.delete(tgIdStr);
+
+            // Show Ticket Menu again
+            return ctx.reply(`✅ Ответ успешно отправлен автору обращения №${ticketId}.`, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '✉️ Написать еще', callback_data: `reply_ticket_${ticketId}` }],
+                        [{ text: '✅ Закрыть обращение', callback_data: `close_ticket_${ticketId}` }]
+                    ]
+                }
+            });
+        } catch (e) {
+            adminReplyingTo.delete(tgIdStr);
+            return ctx.reply('❌ Ошибка при отправке ответа пользователю (возможно он заблокировал бота).');
+        }
+    }
+
+    // Check Registration State
     const state = pendingRegistrations.get(tgIdStr);
 
     if (!state) {
@@ -237,7 +356,8 @@ bot.on('message', async (ctx, next) => {
             const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
             state.messageIdsToDelete = []; // reset for next steps
 
-            const m2 = await ctx.reply('📱 <b>Шаг 2 из 5: Номер телефона</b>\n\nПожалуйста, нажмите кнопку «Поделиться контактом» ниже, либо введите номер вручную строго в формате, начиная с <b>+7</b> (например: +79991234567).', {
+            const totalSteps = state.role === 'DISPATCHER' ? '2' : '6';
+            const m2 = await ctx.reply(`📱 <b>Шаг 2 из ${totalSteps}: Номер телефона</b>\n\nПожалуйста, нажмите кнопку «Поделиться контактом» ниже, либо введите номер вручную строго в формате, начиная с <b>+7</b> (например: +79991234567).`, {
                 parse_mode: 'HTML',
                 reply_markup: {
                     keyboard: [
@@ -922,12 +1042,6 @@ const handleHelp = async (ctx: any) => {
         msg += `• <b>🌐 Панель на сайте:</b> Получение ссылки на админ панель и CRM систему.\n\n`;
     }
 
-    msg += `📌 <b>Обновление v1.3.8 (${new Date().toLocaleDateString('ru-RU')}):</b>\n`;
-    msg += `- 💻 **CRM Панель**: Добавлена кнопка авторизации для администраторов прямо на стартовый экран.\n`;
-    msg += `- 🧹 **Очистка чата**: Добавлена команда /clear для удаления предыдущих сообщений.\n`;
-    msg += `\n📌 <b>Обновление v1.3.7:</b>\n`;
-    msg += `- 📝 **Верификация**: Многошаговая регистрация (ФИО, ПТС, СТС, Авто) через бота.\n`;
-    msg += `- 👨‍💻 **Медиа в CRM**: Изображения ПТС и СТС водителей открываются из веб-панели.\n`;
     msg += `\n📌 <b>Обновление v1.3.5:</b>\n`;
     msg += `- 🏁 **Выполнение**: Возможность закрывать взятые заказы кнопкой "Заявка выполнена".\n`;
     msg += `\n<i>⚠️ Для обновления кнопок меню внизу напишите боту команду /start</i>\n`;
@@ -1106,7 +1220,7 @@ bot.hears('👀 Активные заявки', async (ctx) => {
 
             msg += `${statusEmoji} <b>Заявка № ${o.id}</b> (${dateStr})\n` +
                 `📍 <b>Маршрут:</b> ${o.fromCity} — ${o.toCity}\n` +
-                `💰 <b>Сумма:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}` +
+                `💰 <b>Сумма:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана}'}` +
                 `${driverInfo}\n` +
                 `━━━━━━━━━━━━━━━━━━\n\n`;
 
@@ -1402,7 +1516,7 @@ bot.hears('📥 Выгрузить EXCEL', async (ctx) => {
 
         // Add Orders by Month
         let hasOrders = false;
-        for (const [monthName, data] of ordersByMonth.entries()) {
+        for (const [monthName, data] of Array.from(ordersByMonth.entries())) {
             const ws = xlsx.utils.aoa_to_sheet(data);
             // Safe sheet name length is 31 characters
             let sheetName = monthName.substring(0, 31);
@@ -1708,6 +1822,145 @@ bot.action(/^view_orders_(\d+)$/, async (ctx) => {
         await ctx.replyWithHTML(msg, { protect_content: true });
     } catch (err) {
         ctx.answerCbQuery('Ошибка получения заявок.');
+    }
+});
+
+// Bug Reporting Handler
+bot.hears('🛠 Найдена ошибка', async (ctx) => {
+    const tgIdStr = ctx.chat.id.toString();
+    pendingBugReports.add(tgIdStr);
+
+    return ctx.reply(
+        '🛠 <b>Сообщение об ошибке</b>\n\nПожалуйста, максимально подробно опишите ошибку, которую вы нашли. Ваше следующее сообщение будет отправлено тех. поддержке.\n\n<i>Отправьте /cancel для отмены.</i>',
+        { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } }
+    );
+});
+
+// Support System Handler
+bot.hears('🆘 Связь с администрацией', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role === 'PENDING' || role === 'BANNED') return;
+
+    const tgIdStr = ctx.chat.id.toString();
+    pendingSupportCreates.add(tgIdStr);
+
+    return ctx.reply(
+        '🆘 <b>Обращение в администрацию</b>\n\nНапишите ваш вопрос, проблему или предложение одним сообщением. Оно будет направлено всем дежурным администраторам диспетчерской службы.\n\n<i>Отправьте /cancel для отмены.</i>',
+        { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } }
+    );
+});
+
+// Admin takes ticket
+bot.action(/^take_ticket_(\d+)$/, async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || role !== 'ADMIN') return ctx.answerCbQuery('У вас нет прав администратора', { show_alert: true });
+
+    const ticketId = ctx.match[1];
+    const ticket = activeTickets.get(ticketId);
+    const tgIdStr = ctx.chat!.id.toString();
+
+    if (!ticket) {
+        return ctx.answerCbQuery('Это обращение уже закрыто или не найдено.', { show_alert: true });
+    }
+
+    if (ticket.status === 'IN_PROGRESS' && ticket.adminId !== tgIdStr) {
+        return ctx.answerCbQuery('Это обращение уже взял другой администратор.', { show_alert: true });
+    }
+
+    ticket.status = 'IN_PROGRESS';
+    ticket.adminId = tgIdStr;
+
+    await ctx.answerCbQuery('Вы взяли обращение в работу!');
+
+    try {
+        await ctx.editMessageReplyMarkup({
+            inline_keyboard: [
+                [{ text: '✉️ Написать ответ', callback_data: `reply_ticket_${ticketId}` }],
+                [{ text: '✅ Закрыть обращение', callback_data: `close_ticket_${ticketId}` }]
+            ]
+        });
+
+        // Notify Author
+        await ctx.telegram.sendMessage(ticket.authorId, `👨‍💻 <b>Администратор принял ваше обращение №${ticketId} в работу.</b> Ожидайте ответа.`, { parse_mode: 'HTML' }).catch(() => { });
+    } catch (e) { }
+});
+
+// Admin replies to ticket
+bot.action(/^reply_ticket_(\d+)$/, async (ctx) => {
+    const ticketId = ctx.match[1];
+    const ticket = activeTickets.get(ticketId);
+    if (!ticket) return ctx.answerCbQuery('Обращение не найдено', { show_alert: true });
+
+    const tgIdStr = ctx.chat!.id.toString();
+    adminReplyingTo.set(tgIdStr, ticketId);
+
+    await ctx.answerCbQuery();
+    await ctx.reply(`✍️ Напишите ответ для обращения <b>№${ticketId}</b>. Следующее ваше сообщение будет отправлено автору.\n\n<i>Отправьте /cancel для отмены.</i>`, { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } });
+});
+
+// Admin closes ticket
+bot.action(/^close_ticket_(\d+)$/, async (ctx) => {
+    const ticketId = ctx.match[1];
+    const ticket = activeTickets.get(ticketId);
+
+    if (!ticket) {
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => { });
+        return ctx.answerCbQuery('Обращение уже удалено или закрыто.', { show_alert: true });
+    }
+
+    activeTickets.delete(ticketId);
+    adminReplyingTo.delete(ctx.chat!.id.toString()); // cleanup if they were replying
+
+    await ctx.answerCbQuery('Обращение успешно закрыто.');
+    await ctx.editMessageText(`✅ <b>Обращение №${ticketId} закрыто!</b>\nОт: ${ticket.authorName}`, { parse_mode: 'HTML', reply_markup: { inline_keyboard: [] } });
+
+    // Notify author
+    await ctx.telegram.sendMessage(ticket.authorId, `✅ <b>Ваше обращение №${ticketId} было закрыто администратором.</b>\nЕсли у вас остались вопросы, вы можете создать новое обращение.`, { parse_mode: 'HTML' }).catch(() => { });
+});
+
+// DISPATCHER AND ADMIN: List "NEW" orders without an assigned dispatcher
+bot.hears('🆕 Заказы без работы', async (ctx) => {
+    const { auth, role } = await checkAuth(ctx);
+    if (!auth || (role !== 'DISPATCHER' && role !== 'ADMIN')) return; // Drivers shouldn't see this directly before dispatch
+
+    try {
+        const newOrders = await prisma.order.findMany({
+            where: { status: 'NEW' },
+            include: { customer: true, dispatcher: true, driver: true },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        if (newOrders.length === 0) {
+            return ctx.reply('Нет новых заявок (status: NEW). Скоро появятся!');
+        }
+
+        let msg = '🆕 <b>Заявки без диспетчера (Новые с сайта):</b>\n\n';
+        const inlineButtons: any[] = [];
+
+        newOrders.forEach((o: any) => {
+            const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
+            msg += `🔵 <b>Заявка № ${o.id}</b> (${dateStr})\n` +
+                `📍 <b>Маршрут:</b> ${o.fromCity} — ${o.toCity}\n` +
+                `💰 <b>Сумма:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n` +
+                `👤 <b>Клиент:</b> ${o.customerName}\n` +
+                `━━━━━━━━━━━━━━━━━━\n\n`;
+
+            inlineButtons.push(Markup.button.callback(`📄 Заявка № ${o.id}`, `full_order_${o.id}`));
+        });
+
+        const keyboardRows = [];
+        for (let i = 0; i < inlineButtons.length; i += 2) {
+            keyboardRows.push(inlineButtons.slice(i, i + 2));
+        }
+
+        await ctx.replyWithHTML(msg, {
+            reply_markup: { inline_keyboard: keyboardRows },
+            protect_content: role !== 'ADMIN'
+        });
+
+    } catch (e) {
+        console.error(e);
+        ctx.reply('Ошибка сервера базы данных.');
     }
 });
 

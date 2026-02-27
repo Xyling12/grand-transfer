@@ -36,8 +36,14 @@ export async function PATCH(req: Request) {
         }
 
         const updateData: any = {};
-        if (status) updateData.status = status;
-        if (role) updateData.role = role;
+        // If action is unban (status: APPROVED, but currently BANNED)
+        if (status === 'APPROVED' && user.status === 'BANNED') {
+            updateData.status = 'PENDING';
+            updateData.role = 'USER';
+        } else {
+            if (status) updateData.status = status;
+            if (role) updateData.role = role;
+        }
 
         const updatedUser = await prisma.driver.update({
             where: { id: String(id) },
@@ -45,15 +51,16 @@ export async function PATCH(req: Request) {
         });
 
         // Notifications
-        if (status && status !== user.status) {
+        if (updatedUser.status !== user.status) {
             let msg = '';
-            if (status === 'APPROVED') msg = '✅ Ваш аккаунт в системе <b>одобрен</b> администратором.';
-            if (status === 'BANNED') msg = '🚫 Ваш аккаунт был <b>заблокирован</b> администратором.';
-            if (status === 'PENDING') msg = '⏳ Ваш аккаунт переведен назад в статус <b>ожидания</b>.';
+            if (updatedUser.status === 'APPROVED') msg = '✅ Ваш аккаунт в системе <b>одобрен</b> администратором.';
+            if (updatedUser.status === 'BANNED') msg = '🚫 Ваш аккаунт был <b>заблокирован</b> администратором.';
+            if (updatedUser.status === 'PENDING' && user.status === 'BANNED') msg = '🔄 Ваш аккаунт был <b>разблокирован</b> администратором.\n\n⚠️ Обратите внимание: Ваша роль была сброшена. Для дальнейшей работы вам необходимо <b>отправить заявку заново</b> через форму регистрации.';
+            else if (updatedUser.status === 'PENDING') msg = '⏳ Ваш аккаунт переведен назад в статус <b>ожидания</b>.';
             if (msg) await sendTgNotification(user.telegramId, msg);
         }
 
-        if (role && role !== user.role) {
+        if (updatedUser.role !== user.role) {
             const roleNames: Record<string, string> = {
                 'DRIVER': 'Водитель',
                 'DISPATCHER': 'Диспетчер',
