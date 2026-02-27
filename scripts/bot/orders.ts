@@ -314,7 +314,8 @@ export function registerOrderHandlers(deps: BotDeps) {
             });
             await ctx.answerCbQuery();
         } catch (err) {
-            ctx.answerCbQuery('Ошибка получения заявки');
+            console.error('full_order error:', err);
+            ctx.answerCbQuery('Ошибка получения заявки. Возможно, она была удалена.', { show_alert: true });
         }
     });
 
@@ -361,6 +362,49 @@ export function registerOrderHandlers(deps: BotDeps) {
         } catch (e) {
             console.error(e);
             ctx.reply('Ошибка сервера базы данных.');
+        }
+    });
+
+    // --- Available Orders for Drivers ---
+    bot.hears('📋 Доступные заявки', async (ctx) => {
+        const { auth, role } = await checkAuth(ctx, deps);
+        if (!auth) return;
+
+        try {
+            const available = await prisma.order.findMany({
+                where: {
+                    status: { in: ['DISPATCHED', 'NEW'] },
+                    driverId: null
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 20
+            });
+
+            if (available.length === 0) {
+                return ctx.reply('📋 Нет доступных заявок. Ожидайте новых заказов!', { protect_content: true });
+            }
+
+            let msg = `📋 <b>Доступные заявки (${available.length}):</b>\n\n`;
+            const inlineButtons: any[] = [];
+
+            for (const o of available) {
+                const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU') : '';
+                msg += `🔵 <b>Заявка № ${o.id}</b> (${dateStr})\n` +
+                    `📍 <b>Маршрут:</b> ${o.fromCity} — ${o.toCity}\n` +
+                    `🚕 <b>Тариф:</b> ${translateTariff(o.tariff)}\n` +
+                    `💰 <b>Сумма:</b> ${o.priceEstimate ? o.priceEstimate + ' ₽' : 'Не рассчитана'}\n` +
+                    `━━━━━━━━━━━━━━━━━━\n\n`;
+
+                inlineButtons.push([{ text: `✅ Забрать заявку № ${o.id}`, callback_data: `take_order_${o.id}` }]);
+            }
+
+            await ctx.replyWithHTML(msg, {
+                reply_markup: { inline_keyboard: inlineButtons },
+                protect_content: role !== 'ADMIN'
+            });
+        } catch (e) {
+            console.error(e);
+            ctx.reply('❌ Ошибка получения заявок.', { protect_content: true });
         }
     });
 

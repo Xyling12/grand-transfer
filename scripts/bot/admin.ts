@@ -465,6 +465,52 @@ export function registerAdminHandlers(deps: BotDeps) {
         }
     });
 
+    // --- Pending Registrations ---
+    bot.hears('📋 Ожидающие регистрацию', async (ctx) => {
+        const { auth, role } = await checkAuth(ctx, deps);
+        if (!auth || role !== 'ADMIN') return;
+
+        try {
+            const pending = await prisma.driver.findMany({
+                where: { status: 'PENDING' },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            if (pending.length === 0) {
+                return ctx.reply('✅ Нет ожидающих регистрацию.', { protect_content: true });
+            }
+
+            await ctx.reply(`📋 <b>Ожидающие регистрацию: ${pending.length}</b>`, { parse_mode: 'HTML', protect_content: true });
+
+            for (const d of pending) {
+                const name = d.username ? `@${d.username}` : (d.firstName || `ID: ${d.telegramId}`);
+                const fio = d.fullFio ? `\nФИО: <b>${d.fullFio}</b>` : '';
+                const phone = d.phone ? `\n📱 Тел: <b>${d.phone}</b>` : '';
+                const dateStr = d.createdAt ? new Date(d.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
+                let text = `👤 <b>${name}</b>${fio}${phone}\nДата: ${dateStr}\nTG ID: <code>${d.telegramId}</code>`;
+
+                const keyboard = {
+                    inline_keyboard: [
+                        [
+                            { text: '✅ Водитель', callback_data: `approve_${d.telegramId}` },
+                            { text: '🎧 Диспетчер', callback_data: `approve_disp_${d.telegramId}` }
+                        ],
+                        [
+                            { text: '❌ Отклонить', callback_data: `delete_${d.telegramId}` }
+                        ],
+                        [
+                            { text: '💻 Открыть CRM', url: 'https://xn--c1acbe2apap.com/admin/drivers' }
+                        ]
+                    ]
+                };
+
+                await ctx.replyWithHTML(text, { reply_markup: keyboard, protect_content: true });
+            }
+        } catch (err) {
+            ctx.reply('❌ Ошибка получения списка.', { protect_content: true });
+        }
+    });
+
     // --- User Panel ---
     bot.hears('👥 Пользователи', async (ctx) => {
         const { auth, role } = await checkAuth(ctx, deps);
@@ -588,6 +634,9 @@ export function registerAdminHandlers(deps: BotDeps) {
             await prisma.driver.update({ where: { telegramId }, data: { status: 'BANNED' } });
             await ctx.answerCbQuery('Пользователь забанен');
             await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n🚫 СТАТУС ИЗМЕНЕН НА: BANNED');
+            try {
+                await bot.telegram.sendMessage(Number(telegramId), '🚫 Ваш аккаунт был заблокирован администратором. Доступ к системе ограничен.', { reply_markup: { remove_keyboard: true } });
+            } catch (e) { }
         } catch {
             await ctx.answerCbQuery('Ошибка обновления');
         }
@@ -599,6 +648,9 @@ export function registerAdminHandlers(deps: BotDeps) {
 
         const telegramId = BigInt(ctx.match[1]);
         try {
+            try {
+                await bot.telegram.sendMessage(Number(telegramId), '⚠️ Ваш аккаунт был удалён из системы администратором. Для повторной регистрации напишите /start.', { reply_markup: { remove_keyboard: true } });
+            } catch (e) { }
             await prisma.driver.delete({ where: { telegramId } });
             await ctx.answerCbQuery('Пользователь удален из базы');
             await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n🗑 ПОЛЬЗОВАТЕЛЬ УДАЛЕН');
@@ -610,12 +662,14 @@ export function registerAdminHandlers(deps: BotDeps) {
     bot.action(/^setrole_(\d+)_([A-Z]+)$/, async (ctx) => {
         const telegramId = BigInt(ctx.match[1]);
         const newRole = ctx.match[2];
+        const roleNames: Record<string, string> = { 'ADMIN': 'Администратор', 'DISPATCHER': 'Диспетчер', 'DRIVER': 'Водитель', 'USER': 'Пользователь' };
+        const roleName = roleNames[newRole] || newRole;
         try {
             await prisma.driver.update({ where: { telegramId }, data: { role: newRole } });
-            await ctx.answerCbQuery(`Роль изменена на ${newRole}`);
-            await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + `\n\n👑 РОЛЬ ИЗМЕНЕНА НА: ${newRole}`);
+            await ctx.answerCbQuery(`Роль изменена на ${roleName}`);
+            await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + `\n\n👑 РОЛЬ ИЗМЕНЕНА НА: ${roleName}`);
             try {
-                await bot.telegram.sendMessage(Number(telegramId), `Вам присвоена роль: ${newRole}! Меню обновлено.`, { ...getMainMenu(telegramId.toString(), newRole, adminId), protect_content: true });
+                await bot.telegram.sendMessage(Number(telegramId), `👑 Вам присвоена новая роль: <b>${roleName}</b>!\n\nНажмите /start чтобы обновить меню.`, { parse_mode: 'HTML', ...getMainMenu(telegramId.toString(), newRole, adminId), protect_content: true });
             } catch (e) { }
         } catch {
             await ctx.answerCbQuery('Ошибка обновления');

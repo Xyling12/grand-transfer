@@ -49,25 +49,27 @@ export const getMainMenu = (chatId: string, role: string, adminId: string) => {
 
     if (role === 'ADMIN' || chatId === adminId) {
         buttons.push(['🆕 Заказы без работы', '👀 Активные заявки']);
-        buttons.push(['👥 Пользователи', '📢 Рассылка']);
-        buttons.push(['📥 Выгрузить EXCEL', '📊 Статистика']);
+        buttons.push(['👥 Пользователи', '📋 Ожидающие регистрацию']);
+        buttons.push(['📢 Рассылка', '📊 Статистика']);
+        buttons.push(['📥 Выгрузить EXCEL', '💻 CRM Система']);
         buttons.push(['🚗 Мои заявки', '📚 История заявок']);
         buttons.push(['✅ Выполненные заявки', '⚙️ Настройки']);
-        buttons.push(['🗑 Очистить БД', '💻 CRM Система']);
-        buttons.push(['💬 Чат', '🐛 Баг-репорты']);
-        buttons.push(['📩 Мои обращения', '🆘 Написать в поддержку']);
+        buttons.push(['🗑 Очистить БД', '💬 Чат']);
+        buttons.push(['🐛 Баг-репорты', '📩 Мои обращения']);
+        buttons.push(['🆘 Написать в поддержку']);
         buttons.push(['🛠 Найдена ошибка', 'ℹ️ Справка']);
     } else if (role === 'DISPATCHER') {
         buttons.push(['🆕 Заказы без работы', '👀 Активные заявки']);
         buttons.push(['🚗 Мои заявки', '📚 История заявок']);
-        buttons.push(['💬 Чат', '🛠 Найдена ошибка']);
-        buttons.push(['📩 Мои обращения', '🆘 Написать в поддержку']);
-        buttons.push(['ℹ️ Справка']);
+        buttons.push(['💬 Чат', '📩 Мои обращения']);
+        buttons.push(['🆘 Написать в поддержку']);
+        buttons.push(['🛠 Найдена ошибка', 'ℹ️ Справка']);
     } else {
         buttons.push(['🚗 Мои заказы', '📚 История заявок']);
-        buttons.push(['💬 Чат', '🛠 Найдена ошибка']);
-        buttons.push(['📩 Мои обращения', '🆘 Написать в поддержку']);
-        buttons.push(['ℹ️ Справка']);
+        buttons.push(['📋 Доступные заявки', '💬 Чат']);
+        buttons.push(['📩 Мои обращения']);
+        buttons.push(['🆘 Написать в поддержку']);
+        buttons.push(['🛠 Найдена ошибка', 'ℹ️ Справка']);
     }
 
     return Markup.keyboard(buttons).resize();
