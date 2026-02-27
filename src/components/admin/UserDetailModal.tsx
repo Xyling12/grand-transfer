@@ -12,7 +12,31 @@ type UserDetailModalProps = {
 };
 
 export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateFeedback, onOpenOrder }: UserDetailModalProps) {
+    const [isLoadingAction, setIsLoadingAction] = React.useState(false);
+
     if (!isOpen || !data) return null;
+
+    const handleAdminAction = async (action: 'status' | 'role' | 'delete', val: string) => {
+        if (!confirm(`Вы уверены, что хотите выполнить это действие: ${action} -> ${val}?`)) return;
+        setIsLoadingAction(true);
+        try {
+            if (action === 'delete') {
+                const res = await fetch(`/api/admin/users?id=${data.id}`, { method: 'DELETE' });
+                if (res.ok) { alert('Пользователь удален. Обновите страницу.'); onClose(); }
+                else alert('Ошибка: возможно есть зависшие заказы.');
+            } else {
+                const body = action === 'status' ? { id: data.id, status: val } : { id: data.id, role: val };
+                const res = await fetch(`/api/admin/users`, {
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                });
+                if (res.ok) { alert('Успешно обновлено. Обновите страницу для применения изменений.'); onClose(); }
+            }
+        } catch (e) {
+            alert('Сетевая ошибка.');
+        } finally {
+            setIsLoadingAction(false);
+        }
+    };
 
     const renderDocs = () => {
         if (type !== 'driver') return null;
@@ -254,6 +278,39 @@ export default function UserDetailModal({ isOpen, onClose, data, type, onUpdateF
                             </div>
                         )}
                     </div>
+
+                    {/* Admin Controls Area */}
+                    {type !== 'client' && (
+                        <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0.75rem', padding: '1rem' }}>
+                            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#fff', marginBottom: '0.75rem' }}>Управление пользователем</h3>
+
+                            {data.status === 'PENDING' && (
+                                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                                    <button disabled={isLoadingAction} onClick={() => handleAdminAction('status', 'APPROVED')} style={{ flex: 1, padding: '0.5rem', background: 'rgba(34, 197, 94, 0.2)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.5)', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>✅ Принять</button>
+                                    <button disabled={isLoadingAction} onClick={() => handleAdminAction('status', 'BANNED')} style={{ flex: 1, padding: '0.5rem', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.5)', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>❌ Отказать</button>
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', opacity: isLoadingAction ? 0.5 : 1, pointerEvents: isLoadingAction ? 'none' : 'auto' }}>
+                                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                                    {data.status !== 'BANNED' && (
+                                        <button onClick={() => handleAdminAction('status', 'BANNED')} style={{ flex: 1, padding: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>🚫 Заблокировать</button>
+                                    )}
+                                    {data.status === 'BANNED' && (
+                                        <button onClick={() => handleAdminAction('status', 'APPROVED')} style={{ flex: 1, padding: '0.5rem', background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', border: '1px dashed rgba(34, 197, 94, 0.3)', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>🔄 Восстановить</button>
+                                    )}
+                                    <button onClick={() => handleAdminAction('delete', 'yes')} style={{ flex: 1, padding: '0.5rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.5)', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 'bold' }}>🗑 Удалить НАВСЕГДА</button>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '0.5rem', width: '100%', marginTop: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.875rem', color: '#9ca3af', display: 'flex', alignItems: 'center', width: '100px' }}>Сменить роль:</span>
+                                    {data.role !== 'DRIVER' && <button onClick={() => handleAdminAction('role', 'DRIVER')} style={{ flex: 1, padding: '0.4rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.75rem' }}>🚗 Водитель</button>}
+                                    {data.role !== 'DISPATCHER' && <button onClick={() => handleAdminAction('role', 'DISPATCHER')} style={{ flex: 1, padding: '0.4rem', background: 'rgba(168, 85, 247, 0.1)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.75rem' }}>🎧 Диспетчер</button>}
+                                    {data.role !== 'ADMIN' && <button onClick={() => handleAdminAction('role', 'ADMIN')} style={{ flex: 1, padding: '0.4rem', background: 'rgba(245, 158, 11, 0.1)', color: '#fcd34d', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.75rem' }}>👑 Админ</button>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {renderDocs()}
                     {renderOrders()}
