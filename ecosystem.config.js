@@ -11,7 +11,7 @@ module.exports = {
         {
             name: 'telegram-bot',
             script: 'node_modules/tsx/dist/cli.mjs',
-            args: 'scripts/bot.ts',
+            args: 'scripts/bot/index.ts',
             env: {
                 NODE_ENV: 'production',
             },

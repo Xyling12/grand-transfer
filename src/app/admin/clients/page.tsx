@@ -14,7 +14,7 @@ export default async function AdminClientsPage() {
     const clientsMap = new Map();
     let totalClientRevenue = 0;
 
-    orders.forEach((o) => {
+    orders.forEach((o: typeof orders[number]) => {
         if (!o.customerPhone) return;
 
         const key = o.customerPhone;

@@ -15,9 +15,6 @@ const nextConfig: NextConfig = {
   experimental: {
     turbopackUseSystemTlsCerts: true,
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  }
 };
 
 export default nextConfig;

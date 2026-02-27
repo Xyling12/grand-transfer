@@ -63,3 +63,15 @@ model BotSettings {
   id             Int     @id @default(1)
   protectContent Boolean @default(true)
 }
+
+model SupportTicket {
+  id         Int       @id @default(autoincrement())
+  ticketNum  String    @unique
+  authorId   String
+  authorName String
+  adminId    String?
+  message    String
+  status     String    @default("OPEN") // OPEN, IN_PROGRESS, CLOSED
+  createdAt  DateTime  @default(now())
+  closedAt   DateTime?
+}
