@@ -44,3 +44,25 @@ next-env.d.ts
 *.db
 *.sqlite
 dev.db
+
+# dev scripts
+*.bat
+
+# strategy / planning docs (local only)
+SEO_HISTORY.md
+SEO_STRATEGY.md
+YANDEX_DIRECT_STRATEGY.md
+dokploy_architecture.md
+gemini.md
+
+# backup images
+public/images/tariffs/backup/
+
+# unused configs
+nixpacks.toml
+ecosystem.config.js
+
+# old scripts
+scripts/bot.ts
+scripts/mock-orders.ts
+scripts/generate-sitemap-index.ts
