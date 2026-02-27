@@ -34,6 +34,9 @@ export async function generateMetadata(
         title: `${post.title} | Блог GrandTransfer`,
         description: post.description,
         keywords: post.seoKeywords,
+        alternates: {
+            canonical: `https://xn--c1acbe2apap.com/blog/${params.slug}`,
+        },
         openGraph: {
             title: post.title,
             description: post.description,
@@ -78,9 +81,20 @@ export default async function BlogPostPage(props: Props) {
         }
     };
 
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://xn--c1acbe2apap.com" },
+            { "@type": "ListItem", "position": 2, "name": "Блог", "item": "https://xn--c1acbe2apap.com/blog" },
+            { "@type": "ListItem", "position": 3, "name": post.title, "item": `https://xn--c1acbe2apap.com/blog/${post.id}` }
+        ]
+    };
+
     return (
         <main>
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
             <div
                 aria-hidden="true"

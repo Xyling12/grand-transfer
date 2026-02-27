@@ -8,6 +8,9 @@ import Footer from '@/components/Footer';
 export const metadata: Metadata = {
     title: 'Все междугородние маршруты по России | GrandTransfer',
     description: 'Полный список маршрутов междугороднего такси по России. Выберите город отправления и прибытия для точного расчёта стоимости и заказа комфортного трансфера.',
+    alternates: {
+        canonical: 'https://xn--c1acbe2apap.com/routes',
+    },
 };
 
 export default function RoutesHubPage() {
@@ -93,11 +96,6 @@ export default function RoutesHubPage() {
             </section>
 
             <Footer />
-
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                .hover-link:hover { color: var(--color-primary) !important; text-decoration: underline !important; }
-            `}} />
         </main>
     );
 }

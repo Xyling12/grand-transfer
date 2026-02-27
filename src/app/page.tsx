@@ -1,4 +1,3 @@
-'use client';
 
 import Header from '../components/Header';
 import Hero from '../components/Hero';
@@ -7,11 +6,8 @@ import Tariffs from '../components/Tariffs';
 import PopularRoutes from '../components/PopularRoutes';
 import Reviews from '../components/Reviews';
 import Footer from '../components/Footer';
-import dynamic from 'next/dynamic';
+import BookingFormWrapper from '../components/BookingFormWrapper';
 
-const BookingForm = dynamic(() => import('../components/BookingForm'), {
-  ssr: false,
-});
 
 export default function Home() {
   return (
@@ -58,7 +54,7 @@ export default function Home() {
       <WhyChooseUs />
       <Tariffs />
       <PopularRoutes />
-      <BookingForm />
+      <BookingFormWrapper />
       <Reviews />
       <Footer />
     </main>

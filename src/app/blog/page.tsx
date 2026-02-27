@@ -4,11 +4,15 @@ import Image from 'next/image';
 import { blogPosts } from '@/data/posts';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import type { Metadata } from 'next';
 
-export const metadata = {
+export const metadata: Metadata = {
     title: 'Блог о пассажирских перевозках | GrandTransfer',
     description: 'Полезные статьи о правилах поездок на междугороднем такси, советы туристам, перевозка животных и выбор тарифов.',
-    keywords: 'блог такси, правила такси межгород, статьи пассажирские перевозки'
+    keywords: 'блог такси, правила такси межгород, статьи пассажирские перевозки',
+    alternates: {
+        canonical: 'https://xn--c1acbe2apap.com/blog',
+    },
 };
 
 export default function BlogIndex() {

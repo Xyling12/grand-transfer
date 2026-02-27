@@ -20,16 +20,19 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.xn--c1adbj4b9a7c.com'),
-  title: "Междугороднее такси | GrandTransfer",
+  metadataBase: new URL('https://xn--c1acbe2apap.com'),
+  title: "Такси Межгород по России — фиксированная цена | GrandTransfer",
   description: "Межгородское такси по всей России и СНГ. Комфорт и безопасность — наш стандарт. Закажите трансфер до границы (КПП) или в другой город.",
-  keywords: "междугороднее такси, такси межгород, заказ такси, комфорт, минивэн, такси граница кпп, трезвый водитель",
+  keywords: "такси межгород, междугороднее такси, заказ такси межгород, трансфер между городами, такси граница кпп, минивэн межгород",
+  alternates: {
+    canonical: 'https://xn--c1acbe2apap.com',
+  },
   openGraph: {
     type: "website",
     locale: "ru_RU",
-    url: "https://www.xn--c1adbj4b9a7c.com",
+    url: "https://xn--c1acbe2apap.com",
     siteName: "GrandTransfer",
-    title: "Такси Межгород | GrandTransfer",
+    title: "Такси Межгород | GrandTransfer — междугородние перевозки",
     description: "Надежные междугородние поездки с фиксированной ценой до любого города или границы. Закажите комфортный трансфер прямо сейчас.",
     images: [{
       url: "/images/og-image.jpg",
