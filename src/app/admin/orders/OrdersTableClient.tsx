@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import UserDetailModal from '@/components/admin/UserDetailModal';
 import OrderDetailModal from '@/components/admin/OrderDetailModal';
+import { translateTariff } from '@/lib/translations';
 
 type FilterType = 'all' | 'processing' | 'completed';
 
@@ -38,16 +39,6 @@ export default function OrdersTableClient({ initialOrders }: { initialOrders: an
             case 'COMPLETED': return <span style={{ color: '#4ade80' }}>Выполнена</span>;
             case 'CANCELLED': return <span style={{ color: '#f87171' }}>Отменена</span>;
             default: return status;
-        }
-    };
-
-    const translateTariff = (tariff: string) => {
-        switch (tariff?.toLowerCase()) {
-            case 'econom': return 'Эконом';
-            case 'comfort': return 'Комфорт';
-            case 'minivan': return 'Минивэн';
-            case 'business': return 'Бизнес';
-            default: return tariff;
         }
     };
 

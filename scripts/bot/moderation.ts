@@ -30,6 +30,7 @@ export function registerModerationHandlers(deps: BotDeps) {
             let reason = '';
 
             // 1. Check for URLs / Links
+            URL_REGEX.lastIndex = 0; // Reset stateful regex before each test
             if (URL_REGEX.test(messageText)) {
                 shouldDelete = true;
                 reason = 'Ссылки запрещены';

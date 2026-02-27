@@ -1,30 +1,9 @@
 import { Markup } from 'telegraf';
 import { BotDeps } from './types';
 
-// --- Translation Helpers ---
+// --- Translation Helpers (shared with CRM) ---
+export { translateTariff, translateStatus } from '../../src/lib/translations';
 
-export const translateTariff = (tariff: string) => {
-    switch (tariff?.toLowerCase()) {
-        case 'standart': return 'Стандарт';
-        case 'econom': return 'Эконом';
-        case 'comfort': return 'Комфорт';
-        case 'minivan': return 'Минивэн';
-        case 'business': return 'Бизнес';
-        default: return tariff;
-    }
-};
-
-export const translateStatus = (status: string, role?: string) => {
-    switch (status) {
-        case 'NEW': return 'Новая';
-        case 'PROCESSING': return role === 'DISPATCHER' ? 'В обработке' : 'У диспетчера';
-        case 'DISPATCHED': return 'Поиск водителя';
-        case 'TAKEN': return 'Взят в работу';
-        case 'COMPLETED': return 'Выполнена';
-        case 'CANCELLED': return 'Отменена';
-        default: return status;
-    }
-};
 
 export const formatOrderMessage = (o: any, role: string) => {
     const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';

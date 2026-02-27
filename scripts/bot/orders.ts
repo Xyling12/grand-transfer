@@ -326,7 +326,7 @@ export function registerOrderHandlers(deps: BotDeps) {
         try {
             const newOrders = await prisma.order.findMany({
                 where: { status: 'NEW' },
-                include: { customer: true, dispatcher: true, driver: true },
+                include: { dispatcher: true, driver: true },
                 orderBy: { createdAt: 'desc' }
             });
 
