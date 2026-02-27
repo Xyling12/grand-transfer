@@ -237,7 +237,7 @@ bot.on('message', async (ctx, next) => {
             const cleanupMsgs = [...state.messageIdsToDelete, ctx.message.message_id];
             state.messageIdsToDelete = []; // reset for next steps
 
-            const m2 = await ctx.reply('📱 <b>Шаг 2 из 5: Номер телефона</b>\n\nПожалуйста, нажмите кнопку ниже, чтобы поделиться вашим контактным номером телефона.', {
+            const m2 = await ctx.reply('📱 <b>Шаг 2 из 5: Номер телефона</b>\n\nПожалуйста, нажмите кнопку «Поделиться контактом» ниже, либо введите номер вручную строго в формате, начиная с <b>+7</b> (например: +79991234567).', {
                 parse_mode: 'HTML',
                 reply_markup: {
                     keyboard: [
@@ -262,11 +262,20 @@ bot.on('message', async (ctx, next) => {
 
             let phone = '';
             if (contact && contact.phone_number) {
-                phone = contact.phone_number;
-            } else if (text && /^\+?\d{10,15}$/.test(text.replace(/\D/g, ''))) {
-                phone = text;
-            } else {
-                const m = await ctx.reply('⚠️ Пожалуйста, нажмите кнопку «☎️ Поделиться контактом» внизу или отправьте корректный номер текстом.');
+                // Contact payloads can omit the + sign, and start with 7 or 8. Normalize.
+                let rawPhone = String(contact.phone_number).replace(/\D/g, '');
+                if (rawPhone.startsWith('8')) rawPhone = '7' + rawPhone.slice(1);
+                phone = '+' + rawPhone;
+            } else if (text) {
+                // Ensure manual typing strictly starts with +7 and contains exactly 11 digits total (7 + 10 digits)
+                const cleanText = text.trim();
+                if (/^\+7\d{10}$/.test(cleanText)) {
+                    phone = cleanText;
+                }
+            }
+
+            if (!phone) {
+                const m = await ctx.reply('⚠️ Пожалуйста, нажмите кнопку «☎️ Поделиться контактом» внизу или отправьте корректный номер текстом <b>СТРОГО начиная с +7</b> (пример: +79991234567).', { parse_mode: 'HTML' });
                 state.messageIdsToDelete.push(ctx.message.message_id, m.message_id);
                 return;
             }
