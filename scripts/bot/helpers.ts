@@ -2,7 +2,8 @@ import { Markup } from 'telegraf';
 import { BotDeps } from './types';
 
 // --- Translation Helpers (shared with CRM) ---
-export { translateTariff, translateStatus } from '../../src/lib/translations';
+import { translateTariff, translateStatus } from '../../src/lib/translations';
+export { translateTariff, translateStatus };
 
 
 export const formatOrderMessage = (o: any, role: string) => {

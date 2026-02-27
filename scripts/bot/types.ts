@@ -24,4 +24,5 @@ export interface BotDeps {
     pendingSupportCreates: Set<string>;
     adminReplyingTo: Map<string, string>;
     userReplyingTo: Map<string, string>;
+    pendingEdits: Map<string, { orderId: number, field: string }>;
 }

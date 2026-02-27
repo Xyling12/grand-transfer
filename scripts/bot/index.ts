@@ -29,6 +29,7 @@ const pendingBugReports = new Set<string>();
 const pendingSupportCreates = new Set<string>();
 const adminReplyingTo = new Map<string, string>();
 const userReplyingTo = new Map<string, string>();
+const pendingEdits = new Map<string, { orderId: number, field: string }>();
 
 // --- Dependencies Container ---
 const deps: BotDeps = {
@@ -40,6 +41,7 @@ const deps: BotDeps = {
     pendingSupportCreates,
     adminReplyingTo,
     userReplyingTo,
+    pendingEdits,
 };
 
 // --- /start Command ---
@@ -125,6 +127,10 @@ bot.command('cancel', async (ctx) => {
         userReplyingTo.delete(tgIdStr);
         cancelled = true;
     }
+    if (pendingEdits.has(tgIdStr)) {
+        pendingEdits.delete(tgIdStr);
+        cancelled = true;
+    }
 
     if (cancelled) {
         const { auth, role } = await checkAuth(ctx, deps).catch(() => ({ auth: false, role: 'USER' }));
@@ -152,7 +158,51 @@ bot.on('message', async (ctx, next) => {
         if (handled) return;
     }
 
-    // 2. Ticket-related messages (bug reports, support creates, admin replies)
+    // 2. Pending order edits (before tickets)
+    if (pendingEdits.has(tgIdStr)) {
+        const edit = pendingEdits.get(tgIdStr)!;
+        pendingEdits.delete(tgIdStr);
+        const text = (ctx.message as any)?.text?.trim();
+        if (!text) {
+            await ctx.reply('❌ Пожалуйста, отправьте текстовое значение.');
+            return;
+        }
+        try {
+            const updateData: any = {};
+            if (edit.field === 'passengers') {
+                updateData[edit.field] = parseInt(text, 10) || 1;
+            } else if (edit.field === 'priceEstimate') {
+                updateData[edit.field] = parseFloat(text) || null;
+            } else {
+                updateData[edit.field] = text;
+            }
+            await prisma.order.update({ where: { id: edit.orderId }, data: updateData });
+
+            // Log to AuditLog
+            try {
+                await prisma.auditLog.create({
+                    data: {
+                        action: 'EDIT_ORDER',
+                        actorId: tgIdStr,
+                        actorName: ctx.from?.first_name || 'Unknown',
+                        targetId: edit.orderId.toString(),
+                        details: `${edit.field} → ${text}`
+                    }
+                });
+            } catch (e) { /* AuditLog may not exist yet */ }
+
+            const { auth, role } = await checkAuth(ctx, deps).catch(() => ({ auth: false, role: 'USER' }));
+            const menu = auth ? getMainMenu(tgIdStr, role, adminId) : { reply_markup: { remove_keyboard: true as const } };
+            await ctx.reply(`✅ Заявка №${edit.orderId}: поле <b>${edit.field}</b> обновлено на: <b>${text}</b>`, { parse_mode: 'HTML' as const, ...menu });
+            return;
+        } catch (err) {
+            console.error('Edit order error:', err);
+            await ctx.reply('❌ Ошибка при обновлении заявки.');
+            return;
+        }
+    }
+
+    // 3. Ticket-related messages (bug reports, support creates, admin replies)
     const ticketHandled = await handleTicketMessages(ctx, deps);
     if (ticketHandled) return;
 

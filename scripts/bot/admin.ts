@@ -235,7 +235,7 @@ export function registerAdminHandlers(deps: BotDeps) {
         const { auth, role } = await checkAuth(ctx, deps);
         if (!auth) return;
 
-        let msg = `🤖 <b>Справка по боту GrandTransfer (v1.6.2)</b>\n\n`;
+        let msg = `🤖 <b>Справка по боту GrandTransfer (v1.7.0)</b>\n\n`;
         msg += `<b>Основные функции (для водителей):</b>\n`;
         msg += `• <b>Получение рассылок:</b> Бот будет присылать уведомления о новых заказах с ограниченной информацией. Нажмите «✅ Забрать заявку», чтобы взять её и получить контакты клиента.\n`;
         msg += `• <b>🚗 Мои заказы:</b> Просмотр списка своих взятых заявок с контактами клиента и ссылкой на маршрут.\n`;
@@ -247,29 +247,31 @@ export function registerAdminHandlers(deps: BotDeps) {
             msg += `• <b>👀 Активные заявки:</b> Просмотр списка всех заявок, их статусов (в поиске / взята) и исполнителей.\n`;
             msg += `• <b>🚗 Мои заявки:</b> Ваши взятые и курируемые заказы.\n`;
             msg += `• <b>📤 Отправить водителям:</b> Публикация заказа в общую ленту водителей без контактов.\n`;
-            msg += `• <b>📄 Полная заявка:</b> Кнопка под активными заявками для управления и просмотра деталей.\n\n`;
+            msg += `• <b>📄 Полная заявка:</b> Просмотр деталей, редактирование полей и отмена заказов.\n\n`;
         }
 
         if (role === 'ADMIN') {
             msg += `👑 <b>Дополнительные функции (Администратор):</b>\n`;
             msg += `• <b>Верификация:</b> Команды <code>/approve номер</code>, <code>/reject номер</code>, <code>/ban номер причина</code>, <code>/unban номер</code>.\n`;
             msg += `• <b>Добавление без проверки:</b> <code>/add_driver ID ФИО Телефон</code>.\n`;
-            msg += `• <b>👥 Пользователи:</b> Поиск людей по ID/@username, одобрение/бан, выдача ролей администраторов, диспетчеров и просмотр чужих заказов.\n`;
-            msg += `• <b>📢 Рассылка:</b> Команда <code>/send текст</code> отправляет важное сообщение всем пользователям.\n`;
-            msg += `• <b>📥 Выгрузить EXCEL:</b> Скачивание всей базы заявок CSV файлом.\n`;
+            msg += `• <b>👥 Пользователи:</b> Поиск людей по ID/@username, одобрение/бан, выдача ролей и просмотр заказов.\n`;
+            msg += `• <b>📊 Статистика:</b> Фильтрация по периодам (день/неделя/месяц/всё время).\n`;
+            msg += `• <b>📥 Выгрузить EXCEL:</b> Заказы, обращения и журнал действий.\n`;
             msg += `• <b>🗑 Очистить БД:</b> Полное удаление всех заявок.\n`;
-            msg += `• <b>🌐 Панель на сайте:</b> Получение ссылки на админ панель и CRM систему.\n\n`;
+            msg += `• <b>💻 CRM Система:</b> Веб-панель с дашбордом, заказами и пользователями.\n\n`;
         }
 
-        msg += `\n📌 <b>Что нового (v1.6.2):</b>\n`;
-        msg += `- 🔔 Уведомления при бане/удалении/смене роли\n`;
-        msg += `- 📋 Кнопка «Ожидающие регистрацию» для админов\n`;
-        msg += `- 📋 Кнопка «Доступные заявки» для водителей\n`;
-        msg += `- 🆘 Кнопка поддержки вынесена на отдельную строку\n`;
-        msg += `- 🛡 Защита контента: управление пересылкой сообщений\n`;
+        msg += `\n📌 <b>Что нового (v1.7.0):</b>\n`;
+        msg += `- ✏️ Редактирование полей заявки (админ/диспетчер)\n`;
+        msg += `- ❌ Отмена заказа с подтверждением уведомлений\n`;
+        msg += `- 📅 Дата/время поездки в заявках\n`;
+        msg += `- 📊 Статистика с фильтрами по периодам\n`;
+        msg += `- 📜 Журнал действий (AuditLog)\n`;
+        msg += `- 📊 CRM Dashboard — обзор всей системы\n`;
         msg += `\n<i>⚠️ Для обновления кнопок меню внизу напишите боту команду / start </i>\n`;
 
         ctx.replyWithHTML(msg, { protect_content: role !== 'ADMIN' });
+
     };
 
     bot.hears('ℹ️ Справка', async (ctx) => { handleHelp(ctx); });
@@ -302,19 +304,21 @@ export function registerAdminHandlers(deps: BotDeps) {
     bot.command('version', (ctx) => {
         const versionMsg = `
 🤖 **Grand Transfer Bot**
-Версия: \`v1.6.2\`
+Версия: \`v1.7.0\`
 Обновлено: Февраль 2026
+
+**Что нового (1.7.0):**
+- ✏️ Редактирование полей заявки (админ/диспетчер)
+- ❌ Отмена заказа с подтверждением уведомлений
+- 📅 Дата/время поездки в заявках
+- 📊 Статистика с фильтрами по периодам
+- 📜 Журнал аудита всех админ-действий
+- 📊 CRM Dashboard — обзор всей системы
+- 🛡 Rate limiting для API
 
 **Что нового (1.6.2):**
 - 🔔 Уведомления при бане/удалении/смене роли
-- 📋 «Ожидающие регистрацию» для админов
-- 📋 «Доступные заявки» для водителей
-- 🆘 Кнопка поддержки на отдельной строке
-
-**Что нового (1.6.1):**
-- 🐛 Безопасность /unban (ре-верификация)
-- 🛡 Модерация ссылок в группе
-- ⚠️ Подтверждение при очистке БД
+- 📋 Кнопка «Ожидающие регистрацию» для админов
 `;
         ctx.reply(versionMsg, { parse_mode: 'Markdown' });
     });
@@ -606,6 +610,7 @@ export function registerAdminHandlers(deps: BotDeps) {
             try {
                 await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Напишите /start для начала работы.', { ...getMainMenu(telegramId.toString(), updatedDriver.role, adminId), protect_content: true });
             } catch (e) { }
+            try { await prisma.auditLog.create({ data: { action: 'APPROVE_USER', actorId: ctx.from?.id?.toString() || '', actorName: ctx.from?.first_name || 'Admin', targetId: telegramId.toString(), targetName: updatedDriver.fullFio || updatedDriver.firstName || '', details: 'Одобрен как Водитель' } }); } catch (e) { }
         } catch {
             await ctx.answerCbQuery('Ошибка обновления');
         }
@@ -620,6 +625,7 @@ export function registerAdminHandlers(deps: BotDeps) {
             try {
                 await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Напишите /start для начала работы.', { ...getMainMenu(telegramId.toString(), updatedDriver.role, adminId), protect_content: true });
             } catch (e) { }
+            try { await prisma.auditLog.create({ data: { action: 'APPROVE_USER', actorId: ctx.from?.id?.toString() || '', actorName: ctx.from?.first_name || 'Admin', targetId: telegramId.toString(), targetName: updatedDriver.fullFio || updatedDriver.firstName || '', details: 'Одобрен как Диспетчер' } }); } catch (e) { }
         } catch {
             await ctx.answerCbQuery('Ошибка обновления');
         }
@@ -628,12 +634,13 @@ export function registerAdminHandlers(deps: BotDeps) {
     bot.action(/^ban_(\d+)$/, async (ctx) => {
         const telegramId = BigInt(ctx.match[1]);
         try {
-            await prisma.driver.update({ where: { telegramId }, data: { status: 'BANNED' } });
+            const bannedUser = await prisma.driver.update({ where: { telegramId }, data: { status: 'BANNED' } });
             await ctx.answerCbQuery('Пользователь забанен');
             await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n🚫 СТАТУС ИЗМЕНЕН НА: BANNED');
             try {
                 await bot.telegram.sendMessage(Number(telegramId), '🚫 Ваш аккаунт был заблокирован администратором. Доступ к системе ограничен.', { reply_markup: { remove_keyboard: true } });
             } catch (e) { }
+            try { await prisma.auditLog.create({ data: { action: 'BAN_USER', actorId: ctx.from?.id?.toString() || '', actorName: ctx.from?.first_name || 'Admin', targetId: telegramId.toString(), targetName: bannedUser.fullFio || bannedUser.firstName || '' } }); } catch (e) { }
         } catch {
             await ctx.answerCbQuery('Ошибка обновления');
         }
@@ -645,12 +652,14 @@ export function registerAdminHandlers(deps: BotDeps) {
 
         const telegramId = BigInt(ctx.match[1]);
         try {
+            const deletedUser = await prisma.driver.findUnique({ where: { telegramId } });
             try {
                 await bot.telegram.sendMessage(Number(telegramId), '⚠️ Ваш аккаунт был удалён из системы администратором. Для повторной регистрации напишите /start.', { reply_markup: { remove_keyboard: true } });
             } catch (e) { }
             await prisma.driver.delete({ where: { telegramId } });
             await ctx.answerCbQuery('Пользователь удален из базы');
             await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n🗑 ПОЛЬЗОВАТЕЛЬ УДАЛЕН');
+            try { await prisma.auditLog.create({ data: { action: 'DELETE_USER', actorId: ctx.from?.id?.toString() || '', actorName: ctx.from?.first_name || 'Admin', targetId: telegramId.toString(), targetName: deletedUser?.fullFio || deletedUser?.firstName || '' } }); } catch (e) { }
         } catch {
             await ctx.answerCbQuery('Ошибка удаления. Возможно, за ним числятся заказы.');
         }
@@ -662,12 +671,13 @@ export function registerAdminHandlers(deps: BotDeps) {
         const roleNames: Record<string, string> = { 'ADMIN': 'Администратор', 'DISPATCHER': 'Диспетчер', 'DRIVER': 'Водитель', 'USER': 'Пользователь' };
         const roleName = roleNames[newRole] || newRole;
         try {
-            await prisma.driver.update({ where: { telegramId }, data: { role: newRole } });
+            const updatedUser = await prisma.driver.update({ where: { telegramId }, data: { role: newRole } });
             await ctx.answerCbQuery(`Роль изменена на ${roleName}`);
             await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + `\n\n👑 РОЛЬ ИЗМЕНЕНА НА: ${roleName}`);
             try {
                 await bot.telegram.sendMessage(Number(telegramId), `👑 Вам присвоена новая роль: <b>${roleName}</b>!\n\nНажмите /start чтобы обновить меню.`, { parse_mode: 'HTML', ...getMainMenu(telegramId.toString(), newRole, adminId), protect_content: true });
             } catch (e) { }
+            try { await prisma.auditLog.create({ data: { action: 'CHANGE_ROLE', actorId: ctx.from?.id?.toString() || '', actorName: ctx.from?.first_name || 'Admin', targetId: telegramId.toString(), targetName: updatedUser.fullFio || updatedUser.firstName || '', details: `Роль → ${roleName}` } }); } catch (e) { }
         } catch {
             await ctx.answerCbQuery('Ошибка обновления');
         }

@@ -1,6 +1,6 @@
 import { Markup } from 'telegraf';
 import { BotDeps } from './types';
-import { checkAuth, formatOrderMessage, translateTariff, translateStatus, getMainMenu, getProtectContent, getMapDeepLink, getMapWebLink } from './helpers';
+import { checkAuth, formatOrderMessage, translateTariff, translateStatus, getMainMenu, getProtectContent, getMapDeepLink, getMapWebLink, replyWithMenu } from './helpers';
 import { cities } from '../../src/data/cities';
 import * as xlsx from 'xlsx';
 
@@ -283,6 +283,7 @@ export function registerOrderHandlers(deps: BotDeps) {
             if (!order) return ctx.answerCbQuery('Заявка не найдена', { show_alert: true });
 
             const dateStr = order.createdAt ? new Date(order.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
+            const scheduledStr = (order as any).scheduledDate || 'Сразу';
             const msg = `
 📋 <b>ПОЛНАЯ ЗАЯВКА № ${order.id}</b>
 <i>(Создана ${dateStr})</i>
@@ -292,6 +293,7 @@ export function registerOrderHandlers(deps: BotDeps) {
 🚕 <b>Тариф:</b> ${translateTariff(order.tariff)}
 👥 <b>Пассажиров:</b> ${order.passengers}
 💰 <b>Стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
+📅 <b>Дата/Время:</b> ${scheduledStr}
 
 📝 <b>Комментарий:</b> ${order.comments || 'Нет'}
 👤 <b>Клиент:</b> ${order.customerName}
@@ -303,8 +305,15 @@ export function registerOrderHandlers(deps: BotDeps) {
             if (order.status === 'NEW' || order.status === 'PROCESSING') {
                 keyboardButtons.push([{ text: '🎧 Взять в работу', callback_data: `take_work_${order.id}` }]);
                 keyboardButtons.push([{ text: '📤 Отправить водителям', callback_data: `dispatch_order_${order.id}` }]);
-            } else if (order.status === 'TAKEN' || order.status === 'PROCESSING') {
+            } else if (order.status === 'TAKEN') {
                 keyboardButtons.push([{ text: '🏁 Заявка выполнена', callback_data: `complete_order_${order.id}` }]);
+            }
+            // Cancel and Edit for non-completed/cancelled orders
+            if (order.status !== 'COMPLETED' && order.status !== 'CANCELLED') {
+                keyboardButtons.push([
+                    { text: '✏️ Редактировать', callback_data: `edit_order_${order.id}` },
+                    { text: '❌ Отменить', callback_data: `cancel_order_${order.id}` }
+                ]);
             }
             keyboardButtons.push([{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }]);
             keyboardButtons.push([{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]);
@@ -320,6 +329,142 @@ export function registerOrderHandlers(deps: BotDeps) {
             console.error('full_order error:', err);
             ctx.answerCbQuery('Ошибка получения заявки. Возможно, она была удалена.', { show_alert: true });
         }
+    });
+
+    // --- Cancel Order (Step 1: Ask confirmation) ---
+    bot.action(/^cancel_order_(\d+)$/, async (ctx) => {
+        const { auth, role } = await checkAuth(ctx, deps);
+        if (!auth || (role !== 'ADMIN' && role !== 'DISPATCHER')) return ctx.answerCbQuery('Нет прав');
+
+        const orderId = ctx.match[1];
+        await ctx.answerCbQuery();
+        await ctx.replyWithHTML(
+            `⚠️ <b>Отмена заявки №${orderId}</b>\n\nПодтвердите, что вы уведомили:\n\n☑️ Водитель уведомлён?\n☑️ Клиент уведомлён?`,
+            {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '✅ Оба уведомлены — Отменить', callback_data: `confirm_cancel_both_${orderId}` }],
+                        [{ text: '📞 Только клиент уведомлён', callback_data: `confirm_cancel_client_${orderId}` }],
+                        [{ text: '🚗 Только водитель уведомлён', callback_data: `confirm_cancel_driver_${orderId}` }],
+                        [{ text: '🔙 Отмена', callback_data: `cancel_dismiss_${orderId}` }]
+                    ]
+                }
+            }
+        );
+    });
+
+    // --- Cancel Order (Step 2: Confirm & Execute) ---
+    bot.action(/^confirm_cancel_(both|client|driver)_(\d+)$/, async (ctx) => {
+        const { auth, role } = await checkAuth(ctx, deps);
+        if (!auth || (role !== 'ADMIN' && role !== 'DISPATCHER')) return ctx.answerCbQuery('Нет прав');
+
+        const notifyType = ctx.match[1];
+        const orderId = parseInt(ctx.match[2], 10);
+        const tgIdStr = ctx.chat!.id.toString();
+        const actorName = ctx.from?.first_name || 'Администратор';
+
+        try {
+            const order = await prisma.order.findUnique({ where: { id: orderId } });
+            if (!order || order.status === 'CANCELLED') {
+                return ctx.answerCbQuery('Заявка уже отменена или не найдена.', { show_alert: true });
+            }
+
+            await prisma.order.update({
+                where: { id: orderId },
+                data: {
+                    status: 'CANCELLED',
+                    cancelledAt: new Date(),
+                    cancelledBy: tgIdStr,
+                    clientNotified: notifyType === 'both' || notifyType === 'client',
+                    driverNotified: notifyType === 'both' || notifyType === 'driver'
+                }
+            });
+
+            // Log to AuditLog
+            try {
+                await prisma.auditLog.create({
+                    data: {
+                        action: 'CANCEL_ORDER',
+                        actorId: tgIdStr,
+                        actorName,
+                        targetId: orderId.toString(),
+                        targetName: `${order.fromCity} → ${order.toCity}`,
+                        details: `Клиент: ${notifyType === 'both' || notifyType === 'client' ? 'уведомлён' : 'НЕ уведомлён'}, Водитель: ${notifyType === 'both' || notifyType === 'driver' ? 'уведомлён' : 'НЕ уведомлён'}`
+                    }
+                });
+            } catch (e) { /* AuditLog may not exist yet */ }
+
+            const notifyText = notifyType === 'both' ? 'Оба уведомлены' :
+                notifyType === 'client' ? 'Только клиент' : 'Только водитель';
+
+            await ctx.answerCbQuery('Заявка отменена!');
+            await ctx.editMessageText(
+                `❌ <b>Заявка №${orderId} отменена</b>\n\n` +
+                `📍 ${order.fromCity} → ${order.toCity}\n` +
+                `👤 Клиент: ${order.customerName}\n` +
+                `📞 ${order.customerPhone}\n\n` +
+                `✅ Уведомлены: <b>${notifyText}</b>\n` +
+                `🕐 ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}`,
+                { parse_mode: 'HTML' }
+            );
+        } catch (err) {
+            console.error('cancel_order error:', err);
+            ctx.answerCbQuery('Ошибка при отмене.', { show_alert: true });
+        }
+    });
+
+    // --- Cancel Dismiss ---
+    bot.action(/^cancel_dismiss_(\d+)$/, async (ctx) => {
+        await ctx.answerCbQuery('Отмена отменена');
+        try { await ctx.deleteMessage(); } catch (e) { }
+    });
+
+    // --- Edit Order (Field Selection) ---
+    bot.action(/^edit_order_(\d+)$/, async (ctx) => {
+        const { auth, role } = await checkAuth(ctx, deps);
+        if (!auth || (role !== 'ADMIN' && role !== 'DISPATCHER')) return ctx.answerCbQuery('Нет прав');
+
+        const orderId = ctx.match[1];
+        await ctx.answerCbQuery();
+        await ctx.replyWithHTML(
+            `✏️ <b>Редактирование заявки №${orderId}</b>\n\nВыберите поле для изменения:`,
+            {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '📍 Откуда', callback_data: `editfield_fromCity_${orderId}` }, { text: '🏁 Куда', callback_data: `editfield_toCity_${orderId}` }],
+                        [{ text: '🚕 Тариф', callback_data: `editfield_tariff_${orderId}` }, { text: '👥 Пассажиры', callback_data: `editfield_passengers_${orderId}` }],
+                        [{ text: '💰 Стоимость', callback_data: `editfield_priceEstimate_${orderId}` }, { text: '📅 Дата/Время', callback_data: `editfield_scheduledDate_${orderId}` }],
+                        [{ text: '📝 Комментарий', callback_data: `editfield_comments_${orderId}` }],
+                        [{ text: '👤 Имя клиента', callback_data: `editfield_customerName_${orderId}` }, { text: '📞 Телефон', callback_data: `editfield_customerPhone_${orderId}` }],
+                        [{ text: '🔙 Отмена', callback_data: `cancel_dismiss_0` }]
+                    ]
+                }
+            }
+        );
+    });
+
+    // --- Edit Field (Ask for new value) ---
+    const fieldNames: Record<string, string> = {
+        fromCity: 'Откуда', toCity: 'Куда', tariff: 'Тариф', passengers: 'Пассажиры',
+        priceEstimate: 'Стоимость', scheduledDate: 'Дата/Время', comments: 'Комментарий',
+        customerName: 'Имя клиента', customerPhone: 'Телефон'
+    };
+
+    bot.action(/^editfield_(\w+)_(\d+)$/, async (ctx) => {
+        const { auth, role } = await checkAuth(ctx, deps);
+        if (!auth || (role !== 'ADMIN' && role !== 'DISPATCHER')) return ctx.answerCbQuery('Нет прав');
+
+        const field = ctx.match[1];
+        const orderId = ctx.match[2];
+        const tgIdStr = ctx.chat!.id.toString();
+
+        deps.pendingEdits.set(tgIdStr, { orderId: parseInt(orderId, 10), field });
+
+        await ctx.answerCbQuery();
+        await replyWithMenu(ctx, deps,
+            `✏️ Введите новое значение для поля <b>${fieldNames[field] || field}</b> (заявка №${orderId}):\n\n<i>Отправьте /cancel для отмены.</i>`,
+            { parse_mode: 'HTML' }
+        );
     });
 
     // --- New Orders (without dispatcher) ---
@@ -719,39 +864,87 @@ export function registerOrderHandlers(deps: BotDeps) {
         }
     });
 
-    // --- Statistics ---
+    // --- Statistics (with period filter) ---
     bot.hears('📊 Статистика', async (ctx) => {
         const { auth, role } = await checkAuth(ctx, deps);
         if (!auth || (role !== 'ADMIN' && role !== 'DRIVER')) return;
 
+        await ctx.replyWithHTML('📊 <b>Статистика сервиса</b>\n\nВыберите период:', {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '📅 Сегодня', callback_data: 'stats_day' }, { text: '📅 Неделя', callback_data: 'stats_week' }],
+                    [{ text: '📅 Месяц', callback_data: 'stats_month' }, { text: '📅 Всё время', callback_data: 'stats_all' }]
+                ]
+            }
+        });
+    });
+
+    bot.action(/^stats_(day|week|month|all)$/, async (ctx) => {
+        const { auth, role } = await checkAuth(ctx, deps);
+        if (!auth || (role !== 'ADMIN' && role !== 'DRIVER')) return ctx.answerCbQuery('Нет прав');
+
+        const period = ctx.match[1];
+        let dateFilter: Date | null = null;
+        let periodLabel = 'За всё время';
+
+        const now = new Date();
+        if (period === 'day') {
+            dateFilter = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            periodLabel = 'Сегодня';
+        } else if (period === 'week') {
+            dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            periodLabel = 'За неделю';
+        } else if (period === 'month') {
+            dateFilter = new Date(now.getFullYear(), now.getMonth(), 1);
+            periodLabel = 'За месяц';
+        }
+
         try {
-            const totalOrders = await prisma.order.count();
-            const sumResult = await prisma.order.aggregate({ _sum: { priceEstimate: true } });
+            const where = dateFilter ? { createdAt: { gte: dateFilter } } : {};
+
+            const totalOrders = await prisma.order.count({ where });
+            const completedOrders = await prisma.order.count({ where: { ...where, status: 'COMPLETED' } });
+            const cancelledOrders = await prisma.order.count({ where: { ...where, status: 'CANCELLED' } });
+            const sumResult = await prisma.order.aggregate({ where, _sum: { priceEstimate: true } });
+            const completedSum = await prisma.order.aggregate({ where: { ...where, status: 'COMPLETED' }, _sum: { priceEstimate: true } });
 
             const tariffGroups = await prisma.order.groupBy({
                 by: ['tariff'],
+                where,
                 _count: { tariff: true },
                 orderBy: { _count: { tariff: 'desc' } }
             });
 
-            let tariffStatsStr = "";
+            let tariffStatsStr = '';
             if (tariffGroups.length > 0) {
-                tariffStatsStr = "<b>Заказов по тарифам:</b>\n" + tariffGroups.map((t: any) => {
-                    const capitalizedName = t.tariff ? t.tariff.charAt(0).toUpperCase() + t.tariff.slice(1) : 'Не указан';
-                    return `- ${capitalizedName}: ${t._count.tariff} шт.`;
-                }).join('\n') + "\n────────────────";
+                tariffStatsStr = '\n<b>Заказов по тарифам:</b>\n' + tariffGroups.map((t: any) => {
+                    return `- ${translateTariff(t.tariff)}: ${t._count.tariff} шт.`;
+                }).join('\n') + '\n────────────────';
             }
 
             const msg = `
-📊 <b>Статистика сервиса</b>
+📊 <b>Статистика — ${periodLabel}</b>
 ────────────────
-✅ Всего заявок оформлено: ${totalOrders}
-💰 Выручка (оценочно): ~${sumResult._sum.priceEstimate || 0} ₽
-────────────────
-${tariffStatsStr}`.trim();
-            await ctx.replyWithHTML(msg, getMainMenu(ctx.chat.id.toString(), role!, adminId));
+📋 Всего заявок: ${totalOrders}
+✅ Выполнено: ${completedOrders}
+❌ Отменено: ${cancelledOrders}
+💰 Общая сумма: ~${sumResult._sum.priceEstimate || 0} ₽
+💵 Выполненные: ~${completedSum._sum.priceEstimate || 0} ₽
+────────────────${tariffStatsStr}`.trim();
+
+            await ctx.answerCbQuery();
+            await ctx.editMessageText(msg, {
+                parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '📅 Сегодня', callback_data: 'stats_day' }, { text: '📅 Неделя', callback_data: 'stats_week' }],
+                        [{ text: '📅 Месяц', callback_data: 'stats_month' }, { text: '📅 Всё время', callback_data: 'stats_all' }]
+                    ]
+                }
+            });
         } catch (e) {
-            ctx.reply('❌ Ошибка при получении статистики.', { protect_content: role !== 'ADMIN' });
+            console.error('Stats error:', e);
+            ctx.answerCbQuery('Ошибка при получении статистики.', { show_alert: true });
         }
     });
 
@@ -771,7 +964,7 @@ ${tariffStatsStr}`.trim();
             });
 
             const ordersByMonth = new Map<string, any[][]>();
-            const headers = ["ID", "Дата", "Откуда", "Куда", "Тариф", "Пассажиров", "Сумма", "Имя Клиента", "Телефон", "Комментарий", "Исполнитель", "Статус"];
+            const headers = ["ID", "Дата", "Откуда", "Куда", "Тариф", "Пассажиров", "Сумма", "Имя Клиента", "Телефон", "Комментарий", "Дата/Время поездки", "Исполнитель", "Статус"];
 
             orders.forEach((o: any) => {
                 const dateObj = o.createdAt ? new Date(o.createdAt) : new Date();
@@ -788,7 +981,7 @@ ${tariffStatsStr}`.trim();
                 ordersByMonth.get(monthName)!.push([
                     o.id.toString(), dateStr, o.fromCity, o.toCity, translateTariff(o.tariff),
                     o.passengers.toString(), o.priceEstimate ? o.priceEstimate.toString() : '',
-                    o.customerName, o.customerPhone, o.comments || '', driverStr, translateStatus(o.status)
+                    o.customerName, o.customerPhone, o.comments || '', o.scheduledDate || '', driverStr, translateStatus(o.status)
                 ]);
             });
 
@@ -854,11 +1047,41 @@ ${tariffStatsStr}`.trim();
             const wsClients = xlsx.utils.aoa_to_sheet(clientsData);
             xlsx.utils.book_append_sheet(wb, wsClients, "Клиенты");
 
+            // Add Tickets sheet
+            try {
+                const tickets = await prisma.supportTicket.findMany({ orderBy: { createdAt: 'desc' } });
+                const ticketHeaders = ["№", "Тип", "Автор", "Сообщение", "Статус", "Дата"];
+                const ticketData = [ticketHeaders];
+                tickets.forEach((t: any) => {
+                    ticketData.push([
+                        t.ticketNum, t.type, t.authorName, t.message,
+                        t.status, new Date(t.createdAt).toLocaleString('ru-RU')
+                    ]);
+                });
+                const wsTickets = xlsx.utils.aoa_to_sheet(ticketData);
+                xlsx.utils.book_append_sheet(wb, wsTickets, "Обращения");
+            } catch (e) { /* Tickets table may not exist */ }
+
+            // Add AuditLog sheet
+            try {
+                const logs = await prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 200 });
+                const logHeaders = ["Действие", "Актор", "Цель", "Детали", "Дата"];
+                const logData = [logHeaders];
+                logs.forEach((l: any) => {
+                    logData.push([
+                        l.action, l.actorName, l.targetName || l.targetId || '',
+                        l.details || '', new Date(l.createdAt).toLocaleString('ru-RU')
+                    ]);
+                });
+                const wsLogs = xlsx.utils.aoa_to_sheet(logData);
+                xlsx.utils.book_append_sheet(wb, wsLogs, "Журнал действий");
+            } catch (e) { /* AuditLog table may not exist */ }
+
             const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
             await ctx.replyWithDocument(
                 { source: buffer, filename: `grand_transfer_db_${new Date().toISOString().split('T')[0]}.xlsx` },
-                { caption: '📄 Полная выгрузка базы данных (Заказы, Водители, Клиенты)', protect_content: true }
+                { caption: '📄 Полная выгрузка базы данных (Заказы, Водители, Клиенты, Обращения, Журнал)', protect_content: true }
             );
         } catch (e) {
             console.error("Export Error:", e);
