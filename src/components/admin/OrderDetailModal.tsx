@@ -53,7 +53,7 @@ export default function OrderDetailModal({ isOpen, onClose, data, onUserClick }:
                     background: 'linear-gradient(135deg, rgba(38,38,38,0.95) 0%, rgba(23,23,23,0.95) 100%)',
                     borderRadius: '1.5rem', padding: '2rem', width: '100%', maxWidth: '600px',
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255,255,255,0.08)',
-                    position: 'relative', overflowY: 'auto', maxHeight: '90vh'
+                    position: 'relative', overflowY: 'auto', maxHeight: 'calc(100svh - 2rem)'
                 }}
                 onClick={(e) => e.stopPropagation()}
             >
@@ -80,14 +80,14 @@ export default function OrderDetailModal({ isOpen, onClose, data, onUserClick }:
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '1rem', lineHeight: '1.6' }}>
 
-                    <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '0.75rem' }}>
-                        <span style={{ color: '#ef4444', minWidth: '120px' }}>📍 Откуда:</span>
-                        <span style={{ color: '#e5e7eb', fontWeight: 500 }}>{o.fromCity}</span>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '0.75rem' }}>
+                        <span style={{ color: '#ef4444', minWidth: '120px', flexShrink: 0, marginTop: '2px' }}>📍 Откуда:</span>
+                        <span style={{ color: '#e5e7eb', fontWeight: 500, wordBreak: 'break-word', flex: 1 }}>{o.fromCity}</span>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '0.75rem' }}>
-                        <span style={{ color: '#10b981', minWidth: '120px' }}>🏁 Куда:</span>
-                        <span style={{ color: '#e5e7eb', fontWeight: 500 }}>{o.toCity}</span>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '0.75rem' }}>
+                        <span style={{ color: '#10b981', minWidth: '120px', flexShrink: 0, marginTop: '2px' }}>🏁 Куда:</span>
+                        <span style={{ color: '#e5e7eb', fontWeight: 500, wordBreak: 'break-word', flex: 1 }}>{o.toCity}</span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '0.75rem' }}>

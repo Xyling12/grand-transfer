@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import UserDetailModal from '@/components/admin/UserDetailModal';
+import OrderDetailModal from '@/components/admin/OrderDetailModal';
 
 type TabType = 'pending' | 'drivers' | 'dispatchers' | 'clients';
 
@@ -12,6 +13,7 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
     // Modal State
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [modalType, setModalType] = useState<'driver' | 'dispatcher' | 'client'>('driver');
+    const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
     const pendingUsers = users.filter((u: any) => u.status === 'PENDING');
     const approvedDrivers = users.filter((u: any) => u.status === 'APPROVED' && u.role === 'DRIVER');
@@ -329,10 +331,29 @@ export default function CrmDashboardClient({ users, clientsMap }: { users: any[]
                         console.error('Failed to update feedback state');
                     }
                 }}
+                onOpenOrder={(orderId) => {
+                    // Find the order from the selected user's orders list
+                    const orders = modalType === 'driver' ? selectedUser.ordersAsDriver : (modalType === 'dispatcher' ? selectedUser.ordersAsDispatcher : selectedUser.orders);
+                    const orderToOpen = orders?.find((o: any) => o.id === orderId);
+                    if (orderToOpen) {
+                        setSelectedOrder(orderToOpen);
+                    }
+                }}
             />
             <p style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                 Лицензии и документы сохраняются в Telegram. При нажатии на иконку они скачиваются автоматически.
             </p>
+
+            <OrderDetailModal
+                isOpen={!!selectedOrder}
+                onClose={() => setSelectedOrder(null)}
+                data={selectedOrder}
+                onUserClick={(user, type) => {
+                    setSelectedOrder(null);
+                    setSelectedUser(user);
+                    setModalType(type);
+                }}
+            />
         </div>
     );
 }
