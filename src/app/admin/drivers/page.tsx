@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import CrmDashboardClient from "./CrmDashboardClient";
-
-const prisma = new PrismaClient();
 
 export const dynamic = "force-dynamic";
 

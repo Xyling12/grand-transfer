@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 // Secret to sign the JWT, preferably from env, fallback to bot token for ease of use in this project
 const JWT_SECRET = process.env.JWT_SECRET || process.env.TELEGRAM_BOT_TOKEN || 'fallback_secret_grand_transfer';

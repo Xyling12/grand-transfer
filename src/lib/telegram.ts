@@ -1,7 +1,5 @@
 import { Telegraf, Markup } from 'telegraf';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from './prisma';
 
 import { cities } from '@/data/cities';
 

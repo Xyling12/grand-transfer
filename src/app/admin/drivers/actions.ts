@@ -1,9 +1,7 @@
 "use server";
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-
-const prisma = new PrismaClient();
 
 export async function getDrivers() {
     const drivers = await prisma.driver.findMany({

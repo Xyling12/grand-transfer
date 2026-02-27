@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 async function sendTgNotification(telegramId: bigint | string, message: string) {
