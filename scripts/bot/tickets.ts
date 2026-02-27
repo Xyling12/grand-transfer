@@ -9,9 +9,9 @@ export function registerTicketHandlers(deps: BotDeps) {
         const tgIdStr = ctx.chat.id.toString();
         pendingBugReports.add(tgIdStr);
 
-        return ctx.reply(
+        return replyWithMenu(ctx, deps,
             '🛠 <b>Сообщение об ошибке</b>\n\nПожалуйста, максимально подробно опишите ошибку, которую вы нашли. Ваше следующее сообщение будет отправлено тех. поддержке.\n\n<i>Отправьте /cancel для отмены.</i>',
-            { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } }
+            { parse_mode: 'HTML' }
         );
     });
 
@@ -23,9 +23,9 @@ export function registerTicketHandlers(deps: BotDeps) {
         const tgIdStr = ctx.chat.id.toString();
         pendingSupportCreates.add(tgIdStr);
 
-        return ctx.reply(
+        return replyWithMenu(ctx, deps,
             '🆘 <b>Обращение в администрацию</b>\n\nНапишите ваш вопрос, проблему или предложение одним сообщением. Оно будет направлено всем дежурным администраторам диспетчерской службы.\n\n<i>Отправьте /cancel для отмены.</i>',
-            { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } }
+            { parse_mode: 'HTML' }
         );
     });
 
@@ -183,9 +183,9 @@ export function registerTicketHandlers(deps: BotDeps) {
 
             userReplyingTo.set(tgIdStr, ticketNum);
             await ctx.answerCbQuery();
-            await ctx.reply(
+            await replyWithMenu(ctx, deps,
                 `✍️ Напишите ответ по обращению <b>№${ticketNum}</b>. Следующее сообщение будет отправлено администратору.\n\n<i>Отправьте /cancel для отмены.</i>`,
-                { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } }
+                { parse_mode: 'HTML' }
             );
         } catch (e) {
             console.error('Error setting up user reply:', e);
@@ -280,7 +280,7 @@ export function registerTicketHandlers(deps: BotDeps) {
             adminReplyingTo.set(tgIdStr, ticketNum);
 
             await ctx.answerCbQuery();
-            await ctx.reply(`✍️ Напишите ответ для обращения <b>№${ticketNum}</b>. Следующее ваше сообщение будет отправлено автору.\n\n<i>Отправьте /cancel для отмены.</i>`, { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } });
+            await replyWithMenu(ctx, deps, `✍️ Напишите ответ для обращения <b>№${ticketNum}</b>. Следующее ваше сообщение будет отправлено автору.\n\n<i>Отправьте /cancel для отмены.</i>`, { parse_mode: 'HTML' });
         } catch (e) {
             console.error('Error setting up reply:', e);
         }

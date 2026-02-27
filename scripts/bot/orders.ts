@@ -123,14 +123,17 @@ export function registerOrderHandlers(deps: BotDeps) {
             for (const o of myOrders) {
                 const msg = formatOrderMessage(o, role!);
 
-                const buttons = [];
+                const buttons: any[] = [];
                 if (o.status === 'TAKEN' && o.driverId === dbId) {
                     buttons.push([{ text: '✅ Заявка выполнена', callback_data: `complete_order_${o.id}` }]);
                 }
+                // Map links for all roles
+                buttons.push([{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(o.fromCity, o.toCity) }]);
+                buttons.push([{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(o.fromCity, o.toCity) }]);
 
                 await ctx.replyWithHTML(msg, {
                     protect_content: protectContentGlobal,
-                    reply_markup: buttons.length ? { inline_keyboard: buttons } : undefined
+                    reply_markup: { inline_keyboard: buttons }
                 });
             }
         } catch (err) {
