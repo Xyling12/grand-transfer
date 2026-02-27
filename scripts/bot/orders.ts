@@ -1,6 +1,6 @@
 import { Markup } from 'telegraf';
 import { BotDeps } from './types';
-import { checkAuth, formatOrderMessage, translateTariff, translateStatus, getMainMenu, getProtectContent } from './helpers';
+import { checkAuth, formatOrderMessage, translateTariff, translateStatus, getMainMenu, getProtectContent, getMapDeepLink, getMapWebLink } from './helpers';
 import { cities } from '../../src/data/cities';
 import * as xlsx from 'xlsx';
 
@@ -27,7 +27,7 @@ export function registerOrderHandlers(deps: BotDeps) {
 
             await bot.telegram.sendMessage(
                 Number(driverTgId),
-                '🎉 <b>Ваша заявка одобрена администратором!</b>\n\nТеперь вам доступно рабочее меню водителя.',
+                '🎉 <b>Ваша заявка одобрена администратором!</b>\n\nНапишите /start для начала работы.',
                 { parse_mode: 'HTML', ...getMainMenu(driverTgId.toString(), driver.role, adminId) }
             ).catch(() => { });
         } catch (e) {
@@ -55,7 +55,7 @@ export function registerOrderHandlers(deps: BotDeps) {
 
             await bot.telegram.sendMessage(
                 Number(driverTgId),
-                '🎉 <b>Ваша заявка одобрена администратором!</b>\n\nТеперь вам доступно рабочее меню диспетчера.',
+                '🎉 <b>Ваша заявка одобрена администратором!</b>\n\nНапишите /start для начала работы.',
                 { parse_mode: 'HTML', ...getMainMenu(driverTgId.toString(), driver.role, adminId) }
             ).catch(() => { });
         } catch (e) {
@@ -279,11 +279,7 @@ export function registerOrderHandlers(deps: BotDeps) {
             const order = await prisma.order.findUnique({ where: { id: orderId } });
             if (!order) return ctx.answerCbQuery('Заявка не найдена', { show_alert: true });
 
-            const dateStr = order.createdAt ? new Date(order.createdAt).toLocaleString('ru-RU') : '';
-            const pt1 = encodeURIComponent(order.fromCity);
-            const pt2 = encodeURIComponent(order.toCity);
-            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
-
+            const dateStr = order.createdAt ? new Date(order.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
             const msg = `
 📋 <b>ПОЛНАЯ ЗАЯВКА № ${order.id}</b>
 <i>(Создана ${dateStr})</i>
@@ -307,7 +303,8 @@ export function registerOrderHandlers(deps: BotDeps) {
             } else if (order.status === 'TAKEN' || order.status === 'PROCESSING') {
                 keyboardButtons.push([{ text: '🏁 Заявка выполнена', callback_data: `complete_order_${order.id}` }]);
             }
-            keyboardButtons.push([{ text: '🗺 Открыть маршрут', url: mapLink }]);
+            keyboardButtons.push([{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }]);
+            keyboardButtons.push([{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]);
 
             const protectContentGlobal = await getProtectContent(deps, role!);
 
@@ -398,11 +395,6 @@ export function registerOrderHandlers(deps: BotDeps) {
             await ctx.editMessageText(txt + dispatcherInfo, { parse_mode: 'HTML' });
             await ctx.answerCbQuery('Заявка отправлена водителям!', { show_alert: true });
 
-            const fromCityObj = cities.find((c: any) => c.name.toLowerCase() === order.fromCity.toLowerCase());
-            const toCityObj = cities.find((c: any) => c.name.toLowerCase() === order.toCity.toLowerCase());
-            const pt1 = fromCityObj ? `${fromCityObj.lat},${fromCityObj.lon}` : encodeURIComponent(order.fromCity);
-            const pt2 = toCityObj ? `${toCityObj.lat},${toCityObj.lon}` : encodeURIComponent(order.toCity);
-            const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
 
             const driverMessage = `
 🚕 <b>Новый заказ для водителей!</b>
@@ -422,7 +414,8 @@ export function registerOrderHandlers(deps: BotDeps) {
             const keyboard = {
                 inline_keyboard: [
                     [{ text: '✅ Забрать заявку', callback_data: `take_order_${order.id}` }],
-                    [{ text: '🗺 Открыть маршрут', url: mapLink }]
+                    [{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }],
+                    [{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]
                 ]
             };
 
@@ -493,11 +486,6 @@ export function registerOrderHandlers(deps: BotDeps) {
                     try {
                         const isSelf = ctx.chat && bm.telegramId === BigInt(ctx.chat.id);
 
-                        const fromCityObj = cities.find((c: any) => c.name.toLowerCase() === order.fromCity.toLowerCase());
-                        const toCityObj = cities.find((c: any) => c.name.toLowerCase() === order.toCity.toLowerCase());
-                        const pt1 = fromCityObj ? `${fromCityObj.lat},${fromCityObj.lon}` : encodeURIComponent(order.fromCity);
-                        const pt2 = toCityObj ? `${toCityObj.lat},${toCityObj.lon}` : encodeURIComponent(order.toCity);
-                        const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
 
                         if (isSelf) {
                             const newText = `
@@ -521,7 +509,8 @@ export function registerOrderHandlers(deps: BotDeps) {
                                     [{ text: '📋 Полная заявка', callback_data: `full_order_${order.id}` }],
                                     [{ text: '📤 Отправить водителям', callback_data: `dispatch_order_${order.id}` }],
                                     [{ text: '🏁 Заявка выполнена', callback_data: `complete_order_${order.id}` }],
-                                    [{ text: '🗺 Открыть Яндекс Карты', url: mapLink }]
+                                    [{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }],
+                                    [{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]
                                 ]
                             };
 

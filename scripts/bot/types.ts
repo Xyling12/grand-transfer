@@ -23,4 +23,5 @@ export interface BotDeps {
     pendingBugReports: Set<string>;
     pendingSupportCreates: Set<string>;
     adminReplyingTo: Map<string, string>;
+    userReplyingTo: Map<string, string>;
 }

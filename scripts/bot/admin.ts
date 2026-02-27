@@ -22,7 +22,7 @@ export function registerAdminHandlers(deps: BotDeps) {
 
             await bot.telegram.sendMessage(
                 Number(driver.telegramId),
-                '🎉 <b>Ваша заявка одобрена администратором!</b>',
+                '🎉 <b>Ваша заявка одобрена администратором!</b>\n\nНапишите /start для начала работы.',
                 { parse_mode: 'HTML', ...getMainMenu(driver.telegramId.toString(), driver.role, adminId) }
             ).catch(() => { });
         } catch (e: any) {
@@ -163,7 +163,7 @@ export function registerAdminHandlers(deps: BotDeps) {
 
             await bot.telegram.sendMessage(
                 Number(tgIdBig),
-                '🎉 <b>Ваша заявка одобрена администратором!</b>\n\nТеперь вам доступно рабочее меню водителя.',
+                '🎉 <b>Ваша заявка одобрена администратором!</b>\n\nНапишите /start для начала работы.',
                 { parse_mode: 'HTML', ...getMainMenu(tgIdBig.toString(), driver.role, adminId) }
             ).catch((err) => {
                 console.log("Could not notify added driver:", err.message);
@@ -524,7 +524,7 @@ export function registerAdminHandlers(deps: BotDeps) {
             await ctx.answerCbQuery('Одобрен как Водитель');
             await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n✅ ОДОБРЕН КАК ВОДИТЕЛЬ');
             try {
-                await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Теперь вам доступно меню водителя.', { ...getMainMenu(telegramId.toString(), updatedDriver.role, adminId), protect_content: true });
+                await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Напишите /start для начала работы.', { ...getMainMenu(telegramId.toString(), updatedDriver.role, adminId), protect_content: true });
             } catch (e) { }
         } catch {
             await ctx.answerCbQuery('Ошибка обновления');
@@ -538,7 +538,7 @@ export function registerAdminHandlers(deps: BotDeps) {
             await ctx.answerCbQuery('Одобрен как Диспетчер');
             await ctx.editMessageText((ctx.callbackQuery.message as any)?.text + '\n\n✅ ОДОБРЕН КАК ДИСПЕТЧЕР');
             try {
-                await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Теперь вам доступно меню диспетчера.', { ...getMainMenu(telegramId.toString(), updatedDriver.role, adminId), protect_content: true });
+                await bot.telegram.sendMessage(Number(telegramId), '✅ Ваша заявка одобрена! Напишите /start для начала работы.', { ...getMainMenu(telegramId.toString(), updatedDriver.role, adminId), protect_content: true });
             } catch (e) { }
         } catch {
             await ctx.answerCbQuery('Ошибка обновления');

@@ -30,7 +30,7 @@ export const formatOrderMessage = (o: any, role: string) => {
     const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
     const takenStr = o.takenAt ? new Date(o.takenAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
     const compStr = o.completedAt ? new Date(o.completedAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
-    const mapLink = `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(o.fromCity)}~${encodeURIComponent(o.toCity)}`;
+    const mapLink = getMapWebLink(o.fromCity, o.toCity);
 
     let dispStr = '';
     if (o.dispatcher) {
@@ -75,20 +75,36 @@ export const getMainMenu = (chatId: string, role: string, adminId: string) => {
         buttons.push(['🚗 Мои заявки', '📚 История заявок']);
         buttons.push(['✅ Выполненные заявки', '⚙️ Настройки']);
         buttons.push(['🗑 Очистить БД', '💻 CRM Система']);
-        buttons.push(['💬 Чат', '🛠 Найдена ошибка']);
-        buttons.push(['🆘 Связь с администрацией', 'ℹ️ Справка']);
+        buttons.push(['💬 Чат', '🐛 Баг-репорты']);
+        buttons.push(['📩 Мои обращения', '🆘 Написать в поддержку']);
+        buttons.push(['🛠 Найдена ошибка', 'ℹ️ Справка']);
     } else if (role === 'DISPATCHER') {
         buttons.push(['🆕 Заказы без работы', '👀 Активные заявки']);
         buttons.push(['🚗 Мои заявки', '📚 История заявок']);
         buttons.push(['💬 Чат', '🛠 Найдена ошибка']);
-        buttons.push(['🆘 Связь с администрацией', 'ℹ️ Справка']);
+        buttons.push(['📩 Мои обращения', '🆘 Написать в поддержку']);
+        buttons.push(['ℹ️ Справка']);
     } else {
         buttons.push(['🚗 Мои заказы', '📚 История заявок']);
         buttons.push(['💬 Чат', '🛠 Найдена ошибка']);
-        buttons.push(['🆘 Связь с администрацией', 'ℹ️ Справка']);
+        buttons.push(['📩 Мои обращения', '🆘 Написать в поддержку']);
+        buttons.push(['ℹ️ Справка']);
     }
 
     return Markup.keyboard(buttons).resize();
+};
+
+// --- Map Link Helpers ---
+export const getMapDeepLink = (fromCity: string, toCity: string) => {
+    const pt1 = encodeURIComponent(fromCity);
+    const pt2 = encodeURIComponent(toCity);
+    return `yandexmaps://maps.yandex.ru/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
+};
+
+export const getMapWebLink = (fromCity: string, toCity: string) => {
+    const pt1 = encodeURIComponent(fromCity);
+    const pt2 = encodeURIComponent(toCity);
+    return `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
 };
 
 // --- Auth Helper ---

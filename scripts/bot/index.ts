@@ -28,6 +28,7 @@ const pendingRegistrations = new Map<string, RegState>();
 const pendingBugReports = new Set<string>();
 const pendingSupportCreates = new Set<string>();
 const adminReplyingTo = new Map<string, string>();
+const userReplyingTo = new Map<string, string>();
 
 // --- Dependencies Container ---
 const deps: BotDeps = {
@@ -38,6 +39,7 @@ const deps: BotDeps = {
     pendingBugReports,
     pendingSupportCreates,
     adminReplyingTo,
+    userReplyingTo,
 };
 
 // --- /start Command ---
@@ -117,6 +119,10 @@ bot.command('cancel', async (ctx) => {
     }
     if (adminReplyingTo.has(tgIdStr)) {
         adminReplyingTo.delete(tgIdStr);
+        cancelled = true;
+    }
+    if (userReplyingTo.has(tgIdStr)) {
+        userReplyingTo.delete(tgIdStr);
         cancelled = true;
     }
 

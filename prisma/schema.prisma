@@ -71,7 +71,19 @@ model SupportTicket {
   authorName String
   adminId    String?
   message    String
+  type       String    @default("SUPPORT") // SUPPORT, BUG
   status     String    @default("OPEN") // OPEN, IN_PROGRESS, CLOSED
   createdAt  DateTime  @default(now())
   closedAt   DateTime?
+}
+
+model TicketMessage {
+  id         Int      @id @default(autoincrement())
+  ticketNum  String
+  senderId   String
+  senderName String
+  message    String
+  createdAt  DateTime @default(now())
+
+  @@index([ticketNum])
 }
