@@ -46,7 +46,7 @@ export default function Footer() {
                         <h3 className={styles.heading}>Направления</h3>
                         <div className={styles.links}>
                             {currentCity.popularRoutes.slice(0, 5).map((route, i) => (
-                                <Link key={i} href="/#popular-routes" className={styles.link}>
+                                <Link key={i} href={route.toId ? `/routes/${currentCity.id}/${route.toId}` : '/#popular-routes'} className={styles.link}>
                                     {currentCity.name} - {route.to}
                                 </Link>
                             ))}

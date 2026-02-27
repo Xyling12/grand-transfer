@@ -1,6 +1,7 @@
 
 export interface Route {
     to: string;
+    toId: string;
     price: number;
     distance: number;
     duration: string;
@@ -282,6 +283,7 @@ export const cities: City[] = rawCities.map(city => {
 
         return {
             to: dest.name,
+            toId: dest.id,
             distance: roadDist,
             price: price,
             duration: formatDuration(durationMinutes)
@@ -291,12 +293,12 @@ export const cities: City[] = rawCities.map(city => {
     // Fallback if not enough neighbors found (e.g. isolated cities like Yakutsk/Norilsk)
     if (routes.length < 6) {
         const generic = [
-            { to: "Аэропорт", price: 1500, distance: 40, duration: "45 мин" },
-            { to: "Вокзал", price: 800, distance: 15, duration: "30 мин" },
-            { to: "Турбаза", price: 2500, distance: 60, duration: "1 ч" },
-            { to: "Санаторий", price: 3000, distance: 80, duration: "1 ч 15 мин" },
-            { to: "Пригород", price: 1200, distance: 30, duration: "40 мин" },
-            { to: "Областной центр", price: 5000, distance: 200, duration: "3 ч" }
+            { to: "Аэропорт", toId: "", price: 1500, distance: 40, duration: "45 мин" },
+            { to: "Вокзал", toId: "", price: 800, distance: 15, duration: "30 мин" },
+            { to: "Турбаза", toId: "", price: 2500, distance: 60, duration: "1 ч" },
+            { to: "Санаторий", toId: "", price: 3000, distance: 80, duration: "1 ч 15 мин" },
+            { to: "Пригород", toId: "", price: 1200, distance: 30, duration: "40 мин" },
+            { to: "Областной центр", toId: "", price: 5000, distance: 200, duration: "3 ч" }
         ];
 
         // Add unique generic items until we have 6

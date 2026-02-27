@@ -1,20 +1,11 @@
 "use client";
-"use client";
 
 import styles from './PopularRoutes.module.css';
 import { useCity } from '@/context/CityContext';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function PopularRoutes() {
     const { currentCity } = useCity();
-    const router = useRouter();
-
-    const handleRouteClick = (toCity: string) => {
-        router.push(`/?from=${encodeURIComponent(currentCity.name)}&to=${encodeURIComponent(toCity)}&tariff=standart#booking-form`, { scroll: false });
-        setTimeout(() => {
-            document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-    };
 
     return (
         <section className={`${styles.section} animate - on - scroll`} id="popular-routes">
@@ -45,9 +36,17 @@ export default function PopularRoutes() {
                                 <div className={styles.price}>от {route.price.toLocaleString('ru-RU')} ₽</div>
                             </div>
 
-                            <button className={styles.button} onClick={() => handleRouteClick(route.to)}>
-                                Подробнее
-                            </button>
+                            {route.toId ? (
+                                <Link href={`/routes/${currentCity.id}/${route.toId}`} className={styles.button}>
+                                    Подробнее
+                                </Link>
+                            ) : (
+                                <button className={styles.button} onClick={() => {
+                                    document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }}>
+                                    Подробнее
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>
