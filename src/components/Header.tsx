@@ -12,6 +12,7 @@ const NAV_LINKS = [
     { href: '/about', label: 'О компании' },
     { href: '/blog', label: 'Блог' },
     { href: '/#tariffs', label: 'Тарифы' },
+    { href: '/#booking-form', label: 'Калькулятор' },
     { href: '/#reviews', label: 'Отзывы' },
     { href: '/faq', label: 'FAQ' },
 ];
