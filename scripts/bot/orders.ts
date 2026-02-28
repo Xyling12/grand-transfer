@@ -42,9 +42,8 @@ export function registerOrderHandlers(deps: BotDeps) {
                 if (o.status === 'TAKEN' && o.driverId === dbId) {
                     buttons.push([{ text: '✅ Заявка выполнена', callback_data: `complete_order_${o.id}` }]);
                 }
-                // Map links for all roles
-                buttons.push([{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(o.fromCity, o.toCity) }]);
-                buttons.push([{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(o.fromCity, o.toCity) }]);
+                // Map link (web only — Telegram rejects non-http URLs in inline keyboards)
+                buttons.push([{ text: '🗺 Маршрут в Яндекс Картах', url: getMapWebLink(o.fromCity, o.toCity) }]);
 
                 await ctx.replyWithHTML(msg, {
                     protect_content: protectContentGlobal,
@@ -52,6 +51,7 @@ export function registerOrderHandlers(deps: BotDeps) {
                 });
             }
         } catch (err) {
+            console.error('MY_ORDERS ERROR:', err);
             ctx.reply('❌ Ошибка при получении ваших заказов.', { protect_content: true });
         }
     });
