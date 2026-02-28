@@ -493,14 +493,7 @@ export function registerAdminHandlers(deps: BotDeps) {
                 const keyboard = {
                     inline_keyboard: [
                         [
-                            { text: '✅ Водитель', callback_data: `approve_${d.telegramId}` },
-                            { text: '🎧 Диспетчер', callback_data: `approve_disp_${d.telegramId}` }
-                        ],
-                        [
-                            { text: '❌ Отклонить', callback_data: `delete_${d.telegramId}` }
-                        ],
-                        [
-                            { text: '💻 Открыть CRM', url: 'https://xn--c1acbe2apap.com/admin/drivers' }
+                            { text: '💻 Одобрить / Отклонить в CRM', url: 'https://xn--c1acbe2apap.com/admin/drivers' }
                         ]
                     ]
                 };

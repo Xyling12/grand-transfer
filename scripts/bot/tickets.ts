@@ -129,6 +129,58 @@ export function registerTicketHandlers(deps: BotDeps) {
         }
     });
 
+    // Active Tickets (In Progress) — ADMIN ONLY
+    bot.hears('📩 Тикеты в работе', async (ctx) => {
+        const { auth, role } = await checkAuth(ctx, deps);
+        if (!auth || role !== 'ADMIN') return;
+
+        try {
+            const activeTickets = await prisma.supportTicket.findMany({
+                where: { status: { in: ['OPEN', 'IN_PROGRESS'] } },
+                orderBy: { createdAt: 'desc' },
+                take: 20
+            });
+
+            if (activeTickets.length === 0) {
+                return ctx.reply('✅ Нет активных обращений. Все тикеты закрыты!', { protect_content: true });
+            }
+
+            let msg = `📩 <b>Тикеты в работе: ${activeTickets.length}</b>\n\n`;
+            const inlineButtons: any[] = [];
+
+            for (const t of activeTickets) {
+                const statusEmoji = t.status === 'OPEN' ? '🟡' : '🔵';
+                const statusText = t.status === 'OPEN' ? 'Ожидает' : 'В работе';
+                const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
+                const typeEmoji = t.type === 'BUG' ? '🐛' : '🆘';
+                const preview = t.message.length > 60 ? t.message.substring(0, 60) + '...' : t.message;
+
+                msg += `${statusEmoji} ${typeEmoji} <b>№${t.ticketNum}</b> от <a href="tg://user?id=${t.authorId}">${t.authorName}</a> (${dateStr})\n`;
+                msg += `<i>${preview}</i>\n`;
+                msg += `Статус: <b>${statusText}</b>\n\n`;
+
+                const ticketButtons: any[] = [];
+                if (t.status === 'OPEN') {
+                    ticketButtons.push({ text: `🙋‍♂️ Взять №${t.ticketNum}`, callback_data: `take_ticket_${t.ticketNum}` });
+                }
+                ticketButtons.push({ text: `✉️ Ответить`, callback_data: `reply_ticket_${t.ticketNum}` });
+                inlineButtons.push(ticketButtons);
+                inlineButtons.push([
+                    { text: `📜 История`, callback_data: `view_ticket_history_${t.ticketNum}` },
+                    { text: `✅ Закрыть`, callback_data: `close_ticket_${t.ticketNum}` }
+                ]);
+            }
+
+            await ctx.replyWithHTML(msg, {
+                reply_markup: inlineButtons.length ? { inline_keyboard: inlineButtons } : undefined,
+                protect_content: true
+            });
+        } catch (e) {
+            console.error('Error fetching active tickets:', e);
+            await ctx.reply('❌ Ошибка при получении тикетов.');
+        }
+    });
+
     // View ticket conversation history
     bot.action(/^view_ticket_history_(.+)$/, async (ctx) => {
         const ticketNum = ctx.match[1];

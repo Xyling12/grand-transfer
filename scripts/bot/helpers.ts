@@ -56,8 +56,7 @@ export const getMainMenu = (chatId: string, role: string, adminId: string) => {
         buttons.push(['🚗 Мои заявки', '📚 История заявок']);
         buttons.push(['✅ Выполненные заявки', '⚙️ Настройки']);
         buttons.push(['🗑 Очистить БД', '💬 Чат']);
-        buttons.push(['🐛 Баг-репорты', '📩 Мои обращения']);
-        buttons.push(['🆘 Написать в поддержку']);
+        buttons.push(['🐛 Баг-репорты', '📩 Тикеты в работе']);
         buttons.push(['🛠 Найдена ошибка', 'ℹ️ Справка']);
     } else if (role === 'DISPATCHER') {
         buttons.push(['🆕 Заказы без работы', '👀 Активные заявки']);

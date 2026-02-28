@@ -298,11 +298,7 @@ export async function handleRegistrationMessage(ctx: any, deps: BotDeps): Promis
                 const adminKeyboard = {
                     inline_keyboard: [
                         [
-                            { text: '✅ Одобрить', callback_data: `verify_approve_${telegramIdBigInt}` },
-                            { text: '❌ Отклонить', callback_data: `verify_reject_${telegramIdBigInt}` }
-                        ],
-                        [
-                            { text: '💻 Открыть CRM', url: 'https://xn--c1acbe2apap.com/admin/drivers' }
+                            { text: '💻 Одобрить / Отклонить в CRM', url: 'https://xn--c1acbe2apap.com/admin/drivers' }
                         ]
                     ]
                 };
