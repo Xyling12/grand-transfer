@@ -7,10 +7,9 @@ const JWT_SECRET = process.env.JWT_SECRET || process.env.TELEGRAM_BOT_TOKEN || '
 export async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
 
-    // Check if the current route is the login page itself to prevent infinite redirects
+    // --- Admin routes protection ---
     const isLoginPage = path === '/admin/login';
 
-    // Protect all /admin routes except the login route and API endpoints handling login
     if (path.startsWith('/admin') && !isLoginPage) {
         const token = req.cookies.get('admin_session')?.value;
 
@@ -19,20 +18,16 @@ export async function middleware(req: NextRequest) {
         }
 
         try {
-            // Verify JWT token using jose (Next.js Edge runtime compatible)
             const secret = new TextEncoder().encode(JWT_SECRET);
             await jwtVerify(token, secret);
-
-            // Allow access to the protected route
             return NextResponse.next();
         } catch (error) {
             console.error('JWT Verification failed in middleware:', error);
-            // Token is invalid or expired
             return NextResponse.redirect(new URL('/admin/login', req.url));
         }
     }
 
-    // Redirect authenticated users away from the login page
+    // Redirect authenticated admin users away from the login page
     if (isLoginPage) {
         const token = req.cookies.get('admin_session')?.value;
         if (token) {
@@ -46,10 +41,45 @@ export async function middleware(req: NextRequest) {
         }
     }
 
+    // --- Driver PWA routes protection ---
+    const isDriverLoginPage = path === '/driver/login';
+    const isDriverRegisterPage = path === '/driver/register';
+
+    if (path.startsWith('/driver') && !isDriverLoginPage && !isDriverRegisterPage) {
+        const token = req.cookies.get('driver_session')?.value;
+
+        if (!token) {
+            return NextResponse.redirect(new URL('/driver/login', req.url));
+        }
+
+        try {
+            const secret = new TextEncoder().encode(JWT_SECRET);
+            await jwtVerify(token, secret);
+            return NextResponse.next();
+        } catch (error) {
+            return NextResponse.redirect(new URL('/driver/login', req.url));
+        }
+    }
+
+    // Redirect authenticated drivers away from login
+    if (isDriverLoginPage) {
+        const token = req.cookies.get('driver_session')?.value;
+        if (token) {
+            try {
+                const secret = new TextEncoder().encode(JWT_SECRET);
+                await jwtVerify(token, secret);
+                return NextResponse.redirect(new URL('/driver/orders', req.url));
+            } catch (e) {
+                // Invalid token
+            }
+        }
+    }
+
     return NextResponse.next();
 }
 
 // Specify paths to apply middleware
 export const config = {
-    matcher: ['/admin/:path*'],
+    matcher: ['/admin/:path*', '/driver/:path*'],
 };
+

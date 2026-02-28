@@ -48,6 +48,8 @@ model Driver {
   fullFio            String?
   status             String    @default("PENDING") // PENDING, APPROVED, BANNED
   role               String    @default("DRIVER") // USER, DRIVER, DISPATCHER, ADMIN
+  passwordHash       String?
+  carDescription     String?   // Car make/model/color for PWA registration
   // Future subscription
   subExpiresAt       DateTime?
   createdAt          DateTime  @default(now())

@@ -1,12 +1,15 @@
 
+import dynamic from 'next/dynamic';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
-import WhyChooseUs from '../components/WhyChooseUs';
-import Tariffs from '../components/Tariffs';
-import PopularRoutes from '../components/PopularRoutes';
-import Reviews from '../components/Reviews';
-import Footer from '../components/Footer';
-import BookingFormWrapper from '../components/BookingFormWrapper';
+
+// Below-fold — lazy load
+const WhyChooseUs = dynamic(() => import('../components/WhyChooseUs'));
+const Tariffs = dynamic(() => import('../components/Tariffs'));
+const PopularRoutes = dynamic(() => import('../components/PopularRoutes'));
+const Reviews = dynamic(() => import('../components/Reviews'));
+const Footer = dynamic(() => import('../components/Footer'));
+const BookingFormWrapper = dynamic(() => import('../components/BookingFormWrapper'));
 
 
 export default function Home() {

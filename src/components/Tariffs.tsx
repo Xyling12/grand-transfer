@@ -144,6 +144,9 @@ export default function Tariffs() {
                                             className={styles.image}
                                             style={getStyleProps(tariff.id)}
                                             loading="lazy"
+                                            width={400}
+                                            height={250}
+                                            decoding="async"
                                         />
                                     </div>
                                     <div className={styles.nameRow}>

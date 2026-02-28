@@ -8,14 +8,14 @@ import SchemaOrg from "@/components/SchemaOrg";
 const bodoni = Bodoni_Moda({
   variable: "--font-bodoni",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["400", "700"],
   display: "swap",
 });
 
 const jost = Jost({
   variable: "--font-jost",
   subsets: ["latin", "cyrillic"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["300", "400", "500", "700"],
   display: "swap",
 });
 
