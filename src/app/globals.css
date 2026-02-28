@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
-
 :root {
   /* Premium Liquid Glass Palette */
   --color-background: #0C0A09;
@@ -30,8 +28,8 @@
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-blur: blur(12px);
 
-  --font-heading: 'Cormorant', 'Georgia', serif;
-  --font-body: 'Montserrat', 'Helvetica Neue', sans-serif;
+  --font-heading: var(--font-cormorant), 'Georgia', serif;
+  --font-body: var(--font-montserrat), 'Helvetica Neue', sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 12px;

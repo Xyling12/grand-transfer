@@ -53,6 +53,7 @@ export default function Header() {
                     <Link
                         href="/"
                         className={styles.logo}
+                        aria-label="GrandTransfer — Главная"
                         onClick={(e) => {
                             if (window.location.pathname === '/') {
                                 e.preventDefault();

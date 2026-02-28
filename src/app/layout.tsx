@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bodoni_Moda, Jost } from "next/font/google";
+import { Bodoni_Moda, Cormorant, Montserrat } from "next/font/google";
 import "./globals.css";
 import { CityProvider } from "@/context/CityContext";
 import ScrollAnimation from "@/components/ScrollAnimation";
@@ -12,10 +12,17 @@ const bodoni = Bodoni_Moda({
   display: "swap",
 });
 
-const jost = Jost({
-  variable: "--font-jost",
+const cormorant = Cormorant({
+  variable: "--font-cormorant",
   subsets: ["latin", "cyrillic"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin", "cyrillic"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -70,7 +77,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body className={`${bodoni.variable} ${jost.variable} `}>
+      <body className={`${cormorant.variable} ${montserrat.variable} ${bodoni.variable}`}>
         <SchemaOrg />
         <YandexMetrika />
         <CookieBanner />
