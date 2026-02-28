@@ -50,8 +50,9 @@ export function registerOrderHandlers(deps: BotDeps) {
                     }
                     buttons.push([{ text: '🏁 Завершить заявку', callback_data: `complete_order_${o.id}` }]);
                 }
-                // Map link
-                buttons.push([{ text: '🗺 Маршрут в Яндекс Картах', url: getMapWebLink(o.fromCity, o.toCity) }]);
+                // Map links
+                buttons.push([{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(o.fromCity, o.toCity) }]);
+                buttons.push([{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(o.fromCity, o.toCity) }]);
 
                 await ctx.replyWithHTML(msg, {
                     protect_content: protectContentGlobal,
@@ -238,7 +239,8 @@ export function registerOrderHandlers(deps: BotDeps) {
                     { text: '❌ Отменить', callback_data: `cancel_order_${order.id}` }
                 ]);
             }
-            keyboardButtons.push([{ text: '🗺 Маршрут в Яндекс Картах', url: getMapWebLink(order.fromCity, order.toCity) }]);
+            keyboardButtons.push([{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }]);
+            keyboardButtons.push([{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]);
 
             const protectContentGlobal = await getProtectContent(deps, role!);
 
@@ -528,7 +530,8 @@ export function registerOrderHandlers(deps: BotDeps) {
             const keyboard = {
                 inline_keyboard: [
                     [{ text: '✅ Забрать заявку', callback_data: `take_order_${order.id}` }],
-                    [{ text: '🗺 Маршрут в Яндекс Картах', url: getMapWebLink(order.fromCity, order.toCity) }]
+                    [{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }],
+                    [{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]
                 ]
             };
 
@@ -622,7 +625,8 @@ export function registerOrderHandlers(deps: BotDeps) {
                                     [{ text: '📋 Полная заявка', callback_data: `full_order_${order.id}` }],
                                     [{ text: '📤 Отправить водителям', callback_data: `dispatch_order_${order.id}` }],
                                     [{ text: '🏁 Заявка выполнена', callback_data: `complete_order_${order.id}` }],
-                                    [{ text: '🗺 Маршрут в Яндекс Картах', url: getMapWebLink(order.fromCity, order.toCity) }]
+                                    [{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }],
+                                    [{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]
                                 ]
                             };
 
@@ -686,14 +690,28 @@ export function registerOrderHandlers(deps: BotDeps) {
                 data: { status: 'TAKEN', driverId: dbId, takenAt: new Date() }
             });
 
-            const txt = (ctx.callbackQuery.message as any)?.text || "Заявка";
-            const customerInfo = `\n\n✅ <b>ВЫ ВЗЯЛИ ЭТУ ЗАЯВКУ В РАБОТУ</b>\n\n👤 <b>Клиент:</b> ${order.customerName}\n📞 <b>Телефон:</b> ${order.customerPhone}\n\n<i>Для завершения заказа нажмите кнопку ниже:</i>`;
+            const fullOrderInfo = `✅ <b>ВЫ ВЗЯЛИ ЭТУ ЗАЯВКУ В РАБОТУ</b>
 
-            await ctx.editMessageText(txt + customerInfo, {
+📍 <b>Откуда:</b> ${order.fromCity}
+🏁 <b>Куда:</b> ${order.toCity}
+🚕 <b>Тариф:</b> ${translateTariff(order.tariff)}
+👥 <b>Пассажиров:</b> ${order.passengers}
+💰 <b>Стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
+🗓 <b>Дата/Время:</b> ${order.scheduledDate || 'Сразу'}
+📝 <b>Комментарий:</b> ${order.comments || 'Нет'}
+
+👤 <b>Клиент:</b> ${order.customerName}
+📞 <b>Телефон:</b> <code>${order.customerPhone}</code>
+
+<i>№ заказа: ${order.id}</i>`;
+
+            await ctx.editMessageText(fullOrderInfo, {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: '🏁 Заявка выполнена', callback_data: `complete_order_${order.id}` }]
+                        [{ text: '🏁 Заявка выполнена', callback_data: `complete_order_${order.id}` }],
+                        [{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }],
+                        [{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]
                     ]
                 }
             });
@@ -773,13 +791,13 @@ export function registerOrderHandlers(deps: BotDeps) {
             if (order.dispatcherId && !isAssignedDispatcher) {
                 const disp = await prisma.driver.findUnique({ where: { id: order.dispatcherId } });
                 if (disp && disp.telegramId !== BigInt(ctx.chat?.id || 0)) {
-                    const dispMsg = `✅ <b>Заявка № ${order.id} ВЫПОЛНЕНА</b>\n\n👨‍✈️ Исполнитель: <b>${takerName}</b>\n📍 Маршрут: ${order.fromCity} — ${order.toCity}\n💰 ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Без оценки'}\n👤 Клиент: ${order.customerName}\n📞 Телефон: ${order.customerPhone}`;
+                    const dispMsg = `✅ <b>Заявка № ${order.id} ВЫПОЛНЕНА</b>\n\n👨‍✈️ Исполнитель: <b>${takerName}</b>\n📍 Маршрут: ${order.fromCity} — ${order.toCity}\n💰 ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Без оценки'}\n👤 Клиент: ${order.customerName}\n📞 Телефон: <code>${order.customerPhone}</code>`;
                     await bot.telegram.sendMessage(Number(disp.telegramId), dispMsg, {
                         parse_mode: 'HTML',
                         reply_markup: {
                             inline_keyboard: [
                                 [{ text: '📋 Полная заявка', callback_data: `full_order_${order.id}` }],
-                                [{ text: '⭐ Обратная связь', callback_data: `feedback_order_${order.id}` }]
+                                [{ text: '📞 Обратная связь с клиентом', callback_data: `feedback_call_${order.id}` }]
                             ]
                         }
                     }).catch(() => { });
@@ -800,10 +818,10 @@ export function registerOrderHandlers(deps: BotDeps) {
         }
     });
 
-    // --- Feedback Order (Dispatcher) ---
-    bot.action(/^feedback_order_(\d+)$/, async (ctx) => {
-        const { auth, role, dbId } = await checkAuth(ctx, deps);
-        if (!auth || !dbId) return ctx.answerCbQuery('Нет прав', { show_alert: true });
+    // --- Feedback Call (Dispatcher — call client) ---
+    bot.action(/^feedback_call_(\d+)$/, async (ctx) => {
+        const { auth } = await checkAuth(ctx, deps);
+        if (!auth) return ctx.answerCbQuery('Нет прав', { show_alert: true });
 
         const orderId = parseInt(ctx.match[1], 10);
         try {
@@ -812,17 +830,11 @@ export function registerOrderHandlers(deps: BotDeps) {
 
             await ctx.answerCbQuery();
             await ctx.reply(
-                `⭐ <b>Обратная связь по заявке №${orderId}</b>\n\nНапишите ваш отзыв или комментарий по этой заявке:`,
+                `📞 <b>Обратная связь по заявке №${orderId}</b>\n\n👤 <b>Клиент:</b> ${order.customerName}\n📱 <b>Телефон:</b> <code>${order.customerPhone}</code>\n\n<i>Нажмите на номер телефона для копирования и позвоните клиенту.</i>`,
                 { parse_mode: 'HTML', protect_content: true }
             );
-
-            // Store pending feedback state
-            const pendingFeedback = (global as any).__pendingFeedback || {};
-            const tgId = ctx.chat?.id?.toString() || '';
-            pendingFeedback[tgId] = { orderId, role };
-            (global as any).__pendingFeedback = pendingFeedback;
         } catch (err) {
-            console.error('Feedback init error:', err);
+            console.error('Feedback call error:', err);
             ctx.answerCbQuery('Ошибка');
         }
     });

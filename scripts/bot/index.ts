@@ -94,7 +94,7 @@ bot.start(async (ctx) => {
         } else if (driver.status === 'BANNED') {
             return ctx.reply('Доступ в систему заблокирован.', { reply_markup: { remove_keyboard: true } });
         } else if (driver.status === 'APPROVED') {
-            return ctx.reply('Добро пожаловать в рабочую панель водителя GrandTransfer! Ожидайте новых заказов.', { ...getMainMenu(telegramIdStr, driver.role, adminId) });
+            return ctx.reply('Добро пожаловать в рабочую панель водителя GrandTransfer! Ожидайте новых заказов.\n\n⚠️ <i>В работе бота возможны ошибки. Если находите ошибки, нажмите кнопку</i> <b>🛠 Найдена ошибка</b> <i>и опишите её — будем очень признательны!</i>', { ...getMainMenu(telegramIdStr, driver.role, adminId), parse_mode: 'HTML' });
         }
     } catch (e) {
         console.error('Error in /start:', e);
@@ -202,36 +202,7 @@ bot.on('message', async (ctx, next) => {
         }
     }
 
-    // 3. Pending order feedback
-    const pendingFeedback = (global as any).__pendingFeedback || {};
-    if (pendingFeedback[tgIdStr]) {
-        const fb = pendingFeedback[tgIdStr];
-        delete pendingFeedback[tgIdStr];
-        const text = (ctx.message as any)?.text?.trim();
-        if (text) {
-            try {
-                const senderName = ctx.from?.first_name || ctx.from?.username || 'Диспетчер';
-                // Notify admins
-                const admins = await prisma.driver.findMany({ where: { status: 'APPROVED', role: 'ADMIN' } });
-                for (const admin of admins) {
-                    await bot.telegram.sendMessage(
-                        Number(admin.telegramId),
-                        `⭐ <b>Обратная связь по заявке №${fb.orderId}</b>\n\nОт: <b>${senderName}</b>\n\n${text}`,
-                        { parse_mode: 'HTML' }
-                    ).catch(() => { });
-                }
-                await ctx.reply('✅ Спасибо! Ваш отзыв по заявке отправлен.', { protect_content: true });
-            } catch (err) {
-                console.error('Feedback save error:', err);
-                await ctx.reply('❌ Ошибка при сохранении отзыва.');
-            }
-        } else {
-            await ctx.reply('❌ Пожалуйста, отправьте текстовый отзыв.');
-        }
-        return;
-    }
-
-    // 4. Ticket-related messages (bug reports, support creates, admin replies)
+    // 3. Ticket-related messages (bug reports, support creates, admin replies)
     const ticketHandled = await handleTicketMessages(ctx, deps);
     if (ticketHandled) return;
 
