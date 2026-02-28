@@ -115,7 +115,12 @@ export function registerTicketHandlers(deps: BotDeps) {
                 if (t.status !== 'CLOSED') {
                     inlineButtons.push([
                         { text: `🙋‍♂️ Взять №${t.ticketNum}`, callback_data: `take_ticket_${t.ticketNum}` },
-                        { text: `✉️ Ответить`, callback_data: `reply_ticket_${t.ticketNum}` }
+                        { text: `✉️ Ответить`, callback_data: `reply_ticket_${t.ticketNum}` },
+                        { text: `📜 История`, callback_data: `view_ticket_history_${t.ticketNum}` }
+                    ]);
+                } else {
+                    inlineButtons.push([
+                        { text: `📜 История №${t.ticketNum}`, callback_data: `view_ticket_history_${t.ticketNum}` }
                     ]);
                 }
             }
@@ -126,6 +131,65 @@ export function registerTicketHandlers(deps: BotDeps) {
         } catch (e) {
             console.error('Error fetching bug reports:', e);
             await ctx.reply('❌ Ошибка при получении баг-репортов.');
+        }
+    });
+
+    // --- View Ticket History ---
+    bot.action(/^view_ticket_history_(.+)$/, async (ctx) => {
+        const { auth } = await checkAuth(ctx, deps);
+        if (!auth) return ctx.answerCbQuery('Нет прав', { show_alert: true });
+
+        const ticketNum = ctx.match[1];
+        try {
+            const ticket = await prisma.supportTicket.findUnique({ where: { ticketNum } });
+            if (!ticket) return ctx.answerCbQuery('Обращение не найдено', { show_alert: true });
+
+            const messages = await prisma.ticketMessage.findMany({
+                where: { ticketNum },
+                orderBy: { createdAt: 'asc' }
+            });
+
+            const statusEmoji = ticket.status === 'OPEN' ? '🟡' : (ticket.status === 'IN_PROGRESS' ? '🔵' : '✅');
+            const statusText = ticket.status === 'OPEN' ? 'Открыт' : (ticket.status === 'IN_PROGRESS' ? 'В работе' : 'Закрыт');
+            const typeLabel = ticket.type === 'BUG' ? '🐛 Баг-репорт' : '🆘 Обращение';
+            const dateStr = ticket.createdAt ? new Date(ticket.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
+
+            let msg = `📜 <b>История ${typeLabel} №${ticketNum}</b>\n`;
+            msg += `${statusEmoji} Статус: <b>${statusText}</b>\n`;
+            msg += `👤 Автор: <a href="tg://user?id=${ticket.authorId}">${ticket.authorName}</a>\n`;
+            msg += `📅 Создано: ${dateStr}\n`;
+            msg += `────────────────────\n\n`;
+
+            // Original message
+            msg += `📩 <b>Исходное сообщение:</b>\n<i>${ticket.message}</i>\n\n`;
+
+            // Thread messages
+            if (messages.length > 0) {
+                msg += `💬 <b>Переписка (${messages.length}):</b>\n\n`;
+                for (const m of messages) {
+                    const mDate = m.createdAt ? new Date(m.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
+                    msg += `👤 <b>${m.senderName}</b> (${mDate}):\n${m.message}\n\n`;
+                }
+            } else {
+                msg += `<i>Ответов пока нет.</i>\n`;
+            }
+
+            await ctx.answerCbQuery();
+
+            const buttons: any[] = [];
+            if (ticket.status !== 'CLOSED') {
+                buttons.push([{ text: `✉️ Ответить`, callback_data: `reply_ticket_${ticketNum}` }]);
+                buttons.push([{ text: `✅ Закрыть`, callback_data: `close_ticket_${ticketNum}` }]);
+            }
+
+            await ctx.reply(msg, {
+                parse_mode: 'HTML',
+                protect_content: true,
+                reply_markup: buttons.length ? { inline_keyboard: buttons } : undefined
+            });
+        } catch (e) {
+            console.error('View ticket history error:', e);
+            ctx.answerCbQuery('Ошибка при получении истории');
         }
     });
 

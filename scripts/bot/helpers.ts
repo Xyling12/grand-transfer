@@ -61,14 +61,13 @@ export const getMainMenu = (chatId: string, role: string, adminId: string) => {
     } else if (role === 'DISPATCHER') {
         buttons.push(['🆕 Заказы без работы', '👀 Активные заявки']);
         buttons.push(['🚗 Мои заявки', '📚 История заявок']);
-        buttons.push(['💬 Чат', '📩 Мои обращения']);
-        buttons.push(['🆘 Написать в поддержку']);
+        buttons.push(['💬 Чат']);
+        buttons.push(['📩 Мои обращения', '🆘 Написать в поддержку']);
         buttons.push(['🛠 Найдена ошибка', 'ℹ️ Справка']);
     } else {
         buttons.push(['🚗 Мои заказы', '📚 История заявок']);
         buttons.push(['📋 Доступные заявки', '💬 Чат']);
-        buttons.push(['📩 Мои обращения']);
-        buttons.push(['🆘 Написать в поддержку']);
+        buttons.push(['📩 Мои обращения', '🆘 Написать в поддержку']);
         buttons.push(['🛠 Найдена ошибка', 'ℹ️ Справка']);
     }
 
