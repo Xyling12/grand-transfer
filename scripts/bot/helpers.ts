@@ -79,7 +79,7 @@ export const getMainMenu = (chatId: string, role: string, adminId: string) => {
 export const getMapDeepLink = (fromCity: string, toCity: string) => {
     const pt1 = encodeURIComponent(fromCity);
     const pt2 = encodeURIComponent(toCity);
-    return `yandexmaps://maps.yandex.ru/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
+    return `https://yandex.ru/navi/?rtext=${pt1}~${pt2}&rtt=auto`;
 };
 
 export const getMapWebLink = (fromCity: string, toCity: string) => {
