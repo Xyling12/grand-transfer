@@ -230,8 +230,7 @@ export function registerOrderHandlers(deps: BotDeps) {
                     { text: '❌ Отменить', callback_data: `cancel_order_${order.id}` }
                 ]);
             }
-            keyboardButtons.push([{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }]);
-            keyboardButtons.push([{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]);
+            keyboardButtons.push([{ text: '🗺 Маршрут в Яндекс Картах', url: getMapWebLink(order.fromCity, order.toCity) }]);
 
             const protectContentGlobal = await getProtectContent(deps, role!);
 
@@ -521,8 +520,7 @@ export function registerOrderHandlers(deps: BotDeps) {
             const keyboard = {
                 inline_keyboard: [
                     [{ text: '✅ Забрать заявку', callback_data: `take_order_${order.id}` }],
-                    [{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }],
-                    [{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]
+                    [{ text: '🗺 Маршрут в Яндекс Картах', url: getMapWebLink(order.fromCity, order.toCity) }]
                 ]
             };
 
@@ -616,8 +614,7 @@ export function registerOrderHandlers(deps: BotDeps) {
                                     [{ text: '📋 Полная заявка', callback_data: `full_order_${order.id}` }],
                                     [{ text: '📤 Отправить водителям', callback_data: `dispatch_order_${order.id}` }],
                                     [{ text: '🏁 Заявка выполнена', callback_data: `complete_order_${order.id}` }],
-                                    [{ text: '📱 Маршрут (приложение)', url: getMapDeepLink(order.fromCity, order.toCity) }],
-                                    [{ text: '🌐 Маршрут (браузер)', url: getMapWebLink(order.fromCity, order.toCity) }]
+                                    [{ text: '🗺 Маршрут в Яндекс Картах', url: getMapWebLink(order.fromCity, order.toCity) }]
                                 ]
                             };
 
