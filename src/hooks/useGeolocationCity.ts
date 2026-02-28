@@ -6,8 +6,8 @@ export function useGeolocationCity(defaultCity: string = 'Ижевск') {
     useEffect(() => {
         const fetchCity = async () => {
             try {
-                // Using ip-api.com as it often bypasses development CORS issues better than ipapi.co
-                const response = await fetch('http://ip-api.com/json/?lang=ru');
+                // Using HTTPS endpoint for secure geolocation
+                const response = await fetch('https://ipapi.co/json/');
 
                 if (!response.ok) {
                     return; // Fail silently, default fallback to Izhevsk will remain
@@ -15,7 +15,7 @@ export function useGeolocationCity(defaultCity: string = 'Ижевск') {
 
                 const data = await response.json();
 
-                if (data && data.status === 'success' && data.city) {
+                if (data && data.city) {
                     setCity(data.city);
                 }
 
