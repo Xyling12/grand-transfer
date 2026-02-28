@@ -85,7 +85,7 @@ export const getMapDeepLink = (fromCity: string, toCity: string) => {
 export const getMapWebLink = (fromCity: string, toCity: string) => {
     const pt1 = encodeURIComponent(fromCity);
     const pt2 = encodeURIComponent(toCity);
-    return `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
+    return `https://yandex.ru/maps/?rtext=${pt1}~${pt2}&rtt=auto`;
 };
 
 // --- Reply With Menu Helper ---

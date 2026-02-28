@@ -42,7 +42,15 @@ export function registerOrderHandlers(deps: BotDeps) {
                 if (o.status === 'TAKEN' && o.driverId === dbId) {
                     buttons.push([{ text: '✅ Заявка выполнена', callback_data: `complete_order_${o.id}` }]);
                 }
-                // Map link (web only — Telegram rejects non-http URLs in inline keyboards)
+                // Dispatcher/Admin action buttons
+                if ((role === 'DISPATCHER' || role === 'ADMIN') && (o.status === 'PROCESSING' || o.status === 'DISPATCHED' || o.status === 'TAKEN')) {
+                    buttons.push([{ text: '📋 Полная заявка', callback_data: `full_order_${o.id}` }]);
+                    if (o.status !== 'TAKEN') {
+                        buttons.push([{ text: '📤 Отправить водителям', callback_data: `dispatch_order_${o.id}` }]);
+                    }
+                    buttons.push([{ text: '🏁 Завершить заявку', callback_data: `complete_order_${o.id}` }]);
+                }
+                // Map link
                 buttons.push([{ text: '🗺 Маршрут в Яндекс Картах', url: getMapWebLink(o.fromCity, o.toCity) }]);
 
                 await ctx.replyWithHTML(msg, {
@@ -653,6 +661,14 @@ export function registerOrderHandlers(deps: BotDeps) {
 
         const orderId = parseInt(ctx.match[1], 10);
         try {
+            // Check if driver already has an active order
+            const existingOrder = await prisma.order.findFirst({
+                where: { driverId: dbId, status: 'TAKEN' }
+            });
+            if (existingOrder) {
+                return ctx.answerCbQuery('⚠️ У вас уже есть активная заявка №' + existingOrder.id + '. Завершите её перед взятием новой.', { show_alert: true });
+            }
+
             const order = await prisma.order.findUnique({ where: { id: orderId } });
 
             if (!order) {
@@ -757,8 +773,16 @@ export function registerOrderHandlers(deps: BotDeps) {
             if (order.dispatcherId && !isAssignedDispatcher) {
                 const disp = await prisma.driver.findUnique({ where: { id: order.dispatcherId } });
                 if (disp && disp.telegramId !== BigInt(ctx.chat?.id || 0)) {
-                    const dispMsg = `✅ <b>Заявка № ${order.id} ВЫПОЛНЕНА</b>\n\nИсполнитель: <b>${takerName}</b>\nМаршрут: ${order.fromCity} — ${order.toCity}`;
-                    await bot.telegram.sendMessage(Number(disp.telegramId), dispMsg, { parse_mode: 'HTML' }).catch(() => { });
+                    const dispMsg = `✅ <b>Заявка № ${order.id} ВЫПОЛНЕНА</b>\n\n👨‍✈️ Исполнитель: <b>${takerName}</b>\n📍 Маршрут: ${order.fromCity} — ${order.toCity}\n💰 ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Без оценки'}\n👤 Клиент: ${order.customerName}\n📞 Телефон: ${order.customerPhone}`;
+                    await bot.telegram.sendMessage(Number(disp.telegramId), dispMsg, {
+                        parse_mode: 'HTML',
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: '📋 Полная заявка', callback_data: `full_order_${order.id}` }],
+                                [{ text: '⭐ Обратная связь', callback_data: `feedback_order_${order.id}` }]
+                            ]
+                        }
+                    }).catch(() => { });
                 }
             }
 
@@ -773,6 +797,33 @@ export function registerOrderHandlers(deps: BotDeps) {
         } catch (err) {
             console.error('Complete_order error:', err);
             ctx.answerCbQuery('Произошла ошибка при завершении заявки.');
+        }
+    });
+
+    // --- Feedback Order (Dispatcher) ---
+    bot.action(/^feedback_order_(\d+)$/, async (ctx) => {
+        const { auth, role, dbId } = await checkAuth(ctx, deps);
+        if (!auth || !dbId) return ctx.answerCbQuery('Нет прав', { show_alert: true });
+
+        const orderId = parseInt(ctx.match[1], 10);
+        try {
+            const order = await prisma.order.findUnique({ where: { id: orderId } });
+            if (!order) return ctx.answerCbQuery('Заявка не найдена', { show_alert: true });
+
+            await ctx.answerCbQuery();
+            await ctx.reply(
+                `⭐ <b>Обратная связь по заявке №${orderId}</b>\n\nНапишите ваш отзыв или комментарий по этой заявке:`,
+                { parse_mode: 'HTML', protect_content: true }
+            );
+
+            // Store pending feedback state
+            const pendingFeedback = (global as any).__pendingFeedback || {};
+            const tgId = ctx.chat?.id?.toString() || '';
+            pendingFeedback[tgId] = { orderId, role };
+            (global as any).__pendingFeedback = pendingFeedback;
+        } catch (err) {
+            console.error('Feedback init error:', err);
+            ctx.answerCbQuery('Ошибка');
         }
     });
 

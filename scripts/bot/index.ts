@@ -202,7 +202,36 @@ bot.on('message', async (ctx, next) => {
         }
     }
 
-    // 3. Ticket-related messages (bug reports, support creates, admin replies)
+    // 3. Pending order feedback
+    const pendingFeedback = (global as any).__pendingFeedback || {};
+    if (pendingFeedback[tgIdStr]) {
+        const fb = pendingFeedback[tgIdStr];
+        delete pendingFeedback[tgIdStr];
+        const text = (ctx.message as any)?.text?.trim();
+        if (text) {
+            try {
+                const senderName = ctx.from?.first_name || ctx.from?.username || 'Диспетчер';
+                // Notify admins
+                const admins = await prisma.driver.findMany({ where: { status: 'APPROVED', role: 'ADMIN' } });
+                for (const admin of admins) {
+                    await bot.telegram.sendMessage(
+                        Number(admin.telegramId),
+                        `⭐ <b>Обратная связь по заявке №${fb.orderId}</b>\n\nОт: <b>${senderName}</b>\n\n${text}`,
+                        { parse_mode: 'HTML' }
+                    ).catch(() => { });
+                }
+                await ctx.reply('✅ Спасибо! Ваш отзыв по заявке отправлен.', { protect_content: true });
+            } catch (err) {
+                console.error('Feedback save error:', err);
+                await ctx.reply('❌ Ошибка при сохранении отзыва.');
+            }
+        } else {
+            await ctx.reply('❌ Пожалуйста, отправьте текстовый отзыв.');
+        }
+        return;
+    }
+
+    // 4. Ticket-related messages (bug reports, support creates, admin replies)
     const ticketHandled = await handleTicketMessages(ctx, deps);
     if (ticketHandled) return;
 
