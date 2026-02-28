@@ -463,6 +463,10 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                                                 src={t.image}
                                                                 alt={t.name}
                                                                 className={styles.carImage}
+                                                                width={400}
+                                                                height={250}
+                                                                loading="lazy"
+                                                                decoding="async"
                                                                 style={{
                                                                     '--base-scale': t.id === 'delivery' ? 1.3 : (t.id === 'soberDriver' ? 1 : 1.2),
                                                                     '--base-translate': t.id === 'delivery' ? '-8px' : (t.id === 'soberDriver' ? '0px' : '-4px'),
