@@ -1,6 +1,6 @@
 import { Markup } from 'telegraf';
 import { BotDeps } from './types';
-import { checkAuth, formatOrderMessage, translateTariff, translateStatus, getMainMenu, getProtectContent, getMapDeepLink, getMapWebLink, replyWithMenu } from './helpers';
+import { checkAuth, formatOrderMessage, translateTariff, translateStatus, getMainMenu, getProtectContent, getMapDeepLink, getMapWebLink, replyWithMenu, formatScheduledDate } from './helpers';
 import { cities } from '../../src/data/cities';
 import * as xlsx from 'xlsx';
 
@@ -207,7 +207,7 @@ export function registerOrderHandlers(deps: BotDeps) {
             if (!order) return ctx.answerCbQuery('Заявка не найдена', { show_alert: true });
 
             const dateStr = order.createdAt ? new Date(order.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
-            const scheduledStr = (order as any).scheduledDate || 'Сразу';
+            const scheduledStr = formatScheduledDate((order as any).scheduledDate);
             const msg = `
 📋 <b>ПОЛНАЯ ЗАЯВКА № ${order.id}</b>
 <i>(Создана ${dateStr})</i>
@@ -697,7 +697,7 @@ export function registerOrderHandlers(deps: BotDeps) {
 🚕 <b>Тариф:</b> ${translateTariff(order.tariff)}
 👥 <b>Пассажиров:</b> ${order.passengers}
 💰 <b>Стоимость:</b> ${order.priceEstimate ? order.priceEstimate + ' ₽' : 'Не рассчитана'}
-🗓 <b>Дата/Время:</b> ${order.scheduledDate || 'Сразу'}
+🗓 <b>Дата/Время:</b> ${formatScheduledDate(order.scheduledDate)}
 📝 <b>Комментарий:</b> ${order.comments || 'Нет'}
 
 👤 <b>Клиент:</b> ${order.customerName}

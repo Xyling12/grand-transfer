@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyDriverToken } from '@/lib/auth';
 
-// Helper to get authenticated driver
+// Helper to get authenticated driver (supports both cookie and Bearer token)
 async function getDriver(req: NextRequest) {
-    const token = req.cookies.get('driver_session')?.value;
+    let token = req.cookies.get('driver_session')?.value;
+    if (!token) {
+        const authHeader = req.headers.get('authorization');
+        if (authHeader?.startsWith('Bearer ')) {
+            token = authHeader.slice(7);
+        }
+    }
     if (!token) return null;
     const payload = await verifyDriverToken(token);
     if (!payload) return null;
@@ -22,25 +28,41 @@ export async function GET(req: NextRequest) {
         }
 
         const { searchParams } = new URL(req.url);
-        const filter = searchParams.get('filter') || 'available';
+        const filter = searchParams.get('filter') || searchParams.get('type') || 'available';
         const page = parseInt(searchParams.get('page') || '1');
-        const limit = 20;
+        const limit = 50;
         const skip = (page - 1) * limit;
 
         let where: any = {};
 
         switch (filter) {
+            case 'all':
+                // All orders (admin only)
+                if (driver.role === 'ADMIN' || driver.role === 'DISPATCHER') {
+                    where = {};
+                } else {
+                    where = { driverId: driver.id };
+                }
+                break;
             case 'available':
-                // New orders not yet taken
-                where = { status: 'NEW' };
+                // Dispatchers see NEW orders, drivers see only DISPATCHED
+                if (driver.role === 'ADMIN' || driver.role === 'DISPATCHER') {
+                    where = { status: { in: ['NEW', 'DISPATCHED'] } };
+                } else {
+                    where = { status: 'DISPATCHED' };
+                }
                 break;
             case 'dispatched':
                 // Orders dispatched to drivers
                 where = { status: 'DISPATCHED' };
                 break;
             case 'my':
-                // Orders taken by this driver
-                where = { driverId: driver.id, status: { in: ['TAKEN', 'DISPATCHED'] } };
+                // Orders taken by this driver or managed by this dispatcher
+                if (driver.role === 'DISPATCHER' || driver.role === 'ADMIN') {
+                    where = { OR: [{ driverId: driver.id }, { dispatcherId: driver.id }], status: { in: ['TAKEN', 'DISPATCHED'] } };
+                } else {
+                    where = { driverId: driver.id, status: { in: ['TAKEN', 'DISPATCHED'] } };
+                }
                 break;
             case 'active':
                 // All active (for dispatchers/admins)
@@ -69,8 +91,8 @@ export async function GET(req: NextRequest) {
                 skip,
                 take: limit,
                 include: {
-                    driver: { select: { firstName: true, fullFio: true, phone: true } },
-                    dispatcher: { select: { firstName: true, fullFio: true, phone: true } },
+                    driver: { select: { id: true, firstName: true, fullFio: true, phone: true, role: true } },
+                    dispatcher: { select: { id: true, firstName: true, fullFio: true, phone: true, role: true } },
                 }
             }),
             prisma.order.count({ where })
@@ -116,9 +138,14 @@ export async function POST(req: NextRequest) {
                 if (order.status !== 'NEW' && order.status !== 'DISPATCHED') {
                     return NextResponse.json({ error: 'Этот заказ уже взят' }, { status: 400 });
                 }
+                const isDispRole = driver.role === 'DISPATCHER' || driver.role === 'ADMIN';
                 const updated = await prisma.order.update({
                     where: { id: order.id },
-                    data: {
+                    data: isDispRole ? {
+                        status: 'TAKEN',
+                        dispatcherId: driver.id,
+                        takenAt: new Date(),
+                    } : {
                         status: 'TAKEN',
                         driverId: driver.id,
                         takenAt: new Date(),
@@ -127,7 +154,7 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ success: true, order: updated });
             }
             case 'complete': {
-                if (order.driverId !== driver.id && driver.role !== 'ADMIN') {
+                if (order.driverId !== driver.id && driver.role !== 'ADMIN' && driver.role !== 'DISPATCHER') {
                     return NextResponse.json({ error: 'Вы не можете завершить чужой заказ' }, { status: 403 });
                 }
                 const updated = await prisma.order.update({

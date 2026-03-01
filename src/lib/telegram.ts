@@ -34,6 +34,26 @@ export async function sendOrderNotification(orderData: Record<string, string | n
 
     const sourceSiteText = orderData.sourceSite ? `\n🌐 <b>Источник:</b> ${orderData.sourceSite}` : '';
 
+    // Format scheduled date from YYYY-MM-DD to DD/MM/YYYY
+    const rawDateTime = orderData.dateTime ? String(orderData.dateTime).trim() : '';
+    let formattedDateTime = rawDateTime || 'Сразу';
+    const dateMatch = rawDateTime.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+    if (dateMatch) {
+        const [, year, month, day, rest] = dateMatch;
+        formattedDateTime = `${day}/${month}/${year}${rest}`;
+    }
+
+    // Normalize phone: ensure +7 prefix
+    let customerPhone = String(orderData.customerPhone || '');
+    if (customerPhone) {
+        const digits = customerPhone.replace(/[^\d]/g, '');
+        if (digits.startsWith('8') && digits.length === 11) {
+            customerPhone = '+7' + digits.slice(1);
+        } else if (!customerPhone.startsWith('+')) {
+            customerPhone = '+' + digits;
+        }
+    }
+
     const message = `
 🚨 <b>Новая заявка на трансфер!</b>${sourceSiteText}
 
@@ -44,7 +64,9 @@ ${checkpointName ? `🛃 <b>КПП:</b> ${checkpointName}\n` : ''}🚕 <b>Тар
 💰 <b>Расчетная стоимость:</b> ${orderData.priceEstimate ? orderData.priceEstimate + ' ₽' : 'Не рассчитана'}
 
 📝 <b>Комментарий:</b> ${orderData.comments || 'Нет'}
-📅 <b>Дата/Время:</b> ${orderData.dateTime || 'Сразу'}
+👤 <b>Клиент:</b> ${orderData.customerName}
+📞 <b>Телефон:</b> ${customerPhone}
+📅 <b>Дата/Время:</b> ${formattedDateTime}
 
 <i>№ заказа: ${orderData.id}</i>
 `;

@@ -4,7 +4,14 @@ import { verifyDriverToken } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
     try {
-        const token = req.cookies.get('driver_session')?.value;
+        // Support both cookie and Bearer token
+        let token = req.cookies.get('driver_session')?.value;
+        if (!token) {
+            const authHeader = req.headers.get('authorization');
+            if (authHeader?.startsWith('Bearer ')) {
+                token = authHeader.slice(7);
+            }
+        }
         if (!token) {
             return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
         }
@@ -23,14 +30,14 @@ export async function GET(req: NextRequest) {
         }
 
         return NextResponse.json({
-            id: driver.id,
-            fullFio: driver.fullFio,
-            firstName: driver.firstName,
-            phone: driver.phone,
-            role: driver.role,
-            status: driver.status,
-            ptsNumber: driver.ptsNumber,
-            carDescription: (driver as any).carDescription,
+            driver: {
+                id: driver.id,
+                fullFio: driver.fullFio,
+                firstName: driver.firstName,
+                phone: driver.phone,
+                role: driver.role,
+                status: driver.status,
+            }
         });
 
     } catch (error) {
@@ -38,3 +45,4 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
     }
 }
+

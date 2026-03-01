@@ -5,6 +5,20 @@ import { BotDeps } from './types';
 import { translateTariff, translateStatus } from '../../src/lib/translations';
 export { translateTariff, translateStatus };
 
+// --- Date Format Helper ---
+// Converts "YYYY-MM-DD HH:MM" or "YYYY-MM-DD" to "DD/MM/YYYY HH:MM" or "DD/MM/YYYY"
+export const formatScheduledDate = (dateStr: string | null | undefined): string => {
+    if (!dateStr || dateStr.trim() === '') return 'Сразу';
+    const trimmed = dateStr.trim();
+    // Match YYYY-MM-DD with optional time
+    const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+    if (match) {
+        const [, year, month, day, rest] = match;
+        return `${day}/${month}/${year}${rest}`;
+    }
+    return trimmed;
+};
+
 
 export const formatOrderMessage = (o: any, role: string) => {
     const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';

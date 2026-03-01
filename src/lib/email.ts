@@ -37,6 +37,15 @@ export async function sendEmailNotification(orderData: any) {
         customerName, customerPhone, comments, dateTime, id
     } = orderData;
 
+    // Format scheduled date from YYYY-MM-DD to DD/MM/YYYY
+    const rawDateTime = dateTime ? String(dateTime).trim() : '';
+    let formattedDateTime = rawDateTime || 'Сразу';
+    const dateMatch = rawDateTime.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+    if (dateMatch) {
+        const [, year, month, day, rest] = dateMatch;
+        formattedDateTime = `${day}/${month}/${year}${rest}`;
+    }
+
     const htmlContent = `
         <h2>🚨 Новая заявка на трансфер!</h2>
         <ul>
@@ -47,7 +56,7 @@ export async function sendEmailNotification(orderData: any) {
             <li><b>Цена (примерно):</b> ${priceEstimate ? priceEstimate + ' ₽' : 'Не рассчитана'}</li>
             <li><b>Клиент:</b> ${customerName || 'Не указано'}</li>
             <li><b>Телефон:</b> ${customerPhone || 'Не указано'}</li>
-            <li><b>Дата/Время:</b> ${dateTime || 'Сразу'}</li>
+            <li><b>Дата/Время:</b> ${formattedDateTime}</li>
             <li><b>Комментарий:</b> ${comments || 'Нет'}</li>
             <li><b>ID в базе:</b> ${id}</li>
             <li><b>Маршрут на карте:</b> <a href="https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${encodeURIComponent(fromCity)}~${encodeURIComponent(toCity)}">📍 Открыть в Яндекс Картах</a></li>

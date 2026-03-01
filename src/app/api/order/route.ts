@@ -48,6 +48,17 @@ export async function POST(req: Request) {
             const origin = req.headers.get('origin') || host;
             const sourceSite = origin.includes('taximezhgorod') ? 'taximezhgorod777.ru' : 'межгород.com';
 
+            // Normalize phone: ensure +7 prefix
+            let normalizedPhone = body.customerPhone || '';
+            if (normalizedPhone) {
+                const digits = normalizedPhone.replace(/[^\d]/g, '');
+                if (digits.startsWith('8') && digits.length === 11) {
+                    normalizedPhone = '+7' + digits.slice(1);
+                } else if (!normalizedPhone.startsWith('+')) {
+                    normalizedPhone = '+' + digits;
+                }
+            }
+
             // Save order to Prisma SQLite
             const order = await prisma.order.create({
                 data: {
@@ -57,7 +68,7 @@ export async function POST(req: Request) {
                     passengers: body.passengers,
                     priceEstimate: body.priceEstimate ? parseFloat(body.priceEstimate) : null,
                     customerName: body.customerName,
-                    customerPhone: body.customerPhone,
+                    customerPhone: normalizedPhone,
                     comments: body.comments,
                     scheduledDate: body.dateTime || null,
                     sourceSite: sourceSite,

@@ -236,7 +236,41 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     }, [fromCoords, toCoords, checkpointId]);
 
     const [name, setName] = useState('');
-    const [phone, setPhone] = useState('');
+    const [phone, setPhone] = useState('+7 ');
+
+    // Phone formatting: +7 (XXX) XXX-XX-XX
+    const formatPhone = (value: string): string => {
+        // Strip everything except digits
+        let digits = value.replace(/[^\d]/g, '');
+        // Always starts with 7
+        if (digits.startsWith('8') && digits.length >= 1) digits = '7' + digits.slice(1);
+        if (!digits.startsWith('7')) digits = '7' + digits;
+        // Limit to 11 digits (7 + 10)
+        digits = digits.slice(0, 11);
+        // Format
+        let formatted = '+7';
+        if (digits.length > 1) formatted += ' (' + digits.slice(1, 4);
+        if (digits.length >= 4) formatted += ') ';
+        if (digits.length > 4) formatted += digits.slice(4, 7);
+        if (digits.length > 7) formatted += '-' + digits.slice(7, 9);
+        if (digits.length > 9) formatted += '-' + digits.slice(9, 11);
+        return formatted;
+    };
+
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        // Prevent deleting the +7 prefix
+        if (val.length < 2) {
+            setPhone('+7 ');
+            return;
+        }
+        setPhone(formatPhone(val));
+    };
+
+    const normalizePhone = (formatted: string): string => {
+        const digits = formatted.replace(/[^\d]/g, '');
+        return '+' + digits;
+    };
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
     const [passengers, setPassengers] = useState(1);
@@ -248,7 +282,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!name || (!phone && !comments)) {
+        if (!name || (normalizePhone(phone).length < 12 && !comments)) {
             alert('Пожалуйста, укажите имя и телефон для связи.');
             return;
         }
@@ -269,7 +303,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                     tariff,
                     passengers,
                     customerName: name,
-                    customerPhone: phone,
+                    customerPhone: normalizePhone(phone),
                     comments: comments,
                     dateTime: `${date || ''} ${time || ''}`.trim(),
                     priceEstimate: priceCalc?.minPrice || null,
@@ -379,9 +413,23 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                                 />
                                             </div>
                                         </div>
-                                        <p className={styles.priceHint} style={{ gridColumn: '1 / -1', marginTop: '-10px', opacity: 0.8 }}>
-                                            <small>* Начните вводить точный адрес, и нажмите на подходящую подсказку из поиска.</small>
-                                        </p>
+                                        <div style={{ gridColumn: '1 / -1', marginTop: '-5px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                            <p className={styles.priceHint} style={{ opacity: 0.9, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <small>⚠️ Для оформления заявки выберите адрес из выпадающих подсказок Яндекса.</small>
+                                            </p>
+                                            {fromCity && !fromCoords && (
+                                                <small style={{ color: '#ef4444', fontSize: '0.8rem' }}>❌ Адрес «Откуда» не подтверждён — выберите из подсказок</small>
+                                            )}
+                                            {fromCity && fromCoords && (
+                                                <small style={{ color: '#22c55e', fontSize: '0.8rem' }}>✅ Адрес «Откуда» подтверждён</small>
+                                            )}
+                                            {toCity && !toCoords && (
+                                                <small style={{ color: '#ef4444', fontSize: '0.8rem' }}>❌ Адрес «Куда» не подтверждён — выберите из подсказок</small>
+                                            )}
+                                            {toCity && toCoords && (
+                                                <small style={{ color: '#22c55e', fontSize: '0.8rem' }}>✅ Адрес «Куда» подтверждён</small>
+                                            )}
+                                        </div>
 
                                         {(requiresCheckpoint(fromCity) || requiresCheckpoint(toCity)) && (
                                             <div className={styles.formGroup} style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
@@ -586,6 +634,10 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                             type="button"
                                             className={styles.nextBtn}
                                             onClick={() => {
+                                                if (!fromCoords || !toCoords) {
+                                                    alert('Пожалуйста, выберите адреса из выпадающих подсказок Яндекса.\n\nНачните вводить адрес и нажмите на подходящий вариант из списка.');
+                                                    return;
+                                                }
                                                 setStep(2);
                                                 // Wait for render, then scroll to the top of the form
                                                 setTimeout(() => {
@@ -626,7 +678,12 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                                         className={styles.input}
                                                         placeholder="+7 (999) 000-00-00"
                                                         value={phone}
-                                                        onChange={(e) => setPhone(e.target.value)}
+                                                        onChange={handlePhoneChange}
+                                                        onFocus={(e) => {
+                                                            if (!e.target.value || e.target.value.length < 2) {
+                                                                setPhone('+7 ');
+                                                            }
+                                                        }}
                                                     />
                                                 </div>
                                             </div>
