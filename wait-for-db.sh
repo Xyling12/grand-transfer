@@ -15,7 +15,7 @@ echo "Restoring latest schema.prisma to the mounted volume..."
 cp -f /app/prisma_backup/schema.prisma /app/prisma/schema.prisma
 
 echo "Pushing schema to database..."
-npx prisma db push --accept-data-loss
+npx prisma db push
 
 echo "Generating Prisma client..."
 npx prisma generate
