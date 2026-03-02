@@ -66,10 +66,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
         });
     });
 
-    // Top route pages (popular city pairs within 1200km)
-    const mainCities = cities.slice(0, 30); // Top 30 cities for sitemap
-    mainCities.forEach(fromCity => {
-        mainCities.forEach(toCity => {
+    // Gradually expand route coverage: use top 60 cities (ordered by importance in cities.ts)
+    // This gives ~800-1000 routes — safe growth from previous 30 cities / ~217 routes
+    // Can increase to 80-100 over time as domain authority grows
+    const routeCities = cities.slice(0, 60);
+    routeCities.forEach(fromCity => {
+        routeCities.forEach(toCity => {
             if (fromCity.id !== toCity.id) {
                 const dist = getDistanceFromLatLonInKm(fromCity.lat, fromCity.lon, toCity.lat, toCity.lon);
                 if (dist >= 30 && dist <= 1200) {
