@@ -49,4 +49,4 @@ COPY --from=builder /app/wait-for-db.sh ./wait-for-db.sh
 EXPOSE 3000
 
 # Start app using standalone server
-CMD cp -f /app/prisma_backup/schema.prisma /app/prisma/schema.prisma && npx prisma db push && node server.js
+CMD cp -f /app/prisma_backup/schema.prisma /app/prisma/schema.prisma && npx prisma db push && touch /app/prisma/.db-ready && node server.js
