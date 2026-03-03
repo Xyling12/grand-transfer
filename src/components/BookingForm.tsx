@@ -22,11 +22,11 @@ const TARIFFS = [
     { id: 'econom', name: 'Эконом', image: '/images/tariffs/economy-dark-new.webp?v=3' },
     { id: 'standart', name: 'Стандарт', image: '/images/tariffs/standard-dark-new.webp?v=3' },
     { id: 'comfort', name: 'Комфорт', image: '/images/tariffs/comfort-new.webp?v=3' },
-    { id: 'comfortPlus', name: 'Комфорт+', image: '/images/tariffs/comfort-3d.webp' },
-    { id: 'business', name: 'Бизнес', image: '/images/tariffs/business-3d.webp' },
-    { id: 'minivan', name: 'Минивэн', image: '/images/tariffs/minivan-v2.webp' },
-    { id: 'soberDriver', name: 'Трезвый водитель', image: '/images/tariffs/sober-3d.webp' },
-    { id: 'delivery', name: 'Доставка', image: '/images/tariffs/delivery-3d.webp' },
+    { id: 'comfortPlus', name: 'Комфорт+', image: '/images/tariffs/comfort_plus.png' },
+    { id: 'business', name: 'Бизнес', image: '/images/tariffs/business.png' },
+    { id: 'minivan', name: 'Минивэн', image: '/images/tariffs/minivan.png' },
+    { id: 'soberDriver', name: 'Трезвый водитель', image: '/images/tariffs/sober_driver.png' },
+    { id: 'delivery', name: 'Доставка', image: '/images/tariffs/delivery.png' },
 ];
 
 function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCity?: string, defaultToCity?: string }) {
