@@ -22,12 +22,16 @@ import { prisma } from '@/lib/prisma';
 import { sendOrderNotification } from '@/lib/telegram';
 import { sendEmailNotification } from '@/lib/email';
 
-// Helper to create a mock Request
+// Unique IP counter to avoid rate-limit singleton accumulation across tests
+let ipCounter = 0;
+
+// Helper to create a mock Request with unique IP per call
 function createMockRequest(body: object, headers: Record<string, string> = {}): Request {
     return new Request('http://localhost/api/order', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'x-forwarded-for': `10.0.0.${++ipCounter}`,
             host: 'xn--c1acbe2apap.com',
             ...headers,
         },
@@ -113,13 +117,20 @@ describe('/api/order POST', () => {
         const res = await POST(req);
         const json = await res.json();
 
+        // Route returns telegramFallback: !tgSuccess → !false = true
+        expect(res.status).toBe(200);
         expect(json.telegramFallback).toBe(true);
     });
 
     it('should return 500 on invalid JSON body', async () => {
         const req = new Request('http://localhost/api/order', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', host: 'xn--c1acbe2apap.com' },
+            headers: {
+                'Content-Type': 'application/json',
+                // Unique IP to avoid rate-limit (Map is a module singleton)
+                'x-forwarded-for': `10.255.0.${++ipCounter}`,
+                host: 'xn--c1acbe2apap.com',
+            },
             body: 'not json',
         });
         const res = await POST(req);
