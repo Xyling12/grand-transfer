@@ -31,35 +31,35 @@ const tariffDefs = [
         id: "comfortPlus" as keyof CityTariffs,
         name: "Комфорт+",
         description: "Автомобили D-класса. Просторный салон и премиум удобство.",
-        image: "/images/tariffs/comfort-3d.webp",
+        image: "/images/tariffs/comfort_plus.png",
         features: ["К5, Камри и аналоги", "Зарядка телефона", "Мягкая подвеска"]
     },
     {
         id: "business" as keyof CityTariffs,
         name: "Бизнес",
         description: "Премиум автомобили, кожаный салон, вода, деловой стиль вождения.",
-        image: "/images/tariffs/business-3d.webp",
+        image: "/images/tariffs/business.png",
         features: ["Мерседес, БМВ, Ауди", "Премиальный сервис", "Дресс-код водителя"]
     },
     {
         id: "minivan" as keyof CityTariffs,
         name: "Минивэн",
         description: "Для больших компаний или семьи с багажом. Вместимость до 7-8 человек.",
-        image: "/images/tariffs/minivan-v2.webp",
+        image: "/images/tariffs/minivan.png",
         features: ["Карнивал, Старекс и аналоги", "Огромный багажник", "Климат для заднего ряда"]
     },
     {
         id: "soberDriver" as keyof CityTariffs,
         name: "Трезвый водитель",
         description: "Наш профессиональный водитель безопасно доставит вас и ваш автомобиль домой.",
-        image: "/images/tariffs/sober-3d.webp",
+        image: "/images/tariffs/sober_driver.png",
         features: ["Опытные профессионалы", "Бережное вождение", "Безопасность авто"]
     },
     {
         id: "delivery" as keyof CityTariffs,
         name: "Доставка",
         description: "Быстрая и надежная доставка посылок, документов и малогабаритных грузов.",
-        image: "/images/tariffs/delivery-3d.webp",
+        image: "/images/tariffs/delivery.png",
         features: ["От двери до двери", "Гарантия сохранности", "Срочная отправка"]
     }
 ];
