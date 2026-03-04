@@ -16,8 +16,12 @@ export async function sendOrderNotification(orderData: Record<string, string | n
     const toCity = String(orderData.toCity || '');
     const checkpointName = orderData.checkpointName ? String(orderData.checkpointName) : '';
 
-    const fromCityObj = cities.find(c => c.name.toLowerCase() === fromCity.toLowerCase());
-    const toCityObj = cities.find(c => c.name.toLowerCase() === toCity.toLowerCase());
+    const lower1 = fromCity.toLowerCase();
+    const lower2 = toCity.toLowerCase();
+    const fromCityObj = cities.find(c => c.name.toLowerCase() === lower1)
+        ?? cities.find(c => lower1.includes(c.name.toLowerCase()) && c.name.length > 3);
+    const toCityObj = cities.find(c => c.name.toLowerCase() === lower2)
+        ?? cities.find(c => lower2.includes(c.name.toLowerCase()) && c.name.length > 3);
 
     const fallbackLoc1 = fromCityObj ? `${fromCityObj.lat},${fromCityObj.lon}` : encodeURIComponent(fromCity);
     const fallbackLoc2 = toCityObj ? `${toCityObj.lat},${toCityObj.lon}` : encodeURIComponent(toCity);

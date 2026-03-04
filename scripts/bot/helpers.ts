@@ -91,7 +91,9 @@ export const getMainMenu = (chatId: string, role: string, adminId: string) => {
 
 // --- Map Link Helpers ---
 function getCityPoint(cityName: string): string {
-    const found = cities.find(c => c.name.toLowerCase() === cityName.trim().toLowerCase());
+    const lower = cityName.trim().toLowerCase();
+    const found = cities.find(c => c.name.toLowerCase() === lower)
+        ?? cities.find(c => lower.includes(c.name.toLowerCase()) && c.name.length > 3);
     return found ? `${found.lat},${found.lon}` : encodeURIComponent(cityName);
 }
 
