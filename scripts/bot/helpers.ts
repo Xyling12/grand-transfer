@@ -98,7 +98,7 @@ function getCityPoint(cityName: string): string {
 export const getMapDeepLink = (fromCity: string, toCity: string) => {
     const pt1 = getCityPoint(fromCity);
     const pt2 = getCityPoint(toCity);
-    return `https://yandex.ru/navi/?rtext=${pt1}~${pt2}&rtt=auto`;
+    return `https://yandex.ru/maps/?mode=routes&rtt=auto&rtext=${pt1}~${pt2}`;
 };
 
 export const getMapWebLink = (fromCity: string, toCity: string) => {
