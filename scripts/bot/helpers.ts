@@ -90,15 +90,11 @@ export const getMainMenu = (chatId: string, role: string, adminId: string) => {
 
 // --- Map Link Helpers ---
 export const getMapDeepLink = (fromCity: string, toCity: string) => {
-    const pt1 = encodeURIComponent(fromCity);
-    const pt2 = encodeURIComponent(toCity);
-    return `https://yandex.ru/navi/?rtext=${pt1}~${pt2}&rtt=auto`;
+    return `https://yandex.ru/navi/?rtext=${fromCity}~${toCity}&rtt=auto`;
 };
 
 export const getMapWebLink = (fromCity: string, toCity: string) => {
-    const pt1 = encodeURIComponent(fromCity);
-    const pt2 = encodeURIComponent(toCity);
-    return `https://yandex.ru/maps/?rtext=${pt1}~${pt2}&rtt=auto`;
+    return `https://yandex.ru/maps/?rtext=${fromCity}~${toCity}&rtt=auto`;
 };
 
 // --- Reply With Menu Helper ---
