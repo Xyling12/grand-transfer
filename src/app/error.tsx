@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 export default function Error({
     error,
     reset,
@@ -7,6 +9,20 @@ export default function Error({
     error: Error & { digest?: string };
     reset: () => void;
 }) {
+    useEffect(() => {
+        // При несоответствии деплоев (старый клиент + новый сервер) Next.js бросает
+        // "Failed to find Server Action". Единственное решение — перезагрузить страницу,
+        // чтобы браузер получил актуальный клиентский бандл.
+        if (error?.message?.includes('Failed to find Server Action')) {
+            window.location.reload();
+        }
+    }, [error]);
+
+    // Пока идёт перезагрузка — ничего не показываем
+    if (error?.message?.includes('Failed to find Server Action')) {
+        return null;
+    }
+
     return (
         <main style={{
             display: 'flex',
@@ -68,3 +84,4 @@ export default function Error({
         </main>
     );
 }
+
