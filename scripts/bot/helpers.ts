@@ -1,5 +1,6 @@
 import { Markup } from 'telegraf';
 import { BotDeps } from './types';
+import { cities } from '../../src/data/cities';
 
 // --- Translation Helpers (shared with CRM) ---
 import { translateTariff, translateStatus } from '../../src/lib/translations';
@@ -89,12 +90,21 @@ export const getMainMenu = (chatId: string, role: string, adminId: string) => {
 };
 
 // --- Map Link Helpers ---
+function getCityPoint(cityName: string): string {
+    const found = cities.find(c => c.name.toLowerCase() === cityName.trim().toLowerCase());
+    return found ? `${found.lat},${found.lon}` : encodeURIComponent(cityName);
+}
+
 export const getMapDeepLink = (fromCity: string, toCity: string) => {
-    return `https://yandex.ru/navi/?rtext=${fromCity}~${toCity}&rtt=auto`;
+    const pt1 = getCityPoint(fromCity);
+    const pt2 = getCityPoint(toCity);
+    return `https://yandex.ru/navi/?rtext=${pt1}~${pt2}&rtt=auto`;
 };
 
 export const getMapWebLink = (fromCity: string, toCity: string) => {
-    return `https://yandex.ru/maps/?rtext=${fromCity}~${toCity}&rtt=auto`;
+    const pt1 = getCityPoint(fromCity);
+    const pt2 = getCityPoint(toCity);
+    return `https://yandex.ru/maps/?rtext=${pt1}~${pt2}&rtt=auto`;
 };
 
 // --- Reply With Menu Helper ---
