@@ -51,7 +51,9 @@ export async function generateMetadata(
     return {
         title: `Такси ${fromCity.name} - ${toCity.name} | От ${price} ₽ | Трансфер, Минивэн`,
         description: `Закажите междугороднее такси ${fromCity.name} — ${toCity.name}. Дистанция ~${roadDist} км. Фиксированная цена от ${price} руб. Поездки с детьми, животными, комфортные минивэны и микроавтобусы.`,
-        keywords: `такси ${fromCity.name} ${toCity.name}, трансфер ${fromCity.name} ${toCity.name}, междугороднее такси ${fromCity.name} ${toCity.name}, минивэн ${fromCity.name} ${toCity.name}, с детьми, с животными, цена`
+        alternates: {
+            canonical: `https://xn--c1acbe2apap.com/routes/${fromId}/${toId}`,
+        },
     };
 }
 
@@ -119,7 +121,7 @@ export default async function RoutePage(props: Props) {
             "priceCurrency": "RUB",
             "price": price,
             "availability": "https://schema.org/InStock",
-            "url": `https://xn--c1adbj4b9a7c.com/routes/${fromCity.id}/${toCity.id}`
+            "url": `https://xn--c1acbe2apap.com/routes/${fromCity.id}/${toCity.id}`
         }
     };
 
@@ -132,18 +134,19 @@ export default async function RoutePage(props: Props) {
                 "@type": "ListItem",
                 "position": 1,
                 "name": "Главная",
-                "item": "https://xn--c1adbj4b9a7c.com"
+                "item": "https://xn--c1acbe2apap.com"
             },
             {
                 "@type": "ListItem",
                 "position": 2,
                 "name": `Такси из ${fromCity.namePrepositional}`,
-                "item": `https://xn--c1adbj4b9a7c.com/#booking-form`
+                "item": `https://xn--c1acbe2apap.com/routes`
             },
             {
                 "@type": "ListItem",
                 "position": 3,
-                "name": `${toCity.name}`
+                "name": `${fromCity.name} — ${toCity.name}`,
+                "item": `https://xn--c1acbe2apap.com/routes/${fromCity.id}/${toCity.id}`
             }
         ]
     };
