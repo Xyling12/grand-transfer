@@ -787,7 +787,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                                     style={{ width: '20px', height: '20px', marginTop: '2px', accentColor: 'var(--color-primary)', cursor: 'pointer', flexShrink: 0 }}
                                                 />
                                                 <label htmlFor="offer" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: '1.4', cursor: 'pointer' }}>
-                                                    Я принимаю условия <a href="/terms" target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>Публичной оферты</a> и соглашаюсь с порядком оказания услуг.
+                                                    Я принимаю условия <a href="/oferta" target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>Публичной оферты</a> и заключаю договор на оказание транспортных услуг.
                                                 </label>
                                             </div>
                                         </div>
