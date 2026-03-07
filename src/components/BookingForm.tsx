@@ -276,6 +276,7 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
     const [passengers, setPassengers] = useState(1);
     const [comments, setComments] = useState('');
     const [consentAgreed, setConsentAgreed] = useState(false);
+    const [offerAgreed, setOfferAgreed] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
 
@@ -289,6 +290,11 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
 
         if (!consentAgreed) {
             alert('Для оформления заказа необходимо дать согласие на обработку персональных данных.');
+            return;
+        }
+
+        if (!offerAgreed) {
+            alert('Для оформления заказа необходимо принять условия публичной оферты.');
             return;
         }
 
@@ -768,7 +774,20 @@ function BookingFormContent({ defaultFromCity, defaultToCity }: { defaultFromCit
                                                     style={{ width: '20px', height: '20px', marginTop: '2px', accentColor: 'var(--color-primary)', cursor: 'pointer', flexShrink: 0 }}
                                                 />
                                                 <label htmlFor="consent" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: '1.4', cursor: 'pointer' }}>
-                                                    Я даю согласие на <a href="/privacy" target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>обработку персональных данных</a> в соответствии с ФЗ-152 и принимаю условия Пользовательского соглашения.
+                                                    Я даю согласие на <a href="/privacy" target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>обработку персональных данных</a> в соответствии с ФЗ-152.
+                                                </label>
+                                            </div>
+
+                                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginTop: '10px', padding: '0 5px' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    id="offer"
+                                                    checked={offerAgreed}
+                                                    onChange={(e) => setOfferAgreed(e.target.checked)}
+                                                    style={{ width: '20px', height: '20px', marginTop: '2px', accentColor: 'var(--color-primary)', cursor: 'pointer', flexShrink: 0 }}
+                                                />
+                                                <label htmlFor="offer" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: '1.4', cursor: 'pointer' }}>
+                                                    Я принимаю условия <a href="/oferta" target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>Публичной оферты</a> и заключаю договор на оказание транспортных услуг.
                                                 </label>
                                             </div>
                                         </div>
